@@ -45,12 +45,85 @@ class PlayerTurn {
     }
 }
 
+class HandHandler {
+    constructor(gameui, owner, handData) {
+        this.gameui = gameui;
+        this.owner = owner;
+        this.handData = handData;
+        // ensure hand container exists in DOM (vanilla JS)
+        const parent = document.querySelector('#player-hands-container');
+        if (parent) {
+            this.handContainer = document.createElement('div');
+            this.handContainer.className = 'my-hand-container'; //ekmek bu ismi degistir my-hand-container
+            this.handContainer.setAttribute('data-owner-id', `${this.owner.playerID}`);
+            this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.playerColor);
+            const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
+            // inline HTML for brevity
+            this.handContainer.innerHTML = `
+                <div class="my-hand-title">${handTitleText}</div>
+                <div class="cards-container"></div>
+            `;
+            parent.appendChild(this.handContainer);
+        }
+        this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container'));
+        // this.cardsContainer?.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); }); //ekmek devam?
+        this.displayHand();
+    }
+    displayHand() {
+        this.cardsContainer.innerHTML = ''; // Clear existing cards
+        for (let cardData of this.handData)
+            this.insertCardToHand(cardData);
+        // this.setHandCountAttrForMobileResizing(false); //ekmek devam
+    }
+    insertCardToHand(cardData) {
+        let aCard = this.gameui.createCardDiv(cardData);
+        aCard.setAttribute('data-state_in_hand', cardData.state_in_hand);
+        aCard.style.zIndex = cardData.location_in_hand.toString();
+        this.cardsContainer.appendChild(aCard);
+    }
+    setHandTitle(title) {
+        const titleElement = this.handContainer.querySelector('.my-hand-title');
+        if (titleElement)
+            titleElement.textContent = title;
+    }
+    getHandContainer() {
+        return this.handContainer;
+    }
+}
+
+class PlayerHandler {
+    constructor(gameui, playerID, playerName, playerColor, playerScore, playerNo, playerHandData) {
+        this.gameui = gameui;
+        this.playerID = playerID;
+        this.playerName = playerName;
+        this.playerColor = playerColor;
+        this.playerScore = playerScore;
+        this.playerNo = playerNo;
+        this.playerHandData = playerHandData;
+        this.overallPlayerBoard = document.getElementById('overall_player_board_' + this.playerID);
+        this.scoreCounter = new ebg.counter();
+        this.scoreCounter.create(`player_score_${this.playerID}`, {
+            value: this.playerScore, //ekmek degistir
+            playerCounter: 'Points',
+            playerId: this.playerID,
+        });
+        this.hand = new HandHandler(this.gameui, this, this.playerHandData);
+    }
+    updateScore(newScore) {
+        this.playerScore = newScore;
+        this.scoreCounter.toValue(newScore);
+    }
+    getPlayerName() { return this.playerName; }
+    getHand() { return this.hand; }
+}
+
 class Game {
     constructor(bga) {
+        this.players = {};
         console.log('fugu constructor');
         this.bga = bga;
         // Declare the State classes
-        this.playerTurn = new PlayerTurn(this, bga);
+        this.playerTurn = new PlayerTurn(this, bga); //ekmek default sil?
         this.bga.states.register('PlayerTurn', this.playerTurn);
         // Uncomment the next line to show debug informations about state changes in the console. Remove before going to production!
         // this.bga.states.logger = console.log;
@@ -73,32 +146,25 @@ class Game {
     setup(gamedatas) {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
-        // Example to add a div on the game area
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
-            <div id="player-tables"></div>
+            <div id="player-hands-container"></div>
         `);
         // Setting up player boards
-        Object.entries(gamedatas.players).forEach(([pId, player]) => {
-            const playerId = Number(pId);
-            // example of setting up players boards
-            this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', `
-                <span id="energy-player-counter-${playerId}"></span> Energy
-            `);
-            const counter = new ebg.counter();
-            counter.create(`energy-player-counter-${playerId}`, {
-                value: player.energy,
-                playerCounter: 'energy',
-                playerId: playerId,
-            });
-            // example of adding a div for each player
-            document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-                <div id="player-table-${player.id}">
-                    <strong>${player.name}</strong>
-                    <div>Player <div class="test-style">areas</div> goes here</div>
-                </div>
-            `);
-        });
-        // TODO: Set up your game interface here, according to "gamedatas"
+        for (let player_id in gamedatas.players) {
+            const { name, color, score, player_no } = this.gamedatas.players[player_id];
+            const score_num = parseInt(score, 10);
+            const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData);
+        }
+        const currentPlayerID = this.bga.players.getCurrentPlayerId();
+        if (this.players.hasOwnProperty(currentPlayerID)) {
+            this.myself = this.players[currentPlayerID];
+            this.myself.getHand().setHandTitle(_('Your Reef'));
+            for (let next_player_id of gamedatas.playerorder) {
+                const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
+                nextHandContainer.parentElement.append(nextHandContainer);
+            }
+        }
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
         console.log("Ending game setup");
@@ -111,6 +177,15 @@ class Game {
         script. Typically, functions that are used in multiple state classes or outside a state class.
     
     */
+    createCardDiv(cardData) {
+        let aCard = document.createElement('div');
+        aCard.className = 'a-card';
+        aCard.setAttribute('data-suit', cardData.suit);
+        if ('rank' in cardData)
+            aCard.setAttribute('data-rank', String(cardData.rank));
+        aCard.setAttribute('data-card-id', String(cardData.card_id));
+        return aCard;
+    }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
     /*

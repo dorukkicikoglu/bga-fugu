@@ -1,17 +1,20 @@
 import { PlayerTurn } from "./States/PlayerTurn";
+import { PlayerHandler } from "./PlayerHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
     private gamedatas: FuguGamedatas;
 
-    private playerTurn: PlayerTurn;
+    private playerTurn: PlayerTurn; //ekmek default sil?
+    public players: Record<number, PlayerHandler> = {};
+    public myself: PlayerHandler;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
         this.bga = bga;
 
         // Declare the State classes
-        this.playerTurn = new PlayerTurn(this, bga);
+        this.playerTurn = new PlayerTurn(this, bga); //ekmek default sil?
         this.bga.states.register('PlayerTurn', this.playerTurn);
 
         // Uncomment the next line to show debug informations about state changes in the console. Remove before going to production!
@@ -39,36 +42,29 @@ export class Game {
         console.log( "Starting game setup" );
         this.gamedatas = gamedatas;
 
-        // Example to add a div on the game area
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
-            <div id="player-tables"></div>
+            <div id="player-hands-container"></div>
         `);
-        
-        // Setting up player boards
-        Object.entries(gamedatas.players).forEach(([pId, player]) => {
-            const playerId = Number(pId);
-            // example of setting up players boards
-            this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', `
-                <span id="energy-player-counter-${playerId}"></span> Energy
-            `);
-            const counter = new ebg.counter();
-            counter.create(`energy-player-counter-${playerId}`, {
-                value: player.energy,
-                playerCounter: 'energy',
-                playerId: playerId,
-            });
 
-            // example of adding a div for each player
-            document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-                <div id="player-table-${player.id}">
-                    <strong>${player.name}</strong>
-                    <div>Player <div class="test-style">areas</div> goes here</div>
-                </div>
-            `);
-        });
-        
-        // TODO: Set up your game interface here, according to "gamedatas"
-        
+        // Setting up player boards
+        for(let player_id in gamedatas.players) {
+            const {name, color, score, player_no} = this.gamedatas.players[player_id];
+            const score_num: number = parseInt(score, 10);
+            const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData);
+        }
+
+        const currentPlayerID: number = this.bga.players.getCurrentPlayerId();
+
+        if(this.players.hasOwnProperty(currentPlayerID)){
+            this.myself = this.players[currentPlayerID];
+            this.myself.getHand().setHandTitle(_('Your Reef'));
+
+            for(let next_player_id of gamedatas.playerorder) {
+                const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
+                nextHandContainer.parentElement!.append(nextHandContainer);
+            }
+        }
 
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
@@ -85,6 +81,14 @@ export class Game {
         script. Typically, functions that are used in multiple state classes or outside a state class.
     
     */
+    createCardDiv(cardData: CardInCenter | CardInHand): HTMLDivElement {
+        let aCard = document.createElement('div');
+        aCard.className = 'a-card';
+        aCard.setAttribute('data-suit', cardData.suit);
+        if('rank' in cardData) aCard.setAttribute('data-rank', String(cardData.rank));
+        aCard.setAttribute('data-card-id', String(cardData.card_id));
+        return aCard;
+    }
 
     
     ///////////////////////////////////////////////////

@@ -28,9 +28,9 @@ class Game extends \Bga\GameFramework\Table
 {
     public Deck $cardsDeck;
     public FUGUTableManager $tableManager;
-    public static array $CARD_TYPES; //ekmek default sil
+    public static array $CARD_TYPES; //ekmek default sil?
 
-    public PlayerCounter $playerEnergy; //ekmek default sil
+    public PlayerCounter $playerEnergy; //ekmek default sil?
 
     /**
      * Your global variables labels:
@@ -49,7 +49,7 @@ class Game extends \Bga\GameFramework\Table
 
         $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy');
 
-        self::$CARD_TYPES = [ //ekmek default sil
+        self::$CARD_TYPES = [ //ekmek default sil?
             1 => [
                 "card_name" => clienttranslate('Troll'), // ...
             ],
@@ -139,10 +139,12 @@ class Game extends \Bga\GameFramework\Table
 
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
-        $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` AS `id`, `player_score` AS `score` FROM `player`"
-        );
-        $this->playerEnergy->fillResult($result);
+        $result["players"] = $this->getCollectionFromDb("SELECT `player_id`, `player_no`, `player_score` score FROM `player`");
+        $cardsOnTable = $this->tableManager->getCardsOnTable();
+        $result['cardsInCenter'] = $cardsOnTable['center'];
+        $result['cardsInHands'] = $cardsOnTable['players'];
+
+        $this->playerEnergy->fillResult($result); //ekmek default sil?
 
         // TODO: Gather all information about current game situation (visible by player $currentPlayerId).
 

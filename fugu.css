@@ -1,7 +1,401 @@
-.test-style {
-  background-color: lightblue;
-  padding: 10px;
-  border-radius: 5px;
+:root {
+  --player-color: #000000;
+  --card-width: 6vw;
+  --image-source-fugu-cards: url(img/fugu_cards.webp);
+}
+
+.a-card {
+  overflow: hidden;
+  background-color: #fff8e9;
+  --my-card-width: var(--card-width);
+  width: var(--my-card-width);
+  height: calc(var(--my-card-width) * 2);
+  box-shadow: 2px 2px 4px #000000;
+  border-radius: calc(var(--my-card-width) * 0.1);
+}
+.a-card:before {
+  display: block;
+  background-image: var(--image-source-fugu-cards);
+  background-color: #fff8e9;
+  width: 104%;
+  height: 102%;
+  margin-left: -1%;
+  margin-top: -2%;
+}
+.a-card.selection-confirmed {
+  animation: selection-confirmed-card-animation 0.2s ease-out forwards;
+  position: relative;
+  z-index: 1;
+}
+.a-card.selection-confirmed[suit="1"] {
+  --highlight-color: #fddd5bb8;
+}
+.a-card.selection-confirmed[suit="2"] {
+  --highlight-color: #a7d8f0;
+}
+.a-card.selection-confirmed[suit="3"] {
+  --highlight-color: #72ff8cdb;
+}
+
+.a-card:before {
+  content: "";
+  background-size: 1000% 800%;
+}
+.a-card[data-state_in_hand=facedown]:before {
+  background-position-x: -600%;
+  background-position-y: -700%;
+}
+.a-card[data-state_in_hand=anchor] {
+  transform: rotate(-180deg);
+  box-shadow: -2px -2px 4px #000000;
+}
+.a-card[data-rank="0"]::before {
+  background-position-x: -900%;
+  background-position-y: 100%;
+}
+.a-card[data-rank="1"]::before {
+  background-position-x: 0%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="2"]::before {
+  background-position-x: -100%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="3"]::before {
+  background-position-x: -200%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="4"]::before {
+  background-position-x: -300%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="5"]::before {
+  background-position-x: -400%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="6"]::before {
+  background-position-x: -500%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="7"]::before {
+  background-position-x: -600%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="8"]::before {
+  background-position-x: -700%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="9"]::before {
+  background-position-x: -800%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="10"]::before {
+  background-position-x: -900%;
+  background-position-y: 0%;
+}
+.a-card[data-rank="11"]::before {
+  background-position-x: 0%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="12"]::before {
+  background-position-x: -100%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="13"]::before {
+  background-position-x: -200%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="14"]::before {
+  background-position-x: -300%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="15"]::before {
+  background-position-x: -400%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="16"]::before {
+  background-position-x: -500%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="17"]::before {
+  background-position-x: -600%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="18"]::before {
+  background-position-x: -700%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="19"]::before {
+  background-position-x: -800%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="20"]::before {
+  background-position-x: -900%;
+  background-position-y: -100%;
+}
+.a-card[data-rank="21"]::before {
+  background-position-x: 0%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="22"]::before {
+  background-position-x: -100%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="23"]::before {
+  background-position-x: -200%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="24"]::before {
+  background-position-x: -300%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="25"]::before {
+  background-position-x: -400%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="26"]::before {
+  background-position-x: -500%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="27"]::before {
+  background-position-x: -600%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="28"]::before {
+  background-position-x: -700%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="29"]::before {
+  background-position-x: -800%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="30"]::before {
+  background-position-x: -900%;
+  background-position-y: -200%;
+}
+.a-card[data-rank="31"]::before {
+  background-position-x: 0%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="32"]::before {
+  background-position-x: -100%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="33"]::before {
+  background-position-x: -200%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="34"]::before {
+  background-position-x: -300%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="35"]::before {
+  background-position-x: -400%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="36"]::before {
+  background-position-x: -500%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="37"]::before {
+  background-position-x: -600%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="38"]::before {
+  background-position-x: -700%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="39"]::before {
+  background-position-x: -800%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="40"]::before {
+  background-position-x: -900%;
+  background-position-y: -300%;
+}
+.a-card[data-rank="41"]::before {
+  background-position-x: 0%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="42"]::before {
+  background-position-x: -100%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="43"]::before {
+  background-position-x: -200%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="44"]::before {
+  background-position-x: -300%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="45"]::before {
+  background-position-x: -400%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="46"]::before {
+  background-position-x: -500%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="47"]::before {
+  background-position-x: -600%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="48"]::before {
+  background-position-x: -700%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="49"]::before {
+  background-position-x: -800%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="50"]::before {
+  background-position-x: -900%;
+  background-position-y: -400%;
+}
+.a-card[data-rank="51"]::before {
+  background-position-x: 0%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="52"]::before {
+  background-position-x: -100%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="53"]::before {
+  background-position-x: -200%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="54"]::before {
+  background-position-x: -300%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="55"]::before {
+  background-position-x: -400%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="56"]::before {
+  background-position-x: -500%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="57"]::before {
+  background-position-x: -600%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="58"]::before {
+  background-position-x: -700%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="59"]::before {
+  background-position-x: -800%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="60"]::before {
+  background-position-x: -900%;
+  background-position-y: -500%;
+}
+.a-card[data-rank="61"]::before {
+  background-position-x: 0%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="62"]::before {
+  background-position-x: -100%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="63"]::before {
+  background-position-x: -200%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="64"]::before {
+  background-position-x: -300%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="65"]::before {
+  background-position-x: -400%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="66"]::before {
+  background-position-x: -500%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="67"]::before {
+  background-position-x: -600%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="68"]::before {
+  background-position-x: -700%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="69"]::before {
+  background-position-x: -800%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="70"]::before {
+  background-position-x: -900%;
+  background-position-y: -600%;
+}
+.a-card[data-rank="71"]::before {
+  background-position-x: 0%;
+  background-position-y: -700%;
+}
+.a-card[data-rank="72"]::before {
+  background-position-x: -100%;
+  background-position-y: -700%;
+}
+.a-card[data-rank="73"]::before {
+  background-position-x: -200%;
+  background-position-y: -700%;
+}
+.a-card[data-rank="74"]::before {
+  background-position-x: -300%;
+  background-position-y: -700%;
+}
+.a-card[data-rank="75"]::before {
+  background-position-x: -400%;
+  background-position-y: -700%;
+}
+.a-card.a-card-clone {
+  position: absolute;
+}
+
+.my-hand-container {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--hand-owner-color);
+  border-radius: 10px;
+  margin-top: 18px;
+  padding: 30px 0px 10px 0px;
+  min-height: calc(var(--card-width) * 2);
+  --selected-card-margin-top: -30px;
+}
+.my-hand-container .my-hand-title {
+  position: absolute;
+  top: 0px;
+  left: 27px;
+  transform: translateY(-50%);
+  font-family: "Roboto", sans-serif;
+  border-radius: 6px;
+  color: var(--hand-owner-color);
+  font-size: 20px;
+  text-shadow: 2px 0 #f0f0f0, -2px 0 #f0f0f0, 0 2px #f0f0f0, 0 -2px #f0f0f0, 1px 1px #f0f0f0, -1px -1px #f0f0f0, 1px -1px #f0f0f0, -1px 1px #f0f0f0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.my-hand-container .cards-container .a-card {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  --horz-margin: calc(var(--my-card-width) * -0.13);
+  margin-left: var(--horz-margin);
+  margin-right: var(--horz-margin);
+  transition: margin-top 0.3s ease;
+}
+.my-hand-container .cards-container .a-card[selected=true] {
+  margin-top: var(--selected-card-margin-top);
 }
 
 /*# sourceMappingURL=fugu.css.map */

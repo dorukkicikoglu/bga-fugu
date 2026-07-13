@@ -1,5 +1,5 @@
 <?php
-//ekmek default sil
+//ekmek default sil?
 declare(strict_types=1);
 
 namespace Bga\Games\Fugu\States;
@@ -53,7 +53,7 @@ class PlayerTurn extends GameState
         }
 
         // Add your game logic to play a card here.
-        $card_name = Game::$CARD_TYPES[$card_id]['card_name'];
+        $card_name = 'some card name doruk wrote';
 
         // Notify all players about the card played.
         $this->bga->notify->all("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [

@@ -33,13 +33,50 @@ class FUGUTableManager{
         }
     }
 
-    
-    //ekmek sil?
-    // function getRemainingPlayerCardsCount(){ return (int) $this->getUniqueValueFromDB("SELECT count(*) FROM `cards` WHERE `card_location` = 'player'"); }
-    // function isLastCards(){ return $this->getRemainingPlayerCardsCount() <= $this->game->customGetPlayersNumber(true); }
-    // function arePlayerCardsFinished(){ return (int) $this->getUniqueValueFromDB("SELECT EXISTS (SELECT 1 FROM `cards` WHERE `card_location` = 'player') AS exists_in_player") == 0; }
-    // function anyPilesTaken($playerID = false){ return (int) $this->getUniqueValueFromDB("SELECT EXISTS (SELECT 1 FROM `cards` WHERE `card_location` = 'scored'".($playerID ? " AND `card_location_arg` = $playerID" : "").") AS exists_scored_card") != 0; }
-    // function getPlayedCards(){ return $this->getDoubleKeyCollectionFromDB("SELECT `suit`, `rank`, `card_id` FROM `cards` WHERE `card_location` IN('pile', 'pile_queue', 'scored')", false); }
+    function getCardsOnTable(){
+        $allCardsDB = $this->game->getCollectionFromDb("SELECT * FROM `cards` ORDER BY `card_location_arg` ASC, `location_in_hand` ASC");
+        $cardsData = [
+            'center' => [],
+            'players' => [],
+        ];
+
+        foreach($allCardsDB as $cardDB){
+            
+            if($cardDB['card_location'] === 'center'){
+                $card = [
+                    'card_id' => (int) $cardDB['card_id'],
+                    'location_in_center' => (int) $cardDB['card_location_arg'],
+                    'suit' => $cardDB['suit'],
+                    'rank' => (int) $cardDB['rank'],
+                ];
+                $cardsData['center'][] = $card;
+            } else if($cardDB['card_location'] === 'player'){
+                $player_id = (int) $cardDB['card_location_arg'];
+                $state_in_hand = $cardDB['state_in_hand'];
+
+                if(((int) $cardDB['card_id']) % 3 > 0)  //ekmek sil
+                    $state_in_hand = 'number'; //ekmek sil
+                if(((int) $cardDB['card_id']) % 5 == 3)  //ekmek sil
+                    $state_in_hand = 'anchor'; //ekmek sil
+
+                $card = [
+                    'card_id' => null,
+                    'location_in_hand' => (int) $cardDB['location_in_hand'],
+                    'state_in_hand' => $state_in_hand,
+                    'suit' => null,
+                    'rank' => null,
+                ];
+
+                if($state_in_hand === 'number' || $state_in_hand === 'anchor'){
+                    $card['card_id'] = (int) $cardDB['card_id'];
+                    $card['suit'] = (int) $cardDB['suit'];
+                    $card['rank'] = $cardDB['rank'];
+                }
+                $cardsData['players'][$player_id][] = $card;
+            }
+        }
+        return $cardsData;
+    }
 }
 
 ?>
