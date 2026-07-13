@@ -2,7 +2,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Fugu implementation : © <Your name here> <Your email address here>
+ * Fugu implementation : © Doruk Kicikoglu <doruk.kicikoglu@gmail.com>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -20,12 +20,17 @@ namespace Bga\Games\Fugu;
 
 use Bga\Games\Fugu\States\PlayerTurn;
 use Bga\GameFramework\Components\Counters\PlayerCounter;
+use Bga\GameFramework\Components\Deck;
+use Bga\Games\Fugu\FUGUTableManager;
+
 
 class Game extends \Bga\GameFramework\Table
 {
-    public static array $CARD_TYPES;
+    public Deck $cardsDeck;
+    public FUGUTableManager $tableManager;
+    public static array $CARD_TYPES; //ekmek default sil
 
-    public PlayerCounter $playerEnergy;
+    public PlayerCounter $playerEnergy; //ekmek default sil
 
     /**
      * Your global variables labels:
@@ -40,9 +45,11 @@ class Game extends \Bga\GameFramework\Table
     {
         parent::__construct();
 
+        require_once 'material.inc.php'; 
+
         $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy');
 
-        self::$CARD_TYPES = [
+        self::$CARD_TYPES = [ //ekmek default sil
             1 => [
                 "card_name" => clienttranslate('Troll'), // ...
             ],
@@ -66,6 +73,9 @@ class Game extends \Bga\GameFramework\Table
             
             return $args;
         });*/
+
+        $this->cardsDeck = $this->deckFactory->createDeck("cards");
+        $this->tableManager = new FUGUTableManager($this);
     }
 
     /**
@@ -185,7 +195,19 @@ class Game extends \Bga\GameFramework\Table
         // $this->tableStats->init('table_teststat1', 0);
         // $this->playerStats->init('player_teststat1', 0);
 
-        // TODO: Setup the initial game situation here.
+        //Setup the initial game situation 
+        //create cards Deck object
+
+        $deckLength = DECK_LENGTHS[count($players)]; 
+        
+        $cardRows = array();
+        for($i = 1; $i <= $deckLength; $i++){
+            $cardType = CARD_NUM_TO_CARD_TYPE[$i];
+            $cardRows[] = "('$i', 'card', '0', 'returned_to_box', '0', '$cardType', '$i')";
+        }
+        self::DbQuery("INSERT INTO `cards` (`card_id`, `card_type`, `card_type_arg`, `card_location`, `card_location_arg`, `suit`, `rank`) VALUES ".implode(',', $cardRows)); 
+
+        $this->tableManager->shuffleAndDealCards();
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -218,4 +240,18 @@ class Game extends \Bga\GameFramework\Table
         $this->cards->moveCard($card['id'], 'hand', $playerId);
     }
     */
+
+    public function message($txt, $desc = '', $color = 'blue') {
+        if ($this->getBgaEnvironment() != "studio")
+            return;
+
+        if (is_array($txt))
+            $txt = json_encode($txt);
+
+        if($desc != '')
+            $txt .= "   ".json_encode($desc);
+
+        self::trace("Logging: <span style='color: $color;'>$txt</span>");
+        self::notifyAllPlayers('plop',"<textarea style='height: 104px; width: 230px;color:$color'>$txt</textarea>",array());
+    }
 }

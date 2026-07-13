@@ -94,7 +94,7 @@ class Game {
             document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
                 <div id="player-table-${player.id}">
                     <strong>${player.name}</strong>
-                    <div>Player <div class="test-style">areas</div> go here</div>
+                    <div>Player <div class="test-style">areas</div> goes here</div>
                 </div>
             `);
         });
