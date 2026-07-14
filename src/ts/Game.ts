@@ -6,7 +6,7 @@ export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
     private gamedatas: FuguGamedatas;
 
-    private playerTurn: PlayerTurn; //ekmek default sil?
+    public playerTurn: PlayerTurn;
     public players: Record<number, PlayerHandler> = {};
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
@@ -53,10 +53,10 @@ export class Game {
 
         // Setting up player boards
         for(let player_id in gamedatas.players) {
-            const {name, color, score, player_no} = this.gamedatas.players[player_id];
+            const {name, color, score, player_no, game_ended} = this.gamedatas.players[player_id];
             const score_num: number = parseInt(score, 10);
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData, game_ended);
         }
 
         const currentPlayerID: number = this.bga.players.getCurrentPlayerId();
@@ -121,14 +121,8 @@ export class Game {
         });
     }
     
-    // TODO: from this point and below, you can write your game notifications handling methods
-    
-    /*
-    Example:
-    async notif_cardPlayed( args ) {
-        // Note: args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-        
-        // TODO: play the card in the user interface.
+    // Add the notification handler
+    public async notif_pass(args: {player_id: number}) {
+        this.players[args.player_id].setGameEnded(true);
     }
-    */
 }

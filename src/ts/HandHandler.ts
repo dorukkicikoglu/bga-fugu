@@ -12,8 +12,8 @@ export class HandHandler{
         if (parent) {
             this.handContainer = document.createElement('div');
             this.handContainer.className = 'my-hand-container'; //ekmek bu ismi degistir my-hand-container
-            this.handContainer.setAttribute('data-owner-id', `${this.owner.playerID}`);
-            this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.playerColor);
+            this.handContainer.setAttribute('data-owner-id', `${this.owner.getPlayerID()}`);
+            this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.getPlayerColor());
 
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
             // inline HTML for brevity

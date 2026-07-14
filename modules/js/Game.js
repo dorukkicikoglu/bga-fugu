@@ -13,19 +13,21 @@ class PlayerTurn {
      */
     onEnteringState(args, isCurrentPlayerActive) {
         this.bga.statusBar.setTitle(isCurrentPlayerActive ?
-            _('${you} must play a card or pass') :
+            _('${you} must swap 2 cards or pass') :
             _('${actplayer} must play a card or pass'));
         if (isCurrentPlayerActive) {
-            const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs
-            // Add test action buttons in the action status bar, simulating a card click:
-            playableCardsIds.forEach(cardId => this.bga.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', `${cardId}`), () => this.onCardClick(cardId)));
-            this.bga.statusBar.addActionButton(_('Pass'), () => this.bga.actions.performAction("actPass"), { color: 'secondary' });
+            // const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs //ekmek sil
+            this.swapButton = this.bga.statusBar.addActionButton(_('Swap selected cards'), () => this.swapClicked(), { id: 'swap-button' });
+            this.swapButton.style.display = 'none';
+            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { color: 'secondary' });
         }
     }
     /**
      * This method is called each time we are leaving the game state. You can use this method to perform some user interface changes at this moment.
      */
     onLeavingState(args, isCurrentPlayerActive) {
+        document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
+        document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
     }
     /**
      * This method is called each time the current player becomes active or inactive in a MULTIPLE_ACTIVE_PLAYER state. You can use this method to perform some user interface changes at this moment.
@@ -34,15 +36,35 @@ class PlayerTurn {
      */
     onPlayerActivationChange(args, isCurrentPlayerActive) {
     }
-    onCardClick(card_id) {
-        console.log('onCardClick', card_id);
-        this.bga.actions.performAction("actPlayCard", {
-            card_id,
+    passClicked() {
+        this.bga.dialogs.confirmation(_("Pass and end your game?")).then(result => {
+            if (result) {
+                this.bga.actions.performAction("actPass");
+            }
+        });
+    }
+    swapClicked() {
+        debugger;
+        if (!this.game.myself)
+            return;
+        const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
+        const handCardDiv = this.game.myself.getHand().getHandContainer().querySelector('.selected-hand-card');
+        if (!centerCardDiv || !handCardDiv)
+            return;
+        const centerCardID = centerCardDiv.getAttribute('data-card-id');
+        const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
+        this.bga.actions.performAction("actSwapCard", {
+            centerCardID: centerCardID,
+            handCardLocation: handCardLocation
         }).then(() => {
+            alert('bitti!');
+            debugger; //ekmek devam
             // What to do after the server call if it succeeded
             // (most of the time, nothing, as the game will react to notifs / change of state instead, so you can delete the `then`)
         });
     }
+    getSwapButton() { return this.swapButton; }
+    ;
 }
 
 class HandHandler {
@@ -56,8 +78,8 @@ class HandHandler {
         if (parent) {
             this.handContainer = document.createElement('div');
             this.handContainer.className = 'my-hand-container'; //ekmek bu ismi degistir my-hand-container
-            this.handContainer.setAttribute('data-owner-id', `${this.owner.playerID}`);
-            this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.playerColor);
+            this.handContainer.setAttribute('data-owner-id', `${this.owner.getPlayerID()}`);
+            this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.getPlayerColor());
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
             // inline HTML for brevity
             this.handContainer.innerHTML = `
@@ -121,7 +143,7 @@ class HandHandler {
 }
 
 class PlayerHandler {
-    constructor(gameui, playerID, playerName, playerColor, playerScore, playerNo, playerHandData) {
+    constructor(gameui, playerID, playerName, playerColor, playerScore, playerNo, playerHandData, game_ended) {
         this.gameui = gameui;
         this.playerID = playerID;
         this.playerName = playerName;
@@ -129,7 +151,9 @@ class PlayerHandler {
         this.playerScore = playerScore;
         this.playerNo = playerNo;
         this.playerHandData = playerHandData;
+        this.game_ended = game_ended;
         this.overallPlayerBoard = document.getElementById('overall_player_board_' + this.playerID);
+        this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {
             value: this.playerScore, //ekmek degistir
@@ -138,11 +162,18 @@ class PlayerHandler {
         });
         this.hand = new HandHandler(this.gameui, this, this.playerHandData);
     }
+    setGameEnded(gameEnded) {
+        this.game_ended = gameEnded;
+        if (gameEnded)
+            this.overallPlayerBoard.classList.add('player-game-ended');
+    }
     updateScore(newScore) {
         this.playerScore = newScore;
         this.scoreCounter.toValue(newScore);
     }
+    getPlayerID() { return this.playerID; }
     getPlayerName() { return this.playerName; }
+    getPlayerColor() { return this.playerColor; }
     getHand() { return this.hand; }
 }
 
@@ -185,11 +216,12 @@ class CenterHandler {
             this.cardsUnselected();
             return;
         }
-        alert('both selected');
+        this.gameui.playerTurn.getSwapButton().style.display = null;
     }
     cardsUnselected() {
-        alert('ekmek devam');
+        this.gameui.playerTurn.getSwapButton().style.display = 'none';
     }
+    getCenterContainer() { return this.centerContainer; }
 }
 
 class Game {
@@ -228,10 +260,10 @@ class Game {
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
-            const { name, color, score, player_no } = this.gamedatas.players[player_id];
+            const { name, color, score, player_no, game_ended } = this.gamedatas.players[player_id];
             const score_num = parseInt(score, 10);
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData, game_ended);
         }
         const currentPlayerID = this.bga.players.getCurrentPlayerId();
         if (this.players.hasOwnProperty(currentPlayerID)) {
@@ -284,6 +316,10 @@ class Game {
         this.bga.notifications.setupPromiseNotifications({
         // logger: console.log
         });
+    }
+    // Add the notification handler
+    async notif_pass(args) {
+        this.players[args.player_id].setGameEnded(true);
     }
 }
 

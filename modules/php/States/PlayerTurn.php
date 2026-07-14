@@ -80,6 +80,8 @@ class PlayerTurn extends GameState
     #[PossibleAction]
     public function actPass(int $activePlayerId)
     {
+        $this->game->DbQuery("UPDATE `player` SET `passed` = 'yes', `game_ended` = 'yes' WHERE `player_id` = $activePlayerId"); //ekmek facedown kalmayinca da update game_ended = yes 
+
         // Notify all players about the choice to pass.
         $this->notify->all("pass", clienttranslate('${player_name} passes'), [
             "player_id" => $activePlayerId,
@@ -87,8 +89,8 @@ class PlayerTurn extends GameState
         ]);
 
         // in this example, the player gains 1 energy each time he passes
-        $this->game->playerEnergy->inc($activePlayerId, 1);
-
+        // $this->game->playerEnergy->inc($activePlayerId, 1); //ekmek sil
+        
         // at the end of the action, move to the next state
         return NextPlayer::class;
     }
@@ -106,12 +108,5 @@ class PlayerTurn extends GameState
      * you must _never_ use `getCurrentPlayerId()` or `getCurrentPlayerName()`, 
      * but use the $playerId passed in parameter and $this->game->getPlayerNameById($playerId) instead.
      */
-    function zombie(int $playerId) {
-        // Example of zombie level 0: return NextPlayer::class; or $this->actPass($playerId);
-
-        // Example of zombie level 1:
-        $args = $this->getArgs();
-        $zombieChoice = $this->getRandomZombieChoice($args['playableCardsIds']); // random choice over possible moves
-        return $this->actPlayCard($zombieChoice, $playerId, $args); // this function will return the transition to the next state
-    }
+    function zombie(int $playerId) { return $this->actPass($playerId); }
 }

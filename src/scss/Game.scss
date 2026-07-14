@@ -9,6 +9,8 @@
 @mixin text-shade($color, $size) { text-shadow: #{$size} 0 $color, -#{$size} 0 $color, 0 #{$size} $color, 0 -#{$size} $color, #{($size / 2)} #{($size / 2)} $color, -#{($size / 2)} -#{($size / 2)} $color, #{($size / 2)} -#{($size / 2)} $color, -#{($size / 2)} #{($size / 2)} $color; }
 @mixin non-selectable() { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
 
+body{ background: #64b5d6; }
+
 .a-card{ overflow: hidden;  background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
 	&:before{ display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
 	&.selection-confirmed { animation: selection-confirmed-card-animation 0.2s ease-out forwards; position: relative; z-index: 1; 
@@ -51,7 +53,19 @@
 	}
 }
 
+.player-board{
+	&.player-game-ended{ background-color: #ba9c79; 
+		.player_score_value{ @include text-shade(#f0f0f0, 1px); }
+	}
+}
+
+@keyframes selectable-card-glow-pulse {
+  0% { box-shadow: 0 0 5px 5px #FFD700; }
+  50% { box-shadow: 0 0 11px 11px #ffd483; }
+  100% { box-shadow: 0 0 5px 5px #FFD700; }
+}
+
 body.current_player_is_active{
 	#center-container .a-card,
-	.my-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ cursor: pointer; }
+	.my-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ cursor: pointer; animation: selectable-card-glow-pulse 3s ease-in-out infinite; }
 }

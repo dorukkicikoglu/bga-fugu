@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `cards` (
   PRIMARY KEY (`card_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-ALTER TABLE `player` 
-ADD `sort_cards_by` ENUM('suit', 'rank') NOT NULL DEFAULT 'suit' AFTER `player_state`;
+ALTER TABLE `player` ADD `passed` ENUM('yes', 'no') NOT NULL DEFAULT 'no' AFTER `player_state`;
+ALTER TABLE `player` ADD `game_ended` ENUM('yes', 'no') NOT NULL DEFAULT 'no' AFTER `passed`;
 
 

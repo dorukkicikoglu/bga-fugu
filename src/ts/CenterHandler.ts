@@ -53,11 +53,13 @@ export class CenterHandler{
             return;
         }
 
-        alert('both selected');
+        this.gameui.playerTurn.getSwapButton().style.display = null;
     }
 
     public cardsUnselected(){
-        alert('ekmek devam');
+        this.gameui.playerTurn.getSwapButton().style.display = 'none';
     }
+
+    public getCenterContainer(): HTMLDivElement{ return this.centerContainer; }
 }
     

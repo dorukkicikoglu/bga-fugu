@@ -6,6 +6,8 @@ import { Game } from "../Game";
  * When executing code in this state, you can access the args using this.args
  */
 export class PlayerTurn {
+    private swapButton: HTMLButtonElement;
+
     constructor(private game: Game, private bga: Bga<EmptyGamePlayer, EmptyGameGamedatas>) {
     }
 
@@ -14,19 +16,17 @@ export class PlayerTurn {
      */
     onEnteringState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
         this.bga.statusBar.setTitle(isCurrentPlayerActive ? 
-            _('${you} must play a card or pass') :
+            _('${you} must swap 2 cards or pass') :
             _('${actplayer} must play a card or pass')
         );
       
         if (isCurrentPlayerActive) {
-            const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs
+            // const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs //ekmek sil
 
-            // Add test action buttons in the action status bar, simulating a card click:
-            playableCardsIds.forEach(
-                cardId => this.bga.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', `${cardId}`), () => this.onCardClick(cardId))
-            ); 
-
-            this.bga.statusBar.addActionButton(_('Pass'), () => this.bga.actions.performAction("actPass"), { color: 'secondary' }); 
+            this.swapButton = this.bga.statusBar.addActionButton(_('Swap selected cards'), () => this.swapClicked(), {id: 'swap-button'});
+            this.swapButton.style.display = 'none';
+            
+            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { color: 'secondary' }); 
         }
     }
 
@@ -34,6 +34,8 @@ export class PlayerTurn {
      * This method is called each time we are leaving the game state. You can use this method to perform some user interface changes at this moment.
      */
     onLeavingState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
+        document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
+        document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
     }
 
     /**
@@ -44,15 +46,38 @@ export class PlayerTurn {
     onPlayerActivationChange(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
     }
 
-    
-    onCardClick(card_id: number) {
-        console.log( 'onCardClick', card_id );
+    passClicked() {
+        this.bga.dialogs.confirmation(_("Pass and end your game?")).then(result => {
+            if(result){ 
+                this.bga.actions.performAction("actPass");
+            }
+        });
+    }
 
-        this.bga.actions.performAction("actPlayCard", { 
-            card_id,
-        }).then(() =>  {                
+    swapClicked() {
+        debugger;
+        if(!this.game.myself)
+            return;
+
+        const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
+        const handCardDiv = this.game.myself.getHand().getHandContainer().querySelector('.selected-hand-card');
+        
+        if(!centerCardDiv || !handCardDiv)
+            return;
+        
+        const centerCardID = centerCardDiv.getAttribute('data-card-id');
+        const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
+
+        this.bga.actions.performAction("actSwapCard", { 
+            centerCardID: centerCardID,
+            handCardLocation: handCardLocation
+        }).then(() =>  {          
+            alert('bitti!');
+            debugger; //ekmek devam
             // What to do after the server call if it succeeded
             // (most of the time, nothing, as the game will react to notifs / change of state instead, so you can delete the `then`)
-        });        
+        });  
     }
+    
+    public getSwapButton(): HTMLButtonElement{ return this.swapButton };
 }

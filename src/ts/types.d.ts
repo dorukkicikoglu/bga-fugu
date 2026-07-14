@@ -1,6 +1,6 @@
 interface FuguPlayer extends Player {
-    energy: number; // any information you add on each result['players'] //ekmek sil default?
     player_no: number; //ekmek sil?
+    game_ended: boolean;
 }
 
 interface FuguGamedatas extends Gamedatas<FuguPlayer> {

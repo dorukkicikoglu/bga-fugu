@@ -23,14 +23,13 @@ use Bga\GameFramework\Components\Counters\PlayerCounter;
 use Bga\GameFramework\Components\Deck;
 use Bga\Games\Fugu\FUGUTableManager;
 
-
 class Game extends \Bga\GameFramework\Table
 {
     public Deck $cardsDeck;
     public FUGUTableManager $tableManager;
     public static array $CARD_TYPES; //ekmek default sil?
 
-    public PlayerCounter $playerEnergy; //ekmek default sil?
+    // public PlayerCounter $playerEnergy; //ekmek default sil?
 
     /**
      * Your global variables labels:
@@ -47,7 +46,7 @@ class Game extends \Bga\GameFramework\Table
 
         require_once 'material.inc.php'; 
 
-        $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy');
+        // $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy'); //ekmek sil
 
         self::$CARD_TYPES = [ //ekmek default sil?
             1 => [
@@ -139,12 +138,15 @@ class Game extends \Bga\GameFramework\Table
 
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
-        $result["players"] = $this->getCollectionFromDb("SELECT `player_id`, `player_no`, `player_score` score FROM `player`");
+        $result["players"] = $this->getCollectionFromDb("SELECT `player_id`, `player_no`, `player_score` score, game_ended FROM `player`");
+        foreach($result["players"] as $index => $row)
+            $result["players"][$index]['game_ended'] = ($row['game_ended'] == 'yes') ? true : false;
+
         $cardsOnTable = $this->tableManager->getCardsOnTable();
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
 
-        $this->playerEnergy->fillResult($result); //ekmek default sil?
+        // $this->playerEnergy->fillResult($result); //ekmek default sil?
 
         // TODO: Gather all information about current game situation (visible by player $currentPlayerId).
 
@@ -157,7 +159,7 @@ class Game extends \Bga\GameFramework\Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        $this->playerEnergy->initDb(array_keys($players), initialValue: 2);
+        // $this->playerEnergy->initDb(array_keys($players), initialValue: 2);
 
         // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
         // number of colors defined here must correspond to the maximum number of players allowed for the gams.

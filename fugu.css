@@ -4,6 +4,10 @@
   --image-source-fugu-cards: url(img/fugu_cards.webp);
 }
 
+body {
+  background: #64b5d6;
+}
+
 .a-card {
   overflow: hidden;
   background-color: #fff8e9;
@@ -414,9 +418,28 @@
   margin-top: var(--selected-card-margin-top);
 }
 
+.player-board.player-game-ended {
+  background-color: #ba9c79;
+}
+.player-board.player-game-ended .player_score_value {
+  text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
+}
+
+@keyframes selectable-card-glow-pulse {
+  0% {
+    box-shadow: 0 0 5px 5px #FFD700;
+  }
+  50% {
+    box-shadow: 0 0 11px 11px #ffd483;
+  }
+  100% {
+    box-shadow: 0 0 5px 5px #FFD700;
+  }
+}
 body.current_player_is_active #center-container .a-card,
 body.current_player_is_active .my-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
   cursor: pointer;
+  animation: selectable-card-glow-pulse 3s ease-in-out infinite;
 }
 
 /*# sourceMappingURL=fugu.css.map */
