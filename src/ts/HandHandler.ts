@@ -4,7 +4,8 @@ import { PlayerHandler } from "./PlayerHandler";
 export class HandHandler{
     private handContainer: HTMLDivElement;
     private cardsContainer: HTMLDivElement;
-    
+    private isMyHand: boolean = false;
+
     constructor(private gameui: Game, private owner: PlayerHandler, private handData: CardInHand[]) {
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
@@ -25,8 +26,8 @@ export class HandHandler{
         }
 
         this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container')) as HTMLDivElement;
+        this.cardsContainer.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); });
 
-        // this.cardsContainer?.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); }); //ekmek devam?
         this.displayHand();
     }
 
@@ -41,7 +42,9 @@ export class HandHandler{
 
     private insertCardToHand(cardData){ 
         let aCard = this.gameui.createCardDiv(cardData);
-        aCard.setAttribute('data-state_in_hand', cardData.state_in_hand);
+        
+        aCard.setAttribute('data-state-in-hand', cardData.state_in_hand);
+        aCard.setAttribute('data-location-in-hand', cardData.location_in_hand);
 
         aCard.style.zIndex = cardData.location_in_hand.toString();
 
@@ -54,7 +57,43 @@ export class HandHandler{
             titleElement.textContent = title;
     }
 
-    public getHandContainer(): HTMLDivElement{
-        return this.handContainer;
+    private cardsContainerClicked(event: Event){
+        if(!this.isMyHand)
+            return;
+
+        if(!this.gameui.bga.players.isCurrentPlayerActive())
+            return;
+
+        if(!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+            return;
+
+        if(!(event.target as HTMLElement).classList.contains('a-card'))
+            return;
+        
+        if((event.target as HTMLDivElement).getAttribute('data-state-in-hand') !== 'facedown')
+            return;
+
+        this.handCardClicked(event.target as HTMLDivElement);  
     }
+
+    private handCardClicked(cardDiv: HTMLDivElement){
+        let cardID = cardDiv.getAttribute('data-card-id'); //ekmek gerekli mi?
+        const selectedCardClass = 'selected-hand-card';
+        const cardWasAlreadySelected: boolean = cardDiv.classList.contains(selectedCardClass);
+        this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
+        
+        if(cardWasAlreadySelected){
+            this.gameui.centerHandler.cardsUnselected();
+            return;
+        }
+
+        cardDiv.classList.add(selectedCardClass);
+        this.gameui.centerHandler.checkBothCardsSelected();
+    }
+
+    public setMyHand(isMyHand: boolean): void{
+        this.isMyHand = isMyHand;
+        this.handContainer.setAttribute('data-is-myself', isMyHand ? 'true' : 'false');
+    }
+    public getHandContainer(): HTMLDivElement{ return this.handContainer;}
 }

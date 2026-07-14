@@ -50,6 +50,7 @@ class HandHandler {
         this.gameui = gameui;
         this.owner = owner;
         this.handData = handData;
+        this.isMyHand = false;
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
@@ -66,7 +67,7 @@ class HandHandler {
             parent.appendChild(this.handContainer);
         }
         this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container'));
-        // this.cardsContainer?.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); }); //ekmek devam?
+        this.cardsContainer.addEventListener('click', (event) => { this.cardsContainerClicked(event); });
         this.displayHand();
     }
     displayHand() {
@@ -77,7 +78,8 @@ class HandHandler {
     }
     insertCardToHand(cardData) {
         let aCard = this.gameui.createCardDiv(cardData);
-        aCard.setAttribute('data-state_in_hand', cardData.state_in_hand);
+        aCard.setAttribute('data-state-in-hand', cardData.state_in_hand);
+        aCard.setAttribute('data-location-in-hand', cardData.location_in_hand);
         aCard.style.zIndex = cardData.location_in_hand.toString();
         this.cardsContainer.appendChild(aCard);
     }
@@ -86,9 +88,36 @@ class HandHandler {
         if (titleElement)
             titleElement.textContent = title;
     }
-    getHandContainer() {
-        return this.handContainer;
+    cardsContainerClicked(event) {
+        if (!this.isMyHand)
+            return;
+        if (!this.gameui.bga.players.isCurrentPlayerActive())
+            return;
+        if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+            return;
+        if (!event.target.classList.contains('a-card'))
+            return;
+        if (event.target.getAttribute('data-state-in-hand') !== 'facedown')
+            return;
+        this.handCardClicked(event.target);
     }
+    handCardClicked(cardDiv) {
+        let cardID = cardDiv.getAttribute('data-card-id'); //ekmek gerekli mi?
+        const selectedCardClass = 'selected-hand-card';
+        const cardWasAlreadySelected = cardDiv.classList.contains(selectedCardClass);
+        this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
+        if (cardWasAlreadySelected) {
+            this.gameui.centerHandler.cardsUnselected();
+            return;
+        }
+        cardDiv.classList.add(selectedCardClass);
+        this.gameui.centerHandler.checkBothCardsSelected();
+    }
+    setMyHand(isMyHand) {
+        this.isMyHand = isMyHand;
+        this.handContainer.setAttribute('data-is-myself', isMyHand ? 'true' : 'false');
+    }
+    getHandContainer() { return this.handContainer; }
 }
 
 class PlayerHandler {
@@ -124,6 +153,42 @@ class CenterHandler {
         this.centerContainer = document.querySelector('#center-container');
         for (let cardData of this.centerCardsData)
             this.centerContainer.appendChild(this.gameui.createCardDiv(cardData));
+        this.centerContainer.addEventListener('click', (event) => { this.centerContainerClicked(event); });
+    }
+    centerContainerClicked(event) {
+        if (!this.gameui.bga.players.isCurrentPlayerActive())
+            return;
+        if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+            return;
+        if (!event.target.classList.contains('a-card'))
+            return;
+        this.centerCardClicked(event.target);
+    }
+    centerCardClicked(cardDiv) {
+        const selectedCardClass = 'selected-center-card';
+        const cardWasAlreadySelected = cardDiv.classList.contains(selectedCardClass);
+        this.centerContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
+        if (cardWasAlreadySelected) {
+            this.cardsUnselected();
+            return;
+        }
+        cardDiv.classList.add(selectedCardClass);
+        this.gameui.centerHandler.checkBothCardsSelected();
+    }
+    checkBothCardsSelected() {
+        if (!this.gameui.myself)
+            return;
+        const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
+        const myHandContainer = this.gameui.myself.getHand().getHandContainer();
+        const selectedHandCard = myHandContainer.querySelector('.selected-hand-card');
+        if (!selectedCenterCard || !selectedHandCard) {
+            this.cardsUnselected();
+            return;
+        }
+        alert('both selected');
+    }
+    cardsUnselected() {
+        alert('ekmek devam');
     }
 }
 
@@ -172,6 +237,7 @@ class Game {
         if (this.players.hasOwnProperty(currentPlayerID)) {
             this.myself = this.players[currentPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
+            this.myself.getHand().setMyHand(true);
             for (let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
                 nextHandContainer.parentElement.append(nextHandContainer);
@@ -197,6 +263,9 @@ class Game {
             aCard.setAttribute('data-rank', String(cardData.rank));
         aCard.setAttribute('data-card-id', String(cardData.card_id));
         return aCard;
+    }
+    getGameStateName() {
+        return this.gamedatas.gamestate.name;
     }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications

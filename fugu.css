@@ -41,11 +41,11 @@
   content: "";
   background-size: 1000% 800%;
 }
-.a-card[data-state_in_hand=facedown]:before {
+.a-card[data-state-in-hand=facedown]:before {
   background-position-x: -600%;
   background-position-y: -700%;
 }
-.a-card[data-state_in_hand=anchor] {
+.a-card[data-state-in-hand=anchor] {
   transform: rotate(-180deg);
   box-shadow: -2px -2px 4px #000000;
 }
@@ -356,6 +356,9 @@
 .a-card.a-card-clone {
   position: absolute;
 }
+.a-card.selected-hand-card, .a-card.selected-center-card {
+  outline: 3px solid red;
+}
 
 #center-container {
   text-align: center;
@@ -409,6 +412,11 @@
 }
 .my-hand-container .cards-container .a-card[selected=true] {
   margin-top: var(--selected-card-margin-top);
+}
+
+body.current_player_is_active #center-container .a-card,
+body.current_player_is_active .my-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=fugu.css.map */

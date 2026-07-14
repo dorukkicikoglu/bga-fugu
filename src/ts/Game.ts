@@ -10,7 +10,7 @@ export class Game {
     public players: Record<number, PlayerHandler> = {};
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
-    
+
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
         this.bga = bga;
@@ -64,6 +64,7 @@ export class Game {
         if(this.players.hasOwnProperty(currentPlayerID)){
             this.myself = this.players[currentPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
+            this.myself.getHand().setMyHand(true);
 
             for(let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
@@ -95,6 +96,9 @@ export class Game {
         return aCard;
     }
 
+    getGameStateName(): string {
+        return this.gamedatas.gamestate.name;
+    }
     
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications

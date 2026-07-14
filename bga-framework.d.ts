@@ -776,9 +776,9 @@ declare class GameGui<P extends Player = Player, G extends Gamedatas<P> = Gameda
 
   /**
    * Returns true if the player on whose browser the code is running is currently active (it's his turn to play).
-   * 
+   *
    * @returns {boolean} is current player active
-   * 
+   *
    * @deprecated use this.bga.players.isCurrentPlayerActive()
    */
   isCurrentPlayerActive(): boolean;
