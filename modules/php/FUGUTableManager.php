@@ -69,8 +69,8 @@ class FUGUTableManager{
 
                 if($state_in_hand === 'number' || $state_in_hand === 'anchor'){
                     $card['card_id'] = (int) $cardDB['card_id'];
-                    $card['suit'] = (int) $cardDB['suit'];
-                    $card['rank'] = $cardDB['rank'];
+                    $card['suit'] = $cardDB['suit'];
+                    $card['rank'] = (int) $cardDB['rank'];
                 }
                 $cardsData['players'][$player_id][] = $card;
             }

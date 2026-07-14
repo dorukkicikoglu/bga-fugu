@@ -1,5 +1,6 @@
 import { PlayerTurn } from "./States/PlayerTurn";
 import { PlayerHandler } from "./PlayerHandler";
+import { CenterHandler } from "./CenterHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -8,7 +9,8 @@ export class Game {
     private playerTurn: PlayerTurn; //ekmek default sil?
     public players: Record<number, PlayerHandler> = {};
     public myself: PlayerHandler;
-
+    public centerHandler: CenterHandler;
+    
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
         this.bga = bga;
@@ -43,8 +45,11 @@ export class Game {
         this.gamedatas = gamedatas;
 
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
+            <div id="center-container"></div>
             <div id="player-hands-container"></div>
         `);
+
+        this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
 
         // Setting up player boards
         for(let player_id in gamedatas.players) {

@@ -117,6 +117,16 @@ class PlayerHandler {
     getHand() { return this.hand; }
 }
 
+class CenterHandler {
+    constructor(gameui, centerCardsData) {
+        this.gameui = gameui;
+        this.centerCardsData = centerCardsData;
+        this.centerContainer = document.querySelector('#center-container');
+        for (let cardData of this.centerCardsData)
+            this.centerContainer.appendChild(this.gameui.createCardDiv(cardData));
+    }
+}
+
 class Game {
     constructor(bga) {
         this.players = {};
@@ -147,8 +157,10 @@ class Game {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
+            <div id="center-container"></div>
             <div id="player-hands-container"></div>
         `);
+        this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
             const { name, color, score, player_no } = this.gamedatas.players[player_id];

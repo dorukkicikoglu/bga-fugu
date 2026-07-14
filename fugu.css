@@ -357,6 +357,19 @@
   position: absolute;
 }
 
+#center-container {
+  text-align: center;
+  border: 2px solid #000000;
+  min-height: calc(var(--card-width) * 2.5);
+}
+#center-container .a-card {
+  display: inline-block;
+}
+#center-container .a-card:not(:last-child) {
+  margin-top: calc(var(--card-width) * 0.2);
+  margin-right: calc(var(--card-width) * 1.2);
+}
+
 .my-hand-container {
   position: relative;
   width: 100%;
