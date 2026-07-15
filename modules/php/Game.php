@@ -322,6 +322,7 @@ class Game extends \Bga\GameFramework\Table
             'octopus' => $octopusScore,
             'corals' => $coralScore,
             'anchor' => $anchorScore,
+            'anchor_count' => -1 * $anchorCount,
         ];
     }
 
