@@ -11,13 +11,14 @@
 
 body{ background: #64b5d6; }
 
-.a-card{ overflow: hidden;  background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
+.a-card{ overflow: hidden; position: relative; background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
 	&:before{ display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
 	&.selection-confirmed { animation: selection-confirmed-card-animation 0.2s ease-out forwards; position: relative; z-index: 1; 
 		&[suit="1"]{ --highlight-color: #fddd5bb8; }
 		&[suit="2"]{ --highlight-color: #a7d8f0; }
 		&[suit="3"]{ --highlight-color: #72ff8cdb; }
 	}
+	&.cloned-card{ position: absolute; z-index: 100; }
 }
 
 .a-card{
@@ -39,16 +40,14 @@ body{ background: #64b5d6; }
 }
 
 #center-container{ text-align: center; border: 2px solid #000000; min-height: calc(var(--card-width) * 2.5);
-	.a-card{ display: inline-block;
-		&:not(:last-child){ margin-top: calc(var(--card-width) * 0.2); margin-right: calc(var(--card-width) * 1.2); }
-	}
+	.a-card{ display: inline-block; margin-top: calc(var(--card-width) * 0.2); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6); }
 }
 
-.my-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
+.a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
 	.my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
 	.cards-container .a-card{
-		position: relative; display: inline-block; vertical-align: top; --horz-margin: calc(var(--my-card-width) * -0.13); margin-left: var(--horz-margin); margin-right: var(--horz-margin); transition: margin-top 0.3s ease;
+		display: inline-block; vertical-align: top; --horz-margin: calc(var(--my-card-width) * -0.13); margin-left: var(--horz-margin); margin-right: var(--horz-margin); transition: margin-top 0.3s ease;
 		&[selected="true"]{ margin-top: var(--selected-card-margin-top); }
 	}
 }
@@ -59,13 +58,13 @@ body{ background: #64b5d6; }
 	}
 }
 
+body.current_player_is_active:not(.lockedInterface){
+	#center-container .a-card,
+	.a-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ cursor: pointer; animation: selectable-card-glow-pulse 3s ease-in-out infinite; }
+}
+
 @keyframes selectable-card-glow-pulse {
   0% { box-shadow: 0 0 5px 5px #FFD700; }
   50% { box-shadow: 0 0 11px 11px #ffd483; }
   100% { box-shadow: 0 0 5px 5px #FFD700; }
-}
-
-body.current_player_is_active{
-	#center-container .a-card,
-	.my-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ cursor: pointer; animation: selectable-card-glow-pulse 3s ease-in-out infinite; }
 }

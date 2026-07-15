@@ -10,6 +10,7 @@ body {
 
 .a-card {
   overflow: hidden;
+  position: relative;
   background-color: #fff8e9;
   --my-card-width: var(--card-width);
   width: var(--my-card-width);
@@ -39,6 +40,10 @@ body {
 }
 .a-card.selection-confirmed[suit="3"] {
   --highlight-color: #72ff8cdb;
+}
+.a-card.cloned-card {
+  position: absolute;
+  z-index: 100;
 }
 
 .a-card:before {
@@ -371,13 +376,12 @@ body {
 }
 #center-container .a-card {
   display: inline-block;
-}
-#center-container .a-card:not(:last-child) {
   margin-top: calc(var(--card-width) * 0.2);
-  margin-right: calc(var(--card-width) * 1.2);
+  margin-left: calc(var(--card-width) * 0.6);
+  margin-right: calc(var(--card-width) * 0.6);
 }
 
-.my-hand-container {
+.a-hand-container {
   position: relative;
   width: 100%;
   text-align: center;
@@ -388,7 +392,7 @@ body {
   min-height: calc(var(--card-width) * 2);
   --selected-card-margin-top: -30px;
 }
-.my-hand-container .my-hand-title {
+.a-hand-container .my-hand-title {
   position: absolute;
   top: 0px;
   left: 27px;
@@ -405,8 +409,7 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
-.my-hand-container .cards-container .a-card {
-  position: relative;
+.a-hand-container .cards-container .a-card {
   display: inline-block;
   vertical-align: top;
   --horz-margin: calc(var(--my-card-width) * -0.13);
@@ -414,7 +417,7 @@ body {
   margin-right: var(--horz-margin);
   transition: margin-top 0.3s ease;
 }
-.my-hand-container .cards-container .a-card[selected=true] {
+.a-hand-container .cards-container .a-card[selected=true] {
   margin-top: var(--selected-card-margin-top);
 }
 
@@ -423,6 +426,12 @@ body {
 }
 .player-board.player-game-ended .player_score_value {
   text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
+}
+
+body.current_player_is_active:not(.lockedInterface) #center-container .a-card,
+body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
+  cursor: pointer;
+  animation: selectable-card-glow-pulse 3s ease-in-out infinite;
 }
 
 @keyframes selectable-card-glow-pulse {
@@ -435,11 +444,6 @@ body {
   100% {
     box-shadow: 0 0 5px 5px #FFD700;
   }
-}
-body.current_player_is_active #center-container .a-card,
-body.current_player_is_active .my-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
-  cursor: pointer;
-  animation: selectable-card-glow-pulse 3s ease-in-out infinite;
 }
 
 /*# sourceMappingURL=fugu.css.map */

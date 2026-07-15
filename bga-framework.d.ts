@@ -913,6 +913,13 @@ declare class GameGui<P extends Player = Player, G extends Gamedatas<P> = Gameda
   wait(delay: number): Promise<any>;
 
   /**
+   * Returns true if the interface is locked
+   * 
+   * @returns {boolean} if interface is locked
+   */
+  isInterfaceLocked(): boolean;
+
+  /**
    * Auto-detect all notifications declared on the game object (functions starting with `notif_`)
    * and register them with dojo.subscribe.
    * Registered notifications will be synchronous and will have a minimum duration (if animations are active, by default 500ms with text and 1ms without).

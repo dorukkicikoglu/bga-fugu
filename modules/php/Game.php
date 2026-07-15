@@ -19,7 +19,7 @@ declare(strict_types=1);
 namespace Bga\Games\Fugu;
 
 use Bga\Games\Fugu\States\PlayerTurn;
-use Bga\GameFramework\Components\Counters\PlayerCounter;
+// use Bga\GameFramework\Components\Counters\PlayerCounter; //ekmek default sil?
 use Bga\GameFramework\Components\Deck;
 use Bga\Games\Fugu\FUGUTableManager;
 
@@ -27,7 +27,7 @@ class Game extends \Bga\GameFramework\Table
 {
     public Deck $cardsDeck;
     public FUGUTableManager $tableManager;
-    public static array $CARD_TYPES; //ekmek default sil?
+    // public static array $CARD_TYPES; //ekmek default sil?
 
     // public PlayerCounter $playerEnergy; //ekmek default sil?
 
@@ -48,30 +48,24 @@ class Game extends \Bga\GameFramework\Table
 
         // $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy'); //ekmek sil
 
-        self::$CARD_TYPES = [ //ekmek default sil?
-            1 => [
-                "card_name" => clienttranslate('Troll'), // ...
-            ],
-            2 => [
-                "card_name" => clienttranslate('Goblin'), // ...
-            ],
-            // ...
-        ];
+        // self::$CARD_TYPES = [ //ekmek default sil?
+        //     1 => [
+        //         "card_name" => clienttranslate('Troll'), // ...
+        //     ],
+        //     2 => [
+        //         "card_name" => clienttranslate('Goblin'), // ...
+        //     ],
+        //     // ...
+        // ];
 
-        /* example of notification decorator.
         // automatically complete notification args when needed
         $this->bga->notify->addDecorator(function(string $message, array $args) {
             if (isset($args['player_id']) && !isset($args['player_name']) && str_contains($message, '${player_name}')) {
                 $args['player_name'] = $this->getPlayerNameById($args['player_id']);
             }
         
-            if (isset($args['card_id']) && !isset($args['card_name']) && str_contains($message, '${card_name}')) {
-                $args['card_name'] = self::$CARD_TYPES[$args['card_id']]['card_name'];
-                $args['i18n'][] = ['card_name'];
-            }
-            
             return $args;
-        });*/
+        });
 
         $this->cardsDeck = $this->deckFactory->createDeck("cards");
         $this->tableManager = new FUGUTableManager($this);
@@ -139,8 +133,11 @@ class Game extends \Bga\GameFramework\Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT `player_id`, `player_no`, `player_score` score, game_ended FROM `player`");
-        foreach($result["players"] as $index => $row)
-            $result["players"][$index]['game_ended'] = ($row['game_ended'] == 'yes') ? true : false;
+        $allScoringData = $this->getAllPlayersScoring();
+        foreach($result["players"] as $player_id => $row){
+            $result["players"][$player_id]['game_ended'] = ($row['game_ended'] == 'yes') ? true : false;
+            $result["players"][$player_id]['scoring_data'] = $allScoringData[$player_id];
+        }
 
         $cardsOnTable = $this->tableManager->getCardsOnTable();
         $result['cardsInCenter'] = $cardsOnTable['center'];
@@ -217,6 +214,147 @@ class Game extends \Bga\GameFramework\Table
         $this->activeNextPlayer();
 
         return PlayerTurn::class;
+    }
+
+    // UTILITY FUNCTIONS
+
+    public function getAllPlayersScoring(): array {
+        $playerIDs = $this->getObjectListFromDB("SELECT `player_id` FROM `player`", true);
+
+        $scores = [];
+        foreach ($playerIDs as $playerID) {
+            $scores[$playerID] = $this->getPlayerScore($playerID);
+        }
+        return $scores;
+    }
+
+    /**
+     * Compute a player's full score breakdown from the current state of their row.
+     *
+     * The row is read in play order (`location_in_hand` ASC) and includes face-down
+     * cards and anchor-flipped cards: both are needed to correctly detect Bannerfish
+     * groups (which they break) and Pufferfish/Octopus neighbours (which they don't
+     * satisfy, since their suit isn't showing).
+     *
+     * @param int $playerID
+     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, anchor: int}
+     */
+    public function getPlayerScore($playerID): array
+    {
+        $playerID = (int) $playerID;
+
+        $row = $this->getObjectListFromDB(
+            "SELECT `suit`, `state_in_hand` FROM `cards`
+             WHERE `card_location` = 'player' AND `card_location_arg` = $playerID
+             ORDER BY `location_in_hand` ASC"
+        );
+        $rowSize = count($row);
+
+        // A card only reveals its suit when it's played face-up as a "number" card.
+        // Face-down cards (unplayed) and anchor-flipped cards hide their suit, so for
+        // scoring purposes they're treated as if no Bannerfish/Pufferfish/Coral is there.
+        $isVisibleSuit = fn(array $card): bool => ($card['state_in_hand'] === 'number' || $card['state_in_hand'] === 'anchor');
+
+        $bannerfishScore = 0;
+        $pufferfishScore = 0;
+        $octopusScore = 0;
+        $coralCounts = ['coral_pink' => 0, 'coral_green' => 0, 'coral_yellow' => 0];
+        $anchorCount = 0;
+
+        // --- BANNERFISH -----------------------------------------------------
+        // Walk the row tracking the length of the current run of consecutive,
+        // visible Bannerfish cards. Any other card (face-down, anchor, or a
+        // different suit) ends the run, so we score it and start counting again.
+        $currentRunLength = 0;
+        foreach ($row as $card) {
+            $isBannerfish = $isVisibleSuit($card) && $card['suit'] === 'bannerfish';
+            if ($isBannerfish) {
+                $currentRunLength++;
+                continue;
+            }
+            $bannerfishScore += $this->scoreBannerfishRun($currentRunLength);
+            $currentRunLength = 0;
+        }
+        $bannerfishScore += $this->scoreBannerfishRun($currentRunLength); // flush a run ending at the last card
+
+        // --- PUFFERFISH / OCTOPUS / CORAL / ANCHOR --------------------------
+        // These only ever need to look at the immediate left/right neighbour (or
+        // just tally totals), so a single pass over indices is enough.
+        for ($i = 0; $i < $rowSize; $i++) {
+            $card = $row[$i];
+
+            if ($card['state_in_hand'] === 'anchor') {
+                $anchorCount++;
+            }
+
+            if (!$isVisibleSuit($card)) {
+                continue; // face-down/anchor cards don't themselves score as Pufferfish/Octopus/Coral
+            }
+
+            if (in_array($card['suit'], ['coral_pink', 'coral_green', 'coral_yellow'], true)) {
+                $coralCounts[$card['suit']]++;
+                continue;
+            }
+
+            if ($card['suit'] !== 'pufferfish' && $card['suit'] !== 'octopus') {
+                continue;
+            }
+
+            $left = $i > 0 ? $row[$i - 1] : null;
+            $right = $i < $rowSize - 1 ? $row[$i + 1] : null;
+
+            if ($card['suit'] === 'pufferfish') {
+                $countingNeighbours = 0;
+                foreach ([$left, $right] as $neighbour) {
+                    if ($neighbour !== null && $isVisibleSuit($neighbour) && in_array($neighbour['suit'], ['bannerfish', 'pufferfish'], true)) {
+                        $countingNeighbours++;
+                    }
+                }
+                $pufferfishScore += PUFFERFISH_SCORING_TABLE[$countingNeighbours] ?? 0;
+            } else { // octopus
+                $coralNeighbours = 0;
+                foreach ([$left, $right] as $neighbour) {
+                    if ($neighbour !== null && $isVisibleSuit($neighbour) && in_array($neighbour['suit'], ['coral_pink', 'coral_green', 'coral_yellow'])) {
+                        $coralNeighbours++;
+                    }
+                }
+                $octopusScore += $coralNeighbours * OCTOPUS_SCORING;
+            }
+        }
+
+        // --- CORALS: position doesn't matter, only completed pink/green/yellow sets ---
+        $completeSets = min($coralCounts['coral_pink'], $coralCounts['coral_green'], $coralCounts['coral_yellow']);
+        $coralScore = $completeSets * CORAL_SCORING;
+
+        // --- ANCHOR: triangular-number penalty, already negative ---
+        // ANCHOR_SCORING is a constant holding a Closure; it must be fetched into a
+        // variable before it can be invoked (PHP parses `ANCHOR_SCORING(...)` as a
+        // function call, not a call to the constant of the same name).
+        $anchorScoringFn = ANCHOR_SCORING;
+        $anchorScore = (int) $anchorScoringFn($anchorCount);
+
+        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore;
+        
+        return [
+            'totalScore' => $totalScore,
+            'bannerfish' => $bannerfishScore,
+            'pufferfish' => $pufferfishScore,
+            'octopus' => $octopusScore,
+            'corals' => $coralScore,
+            'anchor' => $anchorScore,
+        ];
+    }
+
+    /**
+     * Score a single run of consecutive, adjacent Bannerfish cards using
+     * BANNERFISH_SCORING_TABLE, capping the lookup at the "4 or more" tier.
+     */
+    private function scoreBannerfishRun(int $length): int
+    {
+        if ($length <= 0) {
+            return 0;
+        }
+        return BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)];
     }
 
     /**

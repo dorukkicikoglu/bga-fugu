@@ -16,7 +16,7 @@ export class Game {
         this.bga = bga;
 
         // Declare the State classes
-        this.playerTurn = new PlayerTurn(this, bga); //ekmek default sil?
+        this.playerTurn = new PlayerTurn(this, bga);
         this.bga.states.register('PlayerTurn', this.playerTurn);
 
         // Uncomment the next line to show debug informations about state changes in the console. Remove before going to production!
@@ -53,10 +53,9 @@ export class Game {
 
         // Setting up player boards
         for(let player_id in gamedatas.players) {
-            const {name, color, score, player_no, game_ended} = this.gamedatas.players[player_id];
-            const score_num: number = parseInt(score, 10);
+            const {name, color, score, player_no, game_ended, scoring_data} = this.gamedatas.players[player_id];
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData, game_ended);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
         }
 
         const currentPlayerID: number = this.bga.players.getCurrentPlayerId();
@@ -95,6 +94,47 @@ export class Game {
         aCard.setAttribute('data-card-id', String(cardData.card_id));
         return aCard;
     }
+   
+    cloneCard(card: HTMLDivElement): HTMLDivElement {
+        const cardClone: HTMLDivElement = card.cloneNode(true) as HTMLDivElement;
+        cardClone.classList.add('cloned-card');
+        return cardClone;
+    }
+
+    public placeOnObject(mobileObj: HTMLDivElement, targetObj: HTMLDivElement, forceBoundingClientRect: boolean = false): void {
+        mobileObj.style.left = '0px';
+        mobileObj.style.top = '0px';
+
+        // Get current positions
+        const mobileWithinPageContent = document.getElementById('page-content').contains(mobileObj);
+        const targetWithinPageContent = document.getElementById('page-content').contains(targetObj);
+        
+        let targetRect = mobileWithinPageContent ? this.getPos(targetObj) : targetObj.getBoundingClientRect();
+        let mobileRect = targetWithinPageContent ? this.getPos(mobileObj) : mobileObj.getBoundingClientRect();
+        
+        if(forceBoundingClientRect){
+            targetRect = targetObj.getBoundingClientRect();
+            mobileRect = mobileObj.getBoundingClientRect();
+        }
+
+        // Calculate the difference in position
+        const deltaX = targetRect.left - mobileRect.left;
+        const deltaY = targetRect.top - mobileRect.top;
+
+        // Get current position values
+        const currentLeft = parseFloat(mobileObj.style.left || '0');
+        const currentTop = parseFloat(mobileObj.style.top || '0');
+
+        // Apply the position difference to current position
+        mobileObj.style.left = (currentLeft + deltaX) + 'px';
+        mobileObj.style.top = (currentTop + deltaY) + 'px';
+    }
+
+    public getPos(node: HTMLDivElement): DOMRect { 
+        let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
+        // pos.w = pos.width; pos.h = pos.height; //ekmek sil
+        return pos;
+    }
 
     getGameStateName(): string {
         return this.gamedatas.gamestate.name;
@@ -125,4 +165,15 @@ export class Game {
     public async notif_pass(args: {player_id: number}) {
         this.players[args.player_id].setGameEnded(true);
     }
+    
+    // Add the notification handler
+    public async notif_cardsSwapped(args: {player_id: number, handCardLocation: number, cardInHand: CardInHand, cardInCenter: CardInCenter, updatedScore: ScoringData, newStateInHand: CardStateInHand, game_ended: boolean}) {
+        console.log('mein args', args);
+
+        await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        this.players[args.player_id].updateScoring(args.updatedScore);
+
+        if(args.game_ended)
+            this.players[args.player_id].setGameEnded(true);
+    }    
 }

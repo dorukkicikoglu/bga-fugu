@@ -16,7 +16,6 @@ class PlayerTurn {
             _('${you} must swap 2 cards or pass') :
             _('${actplayer} must play a card or pass'));
         if (isCurrentPlayerActive) {
-            // const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs //ekmek sil
             this.swapButton = this.bga.statusBar.addActionButton(_('Swap selected cards'), () => this.swapClicked(), { id: 'swap-button' });
             this.swapButton.style.display = 'none';
             this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { color: 'secondary' });
@@ -44,7 +43,6 @@ class PlayerTurn {
         });
     }
     swapClicked() {
-        debugger;
         if (!this.game.myself)
             return;
         const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
@@ -53,14 +51,9 @@ class PlayerTurn {
             return;
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
-        this.bga.actions.performAction("actSwapCard", {
+        this.bga.actions.performAction("actSwapCards", {
             centerCardID: centerCardID,
             handCardLocation: handCardLocation
-        }).then(() => {
-            alert('bitti!');
-            debugger; //ekmek devam
-            // What to do after the server call if it succeeded
-            // (most of the time, nothing, as the game will react to notifs / change of state instead, so you can delete the `then`)
         });
     }
     getSwapButton() { return this.swapButton; }
@@ -77,7 +70,7 @@ class HandHandler {
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
             this.handContainer = document.createElement('div');
-            this.handContainer.className = 'my-hand-container'; //ekmek bu ismi degistir my-hand-container
+            this.handContainer.className = 'a-hand-container';
             this.handContainer.setAttribute('data-owner-id', `${this.owner.getPlayerID()}`);
             this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.getPlayerColor());
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
@@ -117,6 +110,8 @@ class HandHandler {
             return;
         if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
             return;
+        if (this.gameui.bga.gameui.isInterfaceLocked())
+            return;
         if (!event.target.classList.contains('a-card'))
             return;
         if (event.target.getAttribute('data-state-in-hand') !== 'facedown')
@@ -124,7 +119,6 @@ class HandHandler {
         this.handCardClicked(event.target);
     }
     handCardClicked(cardDiv) {
-        let cardID = cardDiv.getAttribute('data-card-id'); //ekmek gerekli mi?
         const selectedCardClass = 'selected-hand-card';
         const cardWasAlreadySelected = cardDiv.classList.contains(selectedCardClass);
         this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
@@ -143,20 +137,20 @@ class HandHandler {
 }
 
 class PlayerHandler {
-    constructor(gameui, playerID, playerName, playerColor, playerScore, playerNo, playerHandData, game_ended) {
+    constructor(gameui, playerID, playerName, playerColor, playerNo, playerHandData, game_ended, scoringData) {
         this.gameui = gameui;
         this.playerID = playerID;
         this.playerName = playerName;
         this.playerColor = playerColor;
-        this.playerScore = playerScore;
         this.playerNo = playerNo;
         this.playerHandData = playerHandData;
         this.game_ended = game_ended;
+        this.scoringData = scoringData;
         this.overallPlayerBoard = document.getElementById('overall_player_board_' + this.playerID);
         this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {
-            value: this.playerScore, //ekmek degistir
+            value: this.scoringData['totalScore'],
             playerCounter: 'Points',
             playerId: this.playerID,
         });
@@ -167,9 +161,63 @@ class PlayerHandler {
         if (gameEnded)
             this.overallPlayerBoard.classList.add('player-game-ended');
     }
-    updateScore(newScore) {
-        this.playerScore = newScore;
-        this.scoreCounter.toValue(newScore);
+    updateScoring(updatedScoring) {
+        this.scoringData = updatedScoring;
+        this.scoreCounter.toValue(this.scoringData['totalScore']);
+    }
+    async animateCardSwap(handCardLocation, cardInCenter, cardInHand, newStateInHand) {
+        const centerContainer = this.gameui.centerHandler.getCenterContainer();
+        const handContainer = this.hand.getHandContainer();
+        centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
+        handContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
+        const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`);
+        const handCard = handContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`);
+        const handCardClone = this.gameui.createCardDiv(cardInHand);
+        handCardClone.classList.add('cloned-card');
+        if (!centerCard || !handCard || !handCardClone)
+            return;
+        const centerCardClone = this.gameui.cloneCard(centerCard);
+        handCard.insertAdjacentElement('afterend', centerCardClone);
+        centerCard.insertAdjacentElement('afterend', handCardClone);
+        centerCardClone.style.margin = '0';
+        handCardClone.style.margin = '0';
+        this.gameui.placeOnObject(centerCardClone, centerCard);
+        this.gameui.placeOnObject(handCardClone, handCard);
+        centerCard.style.opacity = '0';
+        handCard.style.opacity = '0';
+        centerCardClone.style.zIndex = handCard.style.zIndex;
+        const pullUpAnimTime = 200;
+        centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
+        centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
+        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        const cardMoveAnimTime = 800;
+        centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
+        handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
+        centerCardClone.style.top = handCard.offsetTop + 'px';
+        centerCardClone.style.left = handCard.offsetLeft + 'px';
+        handCardClone.style.top = centerCard.offsetTop + 'px';
+        handCardClone.style.left = centerCard.offsetLeft + 'px';
+        if (newStateInHand == 'anchor') {
+            centerCardClone.style.boxShadow = 'none';
+            centerCardClone.style.transform = 'rotate(180deg)';
+        }
+        await this.gameui.bga.gameui.wait(cardMoveAnimTime);
+        handCardClone.classList.remove('cloned-card');
+        handCardClone.style.margin = null;
+        handCardClone.style.top = null;
+        handCardClone.style.left = null;
+        handCardClone.style.transition = null;
+        centerCardClone.classList.remove('cloned-card');
+        centerCardClone.style.margin = null;
+        centerCardClone.style.top = null;
+        centerCardClone.style.left = null;
+        centerCardClone.style.transition = null;
+        centerCardClone.style.boxShadow = null;
+        centerCardClone.style.transform = null;
+        centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
+        centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
+        centerCard.replaceWith(handCardClone);
+        handCard.replaceWith(centerCardClone);
     }
     getPlayerID() { return this.playerID; }
     getPlayerName() { return this.playerName; }
@@ -190,6 +238,8 @@ class CenterHandler {
         if (!this.gameui.bga.players.isCurrentPlayerActive())
             return;
         if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+            return;
+        if (this.gameui.bga.gameui.isInterfaceLocked())
             return;
         if (!event.target.classList.contains('a-card'))
             return;
@@ -230,7 +280,7 @@ class Game {
         console.log('fugu constructor');
         this.bga = bga;
         // Declare the State classes
-        this.playerTurn = new PlayerTurn(this, bga); //ekmek default sil?
+        this.playerTurn = new PlayerTurn(this, bga);
         this.bga.states.register('PlayerTurn', this.playerTurn);
         // Uncomment the next line to show debug informations about state changes in the console. Remove before going to production!
         // this.bga.states.logger = console.log;
@@ -260,10 +310,9 @@ class Game {
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
-            const { name, color, score, player_no, game_ended } = this.gamedatas.players[player_id];
-            const score_num = parseInt(score, 10);
+            const { name, color, score, player_no, game_ended, scoring_data } = this.gamedatas.players[player_id];
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, score_num, player_no, playerHandData, game_ended);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
         }
         const currentPlayerID = this.bga.players.getCurrentPlayerId();
         if (this.players.hasOwnProperty(currentPlayerID)) {
@@ -296,6 +345,38 @@ class Game {
         aCard.setAttribute('data-card-id', String(cardData.card_id));
         return aCard;
     }
+    cloneCard(card) {
+        const cardClone = card.cloneNode(true);
+        cardClone.classList.add('cloned-card');
+        return cardClone;
+    }
+    placeOnObject(mobileObj, targetObj, forceBoundingClientRect = false) {
+        mobileObj.style.left = '0px';
+        mobileObj.style.top = '0px';
+        // Get current positions
+        const mobileWithinPageContent = document.getElementById('page-content').contains(mobileObj);
+        const targetWithinPageContent = document.getElementById('page-content').contains(targetObj);
+        let targetRect = mobileWithinPageContent ? this.getPos(targetObj) : targetObj.getBoundingClientRect();
+        let mobileRect = targetWithinPageContent ? this.getPos(mobileObj) : mobileObj.getBoundingClientRect();
+        if (forceBoundingClientRect) {
+            targetRect = targetObj.getBoundingClientRect();
+            mobileRect = mobileObj.getBoundingClientRect();
+        }
+        // Calculate the difference in position
+        const deltaX = targetRect.left - mobileRect.left;
+        const deltaY = targetRect.top - mobileRect.top;
+        // Get current position values
+        const currentLeft = parseFloat(mobileObj.style.left || '0');
+        const currentTop = parseFloat(mobileObj.style.top || '0');
+        // Apply the position difference to current position
+        mobileObj.style.left = (currentLeft + deltaX) + 'px';
+        mobileObj.style.top = (currentTop + deltaY) + 'px';
+    }
+    getPos(node) {
+        let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node);
+        // pos.w = pos.width; pos.h = pos.height; //ekmek sil
+        return pos;
+    }
     getGameStateName() {
         return this.gamedatas.gamestate.name;
     }
@@ -320,6 +401,14 @@ class Game {
     // Add the notification handler
     async notif_pass(args) {
         this.players[args.player_id].setGameEnded(true);
+    }
+    // Add the notification handler
+    async notif_cardsSwapped(args) {
+        console.log('mein args', args);
+        await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        this.players[args.player_id].updateScoring(args.updatedScore);
+        if (args.game_ended)
+            this.players[args.player_id].setGameEnded(true);
     }
 }
 

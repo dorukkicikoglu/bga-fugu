@@ -19,6 +19,9 @@ export class CenterHandler{
         if(!['PlayerTurn'].includes(this.gameui.getGameStateName()))
             return;
 
+        if(this.gameui.bga.gameui.isInterfaceLocked())
+            return;
+
         if(!(event.target as HTMLElement).classList.contains('a-card'))
             return;
         

@@ -54,11 +54,6 @@ class FUGUTableManager{
                 $player_id = (int) $cardDB['card_location_arg'];
                 $state_in_hand = $cardDB['state_in_hand'];
 
-                if(((int) $cardDB['card_id']) % 3 > 0)  //ekmek sil
-                    $state_in_hand = 'number'; //ekmek sil
-                if(((int) $cardDB['card_id']) % 5 == 3)  //ekmek sil
-                    $state_in_hand = 'anchor'; //ekmek sil
-
                 $card = [
                     'card_id' => null,
                     'location_in_hand' => (int) $cardDB['location_in_hand'],

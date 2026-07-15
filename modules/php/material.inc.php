@@ -24,8 +24,8 @@ if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple t
     define("CENTER_CARD_COUNT", 3);
     define("CARDS_PER_PLAYER", 18);
 
-    define("BANNERFISH_SCORING_TABLE", [1 => 0, 2 => 2, 3 => 5, 4 => 9 ]); //ekmek scoring implement
-    define("PUFFERFISH_SCORING_TABLE", [0 => 3, 1 => 1 ]); //score 3 point for 0 fish-neighbour, 1 point for 1 fish-neighbour, else 0 point
+    define("BANNERFISH_SCORING_TABLE", [0 => 0, 1 => 0, 2 => 2, 3 => 5, 4 => 9 ]);
+    define("PUFFERFISH_SCORING_TABLE", [0 => 3, 1 => 1, 2 => 0]); //score 3 point for 0 fish-neighbour, 1 point for 1 fish-neighbour, else 0 point
     define("OCTOPUS_SCORING", 2); //score 2 points per adjacent coral
     define("CORAL_SCORING", 3); //score 3 points per sets of corals in pink, green, yellow
     define("ANCHOR_SCORING", fn($n) => ($n * ($n + 1)) / -2); //score minus Gaussian: -1, -3, -6, -10 and so on

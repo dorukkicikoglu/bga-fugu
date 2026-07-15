@@ -1,6 +1,7 @@
 interface FuguPlayer extends Player {
     player_no: number; //ekmek sil?
     game_ended: boolean;
+    scoring_data: ScoringData;
 }
 
 interface FuguGamedatas extends Gamedatas<FuguPlayer> {
@@ -23,10 +24,21 @@ interface CardInCenter extends CardBase {
 interface CardInHand extends CardBase {
     zone: 'hand';
     location_in_hand: number;
-    state_in_hand: number; // adjust type to whatever state_in_hand actually holds
+    state_in_hand: CardStateInHand;
     suit: null;
     rank: null;
 }
+
+interface ScoringData{
+    anchor: number;
+    bannerfish: number;
+    corals: number;
+    octopus: number;
+    pufferfish: number;
+    totalScore: number;
+}
+
+type CardStateInHand = 'facedown' | 'number' | 'anchor';
 
 /*
  * Describe here the types for your state args

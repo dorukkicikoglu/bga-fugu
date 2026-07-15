@@ -11,7 +11,7 @@ export class HandHandler{
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
             this.handContainer = document.createElement('div');
-            this.handContainer.className = 'my-hand-container'; //ekmek bu ismi degistir my-hand-container
+            this.handContainer.className = 'a-hand-container';
             this.handContainer.setAttribute('data-owner-id', `${this.owner.getPlayerID()}`);
             this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.getPlayerColor());
 
@@ -67,6 +67,9 @@ export class HandHandler{
         if(!['PlayerTurn'].includes(this.gameui.getGameStateName()))
             return;
 
+        if(this.gameui.bga.gameui.isInterfaceLocked())
+            return;
+
         if(!(event.target as HTMLElement).classList.contains('a-card'))
             return;
         
@@ -77,7 +80,6 @@ export class HandHandler{
     }
 
     private handCardClicked(cardDiv: HTMLDivElement){
-        let cardID = cardDiv.getAttribute('data-card-id'); //ekmek gerekli mi?
         const selectedCardClass = 'selected-hand-card';
         const cardWasAlreadySelected: boolean = cardDiv.classList.contains(selectedCardClass);
         this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));

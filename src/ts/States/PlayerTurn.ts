@@ -19,10 +19,8 @@ export class PlayerTurn {
             _('${you} must swap 2 cards or pass') :
             _('${actplayer} must play a card or pass')
         );
-      
-        if (isCurrentPlayerActive) {
-            // const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs //ekmek sil
 
+        if (isCurrentPlayerActive) {
             this.swapButton = this.bga.statusBar.addActionButton(_('Swap selected cards'), () => this.swapClicked(), {id: 'swap-button'});
             this.swapButton.style.display = 'none';
             
@@ -55,7 +53,6 @@ export class PlayerTurn {
     }
 
     swapClicked() {
-        debugger;
         if(!this.game.myself)
             return;
 
@@ -68,14 +65,9 @@ export class PlayerTurn {
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
 
-        this.bga.actions.performAction("actSwapCard", { 
+        this.bga.actions.performAction("actSwapCards", { 
             centerCardID: centerCardID,
             handCardLocation: handCardLocation
-        }).then(() =>  {          
-            alert('bitti!');
-            debugger; //ekmek devam
-            // What to do after the server call if it succeeded
-            // (most of the time, nothing, as the game will react to notifs / change of state instead, so you can delete the `then`)
         });  
     }
     

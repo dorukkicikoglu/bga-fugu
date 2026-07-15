@@ -1,5 +1,5 @@
 <?php
-//ekmek default sil?
+
 declare(strict_types=1);
 
 namespace Bga\Games\Fugu\States;
@@ -29,9 +29,11 @@ class PlayerTurn extends GameState
     public function getArgs(): array
     {
         // Get some values from the current game situation from the database.
-
+        $handLocationsDB = $this->game->getObjectListFromDB("SELECT location_in_hand FROM `cards` WHERE card_location = 'player' AND card_location_arg = ".$this->game->getActivePlayerId()." AND state_in_hand = 'facedown' ORDER BY location_in_hand ASC", true);
+        $centerCardsDB = $this->game->getObjectListFromDB("SELECT card_id FROM `cards` WHERE card_location = 'center' ORDER BY card_location_arg ASC", true);
         return [
-            "playableCardsIds" => [1, 2],
+            'possibleHandLocations' => $handLocationsDB,
+            'possibleCenterCardIDs' => $centerCardsDB
         ];
     }    
 
@@ -44,31 +46,82 @@ class PlayerTurn extends GameState
      * @throws UserException
      */
     #[PossibleAction]
-    public function actPlayCard(int $card_id, int $activePlayerId, array $args)
+    public function actSwapCards(int $centerCardID, int $handCardLocation , int $activePlayerId, array $args)
     {
-        // check input values
-        $playableCardsIds = $args['playableCardsIds'];
-        if (!in_array($card_id, $playableCardsIds)) {
-            throw new UserException('Invalid card choice');
-        }
+        $this->game->message('centerCardID', $centerCardID);
+        $this->game->message('handCardLocation', $handCardLocation);
+        $this->game->message('args', $args);
 
-        // Add your game logic to play a card here.
-        $card_name = 'some card name doruk wrote';
+        if (!in_array($centerCardID, $args['possibleCenterCardIDs']))
+            throw new UserException('Invalid center card choice');
 
-        // Notify all players about the card played.
-        $this->bga->notify->all("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
+        if (!in_array($handCardLocation, $args['possibleHandLocations']))
+            throw new UserException('Invalid hand card choice');
+
+        $this->game->message('oluuuur');
+
+        $cardInCenter = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_id` = $centerCardID AND `card_location` = 'center'");
+        $cardInHand = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND location_in_hand = $handCardLocation");
+
+        $this->game->message('cardInCenter', $cardInCenter);
+        $this->game->message('cardInHand', $cardInHand);
+
+        if(!$cardInCenter)
+            throw new UserException('Card in center not found');
+        if(!$cardInHand)
+            throw new UserException('Card in hand not found');
+
+        $stateInHand = $this->shouldBeNumberOrAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']);
+        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'player', `card_location_arg` = $activePlayerId, `state_in_hand` = '$stateInHand', `location_in_hand` = ".$cardInHand['location_in_hand']." WHERE `card_id` = $centerCardID");
+        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardInCenter['card_location_arg'].", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
+
+        $anyFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'facedown' LIMIT 1");
+        $gameEnded = !$anyFacedownCard;
+        if(!$gameEnded)
+            $this->game->DbQuery("UPDATE `player` SET `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
+
+        $updatedScore = $this->game->getPlayerScore($activePlayerId);
+        $totalScore = $updatedScore['totalScore'];
+        $this->game->DbQuery("UPDATE `player` SET `player_score` = $totalScore WHERE `player_id` = $activePlayerId");
+        
+        $this->game->message('updatedScore', $updatedScore);
+
+        $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank}'), [
             "player_id" => $activePlayerId,
-            "player_name" => $this->game->getPlayerNameById($activePlayerId), // remove this line if you uncomment notification decorator
-            "card_name" => $card_name, // remove this line if you uncomment notification decorator
-            "card_id" => $card_id,
-            "i18n" => ['card_name'], // remove this line if you uncomment notification decorator
+            "centerCardRank" => $cardInCenter['rank'],
+            "handCardLocation" => $handCardLocation,
+            "cardInHand" => $cardInHand,
+            "cardInCenter" => $cardInCenter,
+            "newStateInHand" => $stateInHand,
+            "updatedScore" => $updatedScore,
+            "game_ended" => $gameEnded,
         ]);
 
-        // in this example, the player gains 1 points each time he plays a card
-        $this->bga->playerScore->inc($activePlayerId, 1);
-
-        // at the end of the action, move to the next state
         return NextPlayer::class;
+    }
+
+    private function shouldBeNumberOrAnchor(int $activePlayerId, int $cardRank, int $cardLocation): string{
+        $numberCards = $this->game->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'number'");
+
+        $lowerCard = null;
+        $higherCard = null;
+        foreach ($numberCards as $card) {
+            if ($card['location_in_hand'] < $cardLocation && ($lowerCard === null || $card['location_in_hand'] > $lowerCard['location_in_hand'])) {
+                $lowerCard = $card;
+            }
+            if ($card['location_in_hand'] > $cardLocation && ($higherCard === null || $card['location_in_hand'] < $higherCard['location_in_hand'])) {
+                $higherCard = $card;
+            }
+        }
+
+        if ($lowerCard !== null && $lowerCard['rank'] > $cardRank) {
+            return "anchor";
+        }
+        if ($higherCard !== null && $higherCard['rank'] < $cardRank) {
+            return "anchor";
+        }
+
+        return "number";
     }
 
     /**
@@ -80,16 +133,12 @@ class PlayerTurn extends GameState
     #[PossibleAction]
     public function actPass(int $activePlayerId)
     {
-        $this->game->DbQuery("UPDATE `player` SET `passed` = 'yes', `game_ended` = 'yes' WHERE `player_id` = $activePlayerId"); //ekmek facedown kalmayinca da update game_ended = yes 
+        $this->game->DbQuery("UPDATE `player` SET `passed` = 'yes', `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
 
         // Notify all players about the choice to pass.
         $this->notify->all("pass", clienttranslate('${player_name} passes'), [
             "player_id" => $activePlayerId,
-            "player_name" => $this->game->getPlayerNameById($activePlayerId), // remove this line if you uncomment notification decorator
         ]);
-
-        // in this example, the player gains 1 energy each time he passes
-        // $this->game->playerEnergy->inc($activePlayerId, 1); //ekmek sil
         
         // at the end of the action, move to the next state
         return NextPlayer::class;
