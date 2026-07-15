@@ -1,5 +1,5 @@
 interface FuguPlayer extends Player {
-    player_no: number; //ekmek sil?
+    player_no: number;
     game_ended: boolean;
     scoring_data: ScoringData;
 }

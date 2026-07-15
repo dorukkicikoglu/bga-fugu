@@ -7,7 +7,7 @@ export class PlayerHandler{
     private hand: HandHandler;
     
 	constructor(private gameui: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData) {
-		this.overallPlayerBoard = document.getElementById('overall_player_board_' + this.playerID) as HTMLDivElement;
+        this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
         this.setGameEnded(this.game_ended);
 
         this.scoreCounter = new ebg.counter();

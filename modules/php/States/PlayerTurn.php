@@ -48,23 +48,14 @@ class PlayerTurn extends GameState
     #[PossibleAction]
     public function actSwapCards(int $centerCardID, int $handCardLocation , int $activePlayerId, array $args)
     {
-        $this->game->message('centerCardID', $centerCardID);
-        $this->game->message('handCardLocation', $handCardLocation);
-        $this->game->message('args', $args);
-
         if (!in_array($centerCardID, $args['possibleCenterCardIDs']))
             throw new UserException('Invalid center card choice');
 
         if (!in_array($handCardLocation, $args['possibleHandLocations']))
             throw new UserException('Invalid hand card choice');
 
-        $this->game->message('oluuuur');
-
         $cardInCenter = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_id` = $centerCardID AND `card_location` = 'center'");
         $cardInHand = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND location_in_hand = $handCardLocation");
-
-        $this->game->message('cardInCenter', $cardInCenter);
-        $this->game->message('cardInHand', $cardInHand);
 
         if(!$cardInCenter)
             throw new UserException('Card in center not found');
@@ -77,14 +68,13 @@ class PlayerTurn extends GameState
 
         $anyFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'facedown' LIMIT 1");
         $gameEnded = !$anyFacedownCard;
-        if(!$gameEnded)
+        if($gameEnded)
             $this->game->DbQuery("UPDATE `player` SET `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
 
         $updatedScore = $this->game->getPlayerScore($activePlayerId);
         $totalScore = $updatedScore['totalScore'];
-        $this->game->DbQuery("UPDATE `player` SET `player_score` = $totalScore WHERE `player_id` = $activePlayerId");
-        
-        $this->game->message('updatedScore', $updatedScore);
+        // $this->game->DbQuery("UPDATE `player` SET `player_score` = $totalScore WHERE `player_id` = $activePlayerId"); //ekmek sil
+        $this->bga->playerScore->set($activePlayerId, $totalScore);
 
         $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank}'), [
             "player_id" => $activePlayerId,

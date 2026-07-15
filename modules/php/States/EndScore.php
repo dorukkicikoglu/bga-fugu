@@ -1,5 +1,5 @@
 <?php
-//ekmek default sil?
+
 declare(strict_types=1);
 
 namespace Bga\Games\Fugu\States;

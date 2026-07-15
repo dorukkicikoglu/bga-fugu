@@ -26,18 +26,33 @@ class NextPlayer extends \Bga\GameFramework\States\GameState
      * The onEnteringState method of state `nextPlayer` is called everytime the current game state is set to `nextPlayer`.
      */
     function onEnteringState(int $activePlayerId) {
-
         // Give some extra time to the active player when he completed an action
         $this->game->giveExtraTime($activePlayerId);
         
-        $this->game->activeNextPlayer();
+        $nextPlayerTable = $this->game->getNextPlayerTable();
+        $nextPlayerArray = [];
+        $nextPlayerID = $activePlayerId;
 
-        // Go to another gamestate
-        $gameEnd = false; // Here, we would detect if the game is over to make the appropriate transition
-        if ($gameEnd) {
-            return EndScore::class;
-        } else {
+        do {
+            $nextPlayerArray[] = $nextPlayerID;
+            $nextPlayerID = $nextPlayerTable[$nextPlayerID];
+        } while($nextPlayerID != $activePlayerId);
+        array_push($nextPlayerArray, array_shift($nextPlayerArray)); //place the active player to the end
+
+        $playerIDToGameEnded = $this->game->getCollectionFromDB("SELECT `player_id`, `game_ended` FROM `player`", true);
+        $nextPlayerInGame = null;
+        foreach($nextPlayerArray as $playerID){
+            if($playerIDToGameEnded[$playerID] == 'no'){
+                $nextPlayerInGame = $playerID;
+                break;
+            }
+        }
+
+        if($nextPlayerInGame){
+            $this->game->gamestate->changeActivePlayer($nextPlayerInGame);
             return PlayerTurn::class;
+        } else { //the game has ended
+            return EndScore::class;
         }
     }
 }

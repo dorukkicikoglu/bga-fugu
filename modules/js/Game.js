@@ -146,7 +146,7 @@ class PlayerHandler {
         this.playerHandData = playerHandData;
         this.game_ended = game_ended;
         this.scoringData = scoringData;
-        this.overallPlayerBoard = document.getElementById('overall_player_board_' + this.playerID);
+        this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
         this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {

@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace Bga\Games\Fugu;
 
 use Bga\Games\Fugu\States\PlayerTurn;
-// use Bga\GameFramework\Components\Counters\PlayerCounter; //ekmek default sil?
 use Bga\GameFramework\Components\Deck;
 use Bga\Games\Fugu\FUGUTableManager;
 
@@ -27,9 +26,6 @@ class Game extends \Bga\GameFramework\Table
 {
     public Deck $cardsDeck;
     public FUGUTableManager $tableManager;
-    // public static array $CARD_TYPES; //ekmek default sil?
-
-    // public PlayerCounter $playerEnergy; //ekmek default sil?
 
     /**
      * Your global variables labels:
@@ -45,18 +41,6 @@ class Game extends \Bga\GameFramework\Table
         parent::__construct();
 
         require_once 'material.inc.php'; 
-
-        // $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy'); //ekmek sil
-
-        // self::$CARD_TYPES = [ //ekmek default sil?
-        //     1 => [
-        //         "card_name" => clienttranslate('Troll'), // ...
-        //     ],
-        //     2 => [
-        //         "card_name" => clienttranslate('Goblin'), // ...
-        //     ],
-        //     // ...
-        // ];
 
         // automatically complete notification args when needed
         $this->bga->notify->addDecorator(function(string $message, array $args) {
@@ -142,10 +126,6 @@ class Game extends \Bga\GameFramework\Table
         $cardsOnTable = $this->tableManager->getCardsOnTable();
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
-
-        // $this->playerEnergy->fillResult($result); //ekmek default sil?
-
-        // TODO: Gather all information about current game situation (visible by player $currentPlayerId).
 
         return $result;
     }
