@@ -2,6 +2,7 @@ import { PlayerTurn } from "./States/PlayerTurn";
 import { PlayerHandler } from "./PlayerHandler";
 import { CenterHandler } from "./CenterHandler";
 import { EndGameScoringHandler } from "./EndGameScoringHandler";
+import { TooltipHandler } from "./TooltipHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -14,6 +15,8 @@ export class Game {
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
     private endGameScoringHandler: EndGameScoringHandler;
+    private tooltipHandler: TooltipHandler;
+    private localCardIDCounter = 1;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
@@ -75,6 +78,8 @@ export class Game {
             }
         }
 
+        this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
+        
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
 
@@ -153,6 +158,8 @@ export class Game {
         let aCard = document.createElement('div');
         aCard.className = 'a-card';
         aCard.setAttribute('data-suit', cardData.suit);
+        aCard.setAttribute('id', 'an-id-required-for-tooltips-' + this.localCardIDCounter);
+        this.localCardIDCounter++;
         if('rank' in cardData) aCard.setAttribute('data-rank', String(cardData.rank));
         aCard.setAttribute('data-card-id', String(cardData.card_id));
         return aCard;
@@ -238,6 +245,7 @@ export class Game {
         console.log('mein args', args);
 
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);
 
         if(args.game_ended)

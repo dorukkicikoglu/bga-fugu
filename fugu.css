@@ -2,6 +2,13 @@
   --player-color: #000000;
   --card-width: 6vw;
   --image-source-fugu-cards: url(img/fugu_cards.webp);
+  --bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
+  --bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
+}
+
+.mobile_version {
+  --card-width: 14.5vw;
+  --card-width: 28.5vw;
 }
 
 body {
@@ -19,6 +26,8 @@ body {
   border-radius: calc(var(--my-card-width) * 0.1);
 }
 .a-card:before {
+  content: "";
+  background-size: 1000% 800%;
   display: block;
   background-image: var(--image-source-fugu-cards);
   background-color: #fff8e9;
@@ -26,29 +35,6 @@ body {
   height: 102%;
   margin-left: -1%;
   margin-top: -2%;
-}
-.a-card.selection-confirmed {
-  animation: selection-confirmed-card-animation 0.2s ease-out forwards;
-  position: relative;
-  z-index: 1;
-}
-.a-card.selection-confirmed[suit="1"] {
-  --highlight-color: #fddd5bb8;
-}
-.a-card.selection-confirmed[suit="2"] {
-  --highlight-color: #a7d8f0;
-}
-.a-card.selection-confirmed[suit="3"] {
-  --highlight-color: #72ff8cdb;
-}
-.a-card.cloned-card {
-  position: absolute;
-  z-index: 100;
-}
-
-.a-card:before {
-  content: "";
-  background-size: 1000% 800%;
 }
 .a-card[data-state-in-hand=facedown]:before {
   background-position-x: -600%;
@@ -362,11 +348,17 @@ body {
   background-position-x: -400%;
   background-position-y: -700%;
 }
-.a-card.a-card-clone {
-  position: absolute;
-}
 .a-card.selected-hand-card, .a-card.selected-center-card {
   outline: 3px solid red;
+}
+.a-card.reference-card:before {
+  background-position-x: -500%;
+  background-position-y: -700%;
+}
+.a-card.cloned-card {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
 }
 
 #center-container {
@@ -379,6 +371,13 @@ body {
   margin-top: calc(var(--card-width) * 0.2);
   margin-left: calc(var(--card-width) * 0.6);
   margin-right: calc(var(--card-width) * 0.6);
+}
+
+.mobile_version #center-container .a-card {
+  --card-width: 30vw;
+  margin-top: calc(var(--card-width) * 0.18);
+  margin-left: calc(var(--card-width) * 0.3);
+  margin-right: calc(var(--card-width) * 0.3);
 }
 
 .a-hand-container {
@@ -424,6 +423,10 @@ body {
   margin-bottom: 50px;
 }
 
+.mobile_version .a-hand-container .cards-container .a-card {
+  --horz-margin: calc(var(--my-card-width) * -0.17);
+}
+
 #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended {
   background-color: #ba9c79;
 }
@@ -465,7 +468,7 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
 }
 .end-game-score-container table thead th.player-name-cell {
   width: 110px;
-  text-shadow: 2px 0 #ffffff, -2px 0 #ffffff, 0 2px #ffffff, 0 -2px #ffffff, 1px 1px #ffffff, -1px -1px #ffffff, 1px -1px #ffffff, -1px 1px #ffffff;
+  text-shadow: 2px 0 #f0f0f0, -2px 0 #f0f0f0, 0 2px #f0f0f0, 0 -2px #f0f0f0, 1px 1px #f0f0f0, -1px -1px #f0f0f0, 1px -1px #f0f0f0, -1px 1px #f0f0f0;
   background-color: #83b9ce;
 }
 .end-game-score-container table thead th.player-name-cell span {
@@ -565,6 +568,89 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
 
 .gamestate_gameEnd .end-game-score-container {
   top: 214px;
+}
+
+.dijitTooltipContainer:has(.tooltip-wrapper) {
+  background: none;
+}
+
+.tooltip-wrapper {
+  outline: 0.5px solid #ffffff;
+  max-width: 230px;
+  background: var(--bg-gradient-tooltip);
+  padding: 10px;
+  margin: -6px -6px -6px -6px;
+}
+.tooltip-wrapper .deck-length-text {
+  font-size: 18px;
+  color: #121635;
+  text-indent: 6px;
+  text-align: center;
+  text-shadow: 0.5px 0 #b1b2b9, -0.5px 0 #b1b2b9, 0 0.5px #b1b2b9, 0 -0.5px #b1b2b9, 0.25px 0.25px #b1b2b9, -0.25px -0.25px #b1b2b9, 0.25px -0.25px #b1b2b9, -0.25px 0.25px #b1b2b9;
+}
+.tooltip-wrapper .a-card.reference-card {
+  margin: auto;
+  margin-top: 11px;
+  margin-bottom: 10px;
+  --my-card-width: calc(var(--card-width) * 2.1);
+}
+.tooltip-wrapper .a-card.reference-card::before {
+  margin-top: -3% !important;
+  margin-left: -3% !important;
+  width: 106%;
+  height: 102%;
+}
+
+.tundra:has(.tooltip-wrapper) { /* to change the color of the little tooltip arrow */ }
+.tundra:has(.tooltip-wrapper) .dijitTooltip .dijitTooltipConnector {
+  overflow: hidden;
+  background: none;
+}
+.tundra:has(.tooltip-wrapper) .dijitTooltip .dijitTooltipConnector:after {
+  content: "";
+  position: absolute;
+  width: 86%;
+  background: var(--bg-gradient-tooltip-connector);
+  aspect-ratio: 1;
+}
+.tundra:has(.tooltip-wrapper) .dijitTooltip.dijitTooltipAbove .dijitTooltipConnector::after {
+  top: -52%;
+  transform: scale(0.75, 1.1) rotate(45deg);
+  box-shadow: -1px -1px 2px 2px #adadad;
+}
+.tundra:has(.tooltip-wrapper) .dijitTooltip.dijitTooltipBelow .dijitTooltipConnector::after {
+  bottom: -52%;
+  transform: scale(0.75, 1.1) rotate(45deg);
+  box-shadow: 1px 1px 2px 2px #adadad;
+}
+.tundra:has(.tooltip-wrapper) .dijitTooltip.dijitTooltipRight .dijitTooltipConnector::after {
+  right: -47%;
+  transform: scale(1.1, 0.75) rotate(45deg);
+  box-shadow: 1px -1px 2px 2px #adadad;
+}
+.tundra:has(.tooltip-wrapper) .dijitTooltip.dijitTooltipLeft .dijitTooltipConnector::after {
+  left: -47%;
+  transform: scale(1.1, 0.75) rotate(45deg);
+  box-shadow: -1px 1px 2px 2px #adadad;
+}
+
+.safari-mobile-revealed-cards-container {
+  display: none;
+}
+
+.mobile_version.safari-browser #page-content {
+  min-height: 270vh;
+}
+.mobile_version.safari-browser #page-content .safari-mobile-revealed-cards-container {
+  display: block;
+  background: var(--bg-gradient-tooltip);
+  padding: 10px;
+  width: 390px;
+  margin: auto;
+  margin-top: 80vh;
+}
+.mobile_version.safari-browser #page-content .safari-mobile-revealed-cards-container .tooltip-wrapper {
+  max-width: unset;
 }
 
 @keyframes selectable-card-glow-pulse {

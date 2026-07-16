@@ -446,9 +446,47 @@ class EndGameScoringHandler {
     }
 }
 
+class TooltipHandler {
+    constructor(gameui, deckLength) {
+        this.gameui = gameui;
+        this.deckLength = deckLength;
+        this.addTooltipToCards();
+    }
+    addTooltipToCards() {
+        if (document.body.classList.contains('safari-browser') && this.gameui.isMobile()) {
+            this.addTooltipToBottomForSafari();
+            return;
+        }
+        const tooltipHTML = this.getTooltipHTML();
+        this.gameui.bga.gameui.addTooltipHtmlToClass('a-card', tooltipHTML, 400);
+    }
+    addTooltipToBottomForSafari() {
+        if (!document.body.classList.contains('safari-browser') || !this.gameui.isMobile())
+            return;
+        if (document.querySelector('.safari-mobile-revealed-cards-container'))
+            return;
+        const tooltipHTML = this.getTooltipHTML();
+        const safariMobileRevealedCardsContainer = document.createElement('div');
+        safariMobileRevealedCardsContainer.className = 'safari-mobile-revealed-cards-container';
+        document.getElementById('game_play_area').appendChild(safariMobileRevealedCardsContainer);
+        document.querySelector('.safari-mobile-revealed-cards-container').innerHTML = tooltipHTML;
+    }
+    getTooltipHTML() {
+        const deckLengthText = _('Highest card count is {$deckLength}').replace('{$deckLength}', '<b>' + this.deckLength.toString() + '</b>');
+        const tooltipHTML = `
+            <div class="tooltip-wrapper">
+                <div class="deck-length-text">${deckLengthText}</div>
+                <div class="a-card reference-card"></div>
+            </div>
+        `;
+        return tooltipHTML;
+    }
+}
+
 class Game {
     constructor(bga) {
         this.players = {};
+        this.localCardIDCounter = 1;
         console.log('fugu constructor');
         this.bga = bga;
         // Declare the State classes
@@ -497,6 +535,7 @@ class Game {
                 nextHandContainer.parentElement.append(nextHandContainer);
             }
         }
+        this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)
@@ -567,6 +606,8 @@ class Game {
         let aCard = document.createElement('div');
         aCard.className = 'a-card';
         aCard.setAttribute('data-suit', cardData.suit);
+        aCard.setAttribute('id', 'an-id-required-for-tooltips-' + this.localCardIDCounter);
+        this.localCardIDCounter++;
         if ('rank' in cardData)
             aCard.setAttribute('data-rank', String(cardData.rank));
         aCard.setAttribute('data-card-id', String(cardData.card_id));
@@ -639,6 +680,7 @@ class Game {
     async notif_cardsSwapped(args) {
         console.log('mein args', args);
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);
         if (args.game_ended)
             this.players[args.player_id].setGameEnded(true);

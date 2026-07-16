@@ -4,6 +4,13 @@
 	--player-color: #000000;
     --card-width: 6vw;
 	--image-source-fugu-cards: url(img/fugu_cards.webp);
+	--bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
+	--bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
+}
+
+.mobile_version{
+	--card-width: 14.5vw;
+	--card-width: 28.5vw; //ekmek sil? //buyuk kart
 }
 
 @mixin text-shade($color, $size) { text-shadow: #{$size} 0 $color, -#{$size} 0 $color, 0 #{$size} $color, 0 -#{$size} $color, #{($size / 2)} #{($size / 2)} $color, -#{($size / 2)} -#{($size / 2)} $color, #{($size / 2)} -#{($size / 2)} $color, -#{($size / 2)} #{($size / 2)} $color; }
@@ -13,17 +20,7 @@
 body{ background: #64b5d6; }
 
 .a-card{ overflow: hidden; position: relative; background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
-	&:before{ display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
-	&.selection-confirmed { animation: selection-confirmed-card-animation 0.2s ease-out forwards; position: relative; z-index: 1; 
-		&[suit="1"]{ --highlight-color: #fddd5bb8; }
-		&[suit="2"]{ --highlight-color: #a7d8f0; }
-		&[suit="3"]{ --highlight-color: #72ff8cdb; }
-	}
-	&.cloned-card{ position: absolute; z-index: 100; }
-}
-
-.a-card{
-	&:before{ content: ""; background-size: 1000% 800%; }
+	&:before{ content: ""; background-size: 1000% 800%; display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
 	&[data-state-in-hand="facedown"]:before{ background-position-x: -600%; background-position-y: -700%; } // facedown card
     &[data-state-in-hand="anchor"]{ transform: rotate(-180deg); box-shadow: -2px -2px 4px #000000; } //anchor cards
 
@@ -35,14 +32,16 @@ body{ background: #64b5d6; }
 		&[data-rank="#{$i}"]::before{ background-position-x: #{$col * -100}#{'%'}; background-position-y: #{$row * -100}#{'%'}; }
     }
 
-	&.a-card-clone{ position: absolute; }
 	&.selected-hand-card,
 	&.selected-center-card{ outline: 3px solid red; }
+	&.reference-card:before{ background-position-x: -500%; background-position-y: -700%; }
+	&.cloned-card{ position: absolute; z-index: 100; pointer-events: none; }
 }
 
 #center-container{ text-align: center; border: 2px solid #000000; min-height: calc(var(--card-width) * 2.5);
 	.a-card{ display: inline-block; margin-top: calc(var(--card-width) * 0.2); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6); }
 }
+.mobile_version #center-container .a-card{ --card-width: 30vw; margin-top: calc(var(--card-width) * 0.18); margin-left: calc(var(--card-width) * 0.3); margin-right: calc(var(--card-width) * 0.3); }
 
 .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
 	.my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
@@ -53,6 +52,9 @@ body{ background: #64b5d6; }
 	}
 
 	&[data-is-myself="true"]{ margin-bottom: 50px; }
+}
+.mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); 
+	// &:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //up down
 }
 
 #overall-content:not(.gamestate_gameEnd){
@@ -75,7 +77,7 @@ body.current_player_is_active:not(.lockedInterface){
                 &.corner-no-border-cell{ outline: 0 solid #ffffff; }
                 &:not(.corner-no-border-cell) { background-color: #ffffff; }
 
-                &.player-name-cell { width: 110px; @include text-shade(#ffffff, 2px); background-color: #83b9ce;
+                &.player-name-cell { width: 110px; @include text-shade(#f0f0f0, 2px); background-color: #83b9ce;
                     span{ width: 100px; overflow: hidden; text-overflow: ellipsis; font-weight: 800; font-size: 18px; display: inline-block; }
                     &.jumping-text{ animation: jumpAndTilt 1s ease-in-out infinite; @include pearl-background(); }
                     &.burning-text{ 
@@ -113,6 +115,48 @@ body.current_player_is_active:not(.lockedInterface){
     .fast-forward-text{ position: absolute; bottom: 9px; right: 11px; font-size: 12px; height: 10px;  }
 }
 .gamestate_gameEnd .end-game-score-container{ top: 214px; }
+
+
+//tooltip
+
+.dijitTooltipContainer{
+	&:has(.tooltip-wrapper){ background: none; }
+}
+.tooltip-wrapper { outline: 0.5px solid #ffffff; max-width: 230px; background: var(--bg-gradient-tooltip); padding: 10px; margin: -6px -6px -6px -6px;
+	.deck-length-text { font-size: 18px; color: #121635; text-indent: 6px; text-align: center; @include text-shade(#b1b2b9, 0.5px); }
+	.a-card.reference-card{ margin: auto; margin-top: 11px; margin-bottom: 10px; --my-card-width: calc(var(--card-width) * 2.1); 
+		&::before{ margin-top: -3% !important; margin-left: -3% !important; width: 106%; height: 102%; }
+	}
+}
+.tundra:has(.tooltip-wrapper){ /* to change the color of the little tooltip arrow */
+	.dijitTooltip {
+		.dijitTooltipConnector{ overflow: hidden; background: none; 
+			&:after{ content: ""; position: absolute; width: 86%; background: var(--bg-gradient-tooltip-connector); aspect-ratio: 1;  }
+		}
+		&.dijitTooltipAbove .dijitTooltipConnector::after{ top: -52%; transform: scale(0.75, 1.1) rotate(45deg); box-shadow: -1px -1px 2px 2px #adadad; }
+		&.dijitTooltipBelow .dijitTooltipConnector::after{ bottom: -52%; transform: scale(0.75, 1.1) rotate(45deg); box-shadow: 1px 1px 2px 2px #adadad; }
+		&.dijitTooltipRight .dijitTooltipConnector::after{ right: -47%; transform: scale(1.1, 0.75) rotate(45deg); box-shadow: 1px -1px 2px 2px #adadad; }
+		&.dijitTooltipLeft .dijitTooltipConnector::after{ left: -47%; transform: scale(1.1, 0.75) rotate(45deg); box-shadow: -1px 1px 2px 2px #adadad; }
+	}		
+}
+// .mobile_version{ //ekmek lazim mi
+// 	.tooltip-wrapper{ max-width: 220px;
+// 		.tooltip-title{ font-size: 16px; text-indent: 3px; }
+// 		.suits-container{
+// 			.suit-row{
+// 				.a-card-icon{ --card-icon-width: 40px; }
+// 			}
+// 		}
+// 	}
+// }
+.safari-mobile-revealed-cards-container{ display: none; }
+.mobile_version.safari-browser #page-content{ min-height: 270vh;
+	.safari-mobile-revealed-cards-container{ display: block; background: var(--bg-gradient-tooltip); padding: 10px; width: 390px; margin: auto; margin-top: 80vh; 
+		.tooltip-wrapper{ max-width: unset; }
+	}
+}
+
+//end tooltip
 
 @keyframes selectable-card-glow-pulse {
   0% { box-shadow: 0 0 5px 5px #FFD700; }

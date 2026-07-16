@@ -9,6 +9,7 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     cardsInCenter: CardInCenter[];
     cardsInHands: Record<number, CardInHand[]>;
     endGameScoring: EndGameScoreData;
+    deckLength: number;
 }
 
 interface CardBase {

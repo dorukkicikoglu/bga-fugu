@@ -126,6 +126,7 @@ class Game extends \Bga\GameFramework\Table
         $cardsOnTable = $this->tableManager->getCardsOnTable();
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
+        $result['deckLength'] = DECK_LENGTHS[count($result["players"])]; 
 
         $state = $this->gamestate->getCurrentMainState();
         if($state->name == 'gameEnd')
@@ -200,7 +201,7 @@ class Game extends \Bga\GameFramework\Table
         return PlayerTurn::class;
     }
 
-    // UTILITY FUNCTIONS
+    //utility functions
 
     public function getAllPlayersScoring(): array {
         $playerIDs = $this->getObjectListFromDB("SELECT `player_id` FROM `player`", true);
@@ -211,6 +212,8 @@ class Game extends \Bga\GameFramework\Table
         }
         return $scores;
     }
+
+    //end utility functions
 
     /**
      * Compute a player's full score breakdown from the current state of their row.
