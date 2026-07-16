@@ -55,20 +55,29 @@ class Game extends \Bga\GameFramework\Table
         $this->tableManager = new FUGUTableManager($this);
     }
 
-    /**
-     * Compute and return the current game progression.
-     *
-     * The number returned must be an integer between 0 and 100.
-     *
-     * This method is called each time we are in a game state with the "updateGameProgression" property set to true.
-     *
-     * @return int
-     */
     public function getGameProgression()
     {
-        // TODO: compute and return the game progression
+        $playerIDToGameEnded = $this->getCollectionFromDB("SELECT `player_id`, `game_ended` FROM `player`", true);
 
-        return 0;
+        $cardsOnTable = $this->tableManager->getCardsOnTable();
+        $cardsInHands = $cardsOnTable['players'];
+
+        $totalPlayableCards = 0;
+        $totalCardsInHands = 0;
+        foreach ($cardsInHands as $playerID => $playerData) {
+            $totalCardsInHands += count($cardsInHands[$playerID]);
+            if ($playerIDToGameEnded[$playerID] === 'yes')
+                continue;
+
+            foreach ($cardsInHands[$playerID] as $card) {
+                if ($card['state_in_hand'] == 'facedown')
+                    $totalPlayableCards++;
+            }
+        }
+
+        $progress = (int) floor(100 * (1 - $totalPlayableCards / $totalCardsInHands));
+
+        return $progress;
     }
 
     /**
