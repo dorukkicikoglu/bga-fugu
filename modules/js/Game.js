@@ -274,6 +274,178 @@ class CenterHandler {
     getCenterContainer() { return this.centerContainer; }
 }
 
+class EndGameScoringHandler {
+    constructor(gameui) {
+        this.gameui = gameui;
+        this.bodyClickHandler = null;
+        this.delayAfterFadeIns = 5000;
+        this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'totalScore'];
+    }
+    async displayEndGameScore(endGameScoring) {
+        this.endGameScoring = endGameScoring;
+        if (this.scoreContainer) {
+            console.error('end-game-score-container already exists');
+            return;
+        }
+        this.endGameScoring.player_scores = endGameScoring.player_scores;
+        this.winner_ids = endGameScoring.winner_ids;
+        document.getElementById('end-game-score-container')?.remove();
+        this.scoreContainer = document.createElement('div');
+        this.scoreContainer.classList.add('end-game-score-container');
+        this.scoreContainer.style.opacity = '0';
+        this.scoreContainer.innerHTML = `
+            <div class="show-table-button" style="display: none;" title="${_('Show Scoreboard')}">
+                <i class="fa6 fa6-ranking-star"></i>
+            </div> 
+            <div class="maximized-content"> 
+                <i class="fa6 fa6-chevron-circle-left collapse-table-button" title="${_('Collapse Scoreboard')}"></i>
+                <table>
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+                <div class="fast-forward-text"></div> 
+            </div>
+        `;
+        document.querySelector('#game_play_area').appendChild(this.scoreContainer);
+        this.thead = this.scoreContainer.querySelector('thead');
+        this.tbody = this.scoreContainer.querySelector('tbody');
+        this.showButton = this.scoreContainer.querySelector('.show-table-button');
+        this.hideButton = this.scoreContainer.querySelector('.collapse-table-button');
+        this.fastForwardButton = this.scoreContainer.querySelector('.fast-forward-text');
+        this.fillTable();
+        this.bindShowHideButtons();
+        this.fastForwardButton.innerHTML = '* ' + _(this.gameui.clickOrTap(true) + ' anywhere to fast forward');
+        const instantFadeIn = this.gameui.getGameStateName() === 'EndScore';
+        const fadeInDuration = instantFadeIn ? 0 : 1000;
+        const fadeInDelay = instantFadeIn ? 0 : 100;
+        this.scoreContainer.style.transition = `opacity ${fadeInDuration}ms ease ${fadeInDelay}ms`;
+        this.scoreContainer.style.opacity = '1';
+        await this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration);
+        this.scoreContainer.style.opacity = null;
+        this.scoreContainer.style.transition = null;
+        this.bindBodyScroll();
+        await this.fadeInNextCell();
+    }
+    fillTable() {
+        // Create header row with player names
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th class="corner-no-border-cell"></th>'; // Empty corner cell
+        // Add player name columns
+        for (let player_id in this.gameui.players) {
+            const playerNameDiv = this.gameui.divColoredPlayer(player_id, {}, false);
+            headerRow.innerHTML += `<th class="player-name-cell" player-id="${player_id}">${playerNameDiv}</th>`;
+        }
+        this.thead.appendChild(headerRow);
+        // Add score rows
+        for (let i = 0; i < this.scoringRowNames.length; i++) {
+            const row = document.createElement('tr');
+            const scoreType = this.scoringRowNames[i];
+            row.innerHTML = `<td class="score-type-icon-cell"><div class="score-type-icon" data-score-type="${scoreType}"></div></td>`;
+            for (let player_id in this.gameui.players) {
+                const playerScore = this.endGameScoring.player_scores[player_id];
+                const cellScore = playerScore[scoreType];
+                row.innerHTML += `<td><div class="cell-text cell-${scoreType}" style="opacity: 0;" row-index="${i}" player-id="${player_id}">${cellScore}</div></td>`;
+            }
+            this.tbody.appendChild(row);
+        }
+    }
+    bindShowHideButtons() {
+        this.hideButton.addEventListener('click', () => {
+            this.hideButton.style.display = 'none';
+            this.scoreContainer.querySelectorAll('.maximized-content').forEach((node) => { node.style.display = 'none'; });
+            this.showButton.style.display = null;
+            this.scoreContainer.setAttribute('collapsed', 'true');
+        });
+        this.showButton.addEventListener('click', () => {
+            this.hideButton.style.display = null;
+            this.scoreContainer.querySelectorAll('.maximized-content').forEach((node) => { node.style.display = null; });
+            this.showButton.style.display = 'none';
+            this.scoreContainer.removeAttribute('collapsed');
+        });
+    }
+    bindBodyScroll() {
+        this.scoreContainer.style.transition = 'opacity 300ms ease';
+        let fadeInGeneration = 0;
+        // Bind scroll event listener to the body
+        window.addEventListener('scroll', () => {
+            const generation = ++fadeInGeneration;
+            this.scoreContainer.style.opacity = '0.3';
+            this.gameui.bga.gameui.wait(100).then(() => {
+                if (generation === fadeInGeneration)
+                    this.scoreContainer.style.opacity = '1';
+            });
+        });
+    }
+    async fadeInNextCell() {
+        const cells = Array.from(this.tbody.querySelectorAll('.cell-text:not(.displayed)'));
+        const overallContent = document.getElementById('overall-content');
+        overallContent.removeEventListener('click', this.bodyClickHandler);
+        if (cells.length <= Object.keys(this.gameui.players).length * 2) {
+            this.fastForwardButton.style.transition = 'opacity 400ms ease';
+            this.fastForwardButton.style.opacity = '0';
+        }
+        if (cells.length <= 0) {
+            const allCells = Array.from(this.tbody.querySelectorAll('.cell-text'));
+            allCells.forEach((cell) => { cell.style.opacity = ''; });
+            this.makeWinnersJump();
+            this.setPlayerScores();
+            await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
+            return;
+        }
+        let cell = cells[0];
+        const instantFadeIn = this.gameui.getGameStateName() === 'gameEnd';
+        cell.classList.add('displayed');
+        const fadeInDuration = instantFadeIn ? 0 : 500;
+        const fadeInDelay = instantFadeIn ? 0 : 100;
+        let fastForwardFadeIn;
+        const fastForwarded = new Promise(resolve => { fastForwardFadeIn = resolve; });
+        this.bodyClickHandler = async (event) => {
+            cell.style.transition = null;
+            cell.style.opacity = '1';
+            fastForwardFadeIn();
+        };
+        overallContent.addEventListener('click', this.bodyClickHandler);
+        this.addColumnTotal(cell.getAttribute('player-id'));
+        cell.style.transition = `opacity ${fadeInDuration}ms ease ${fadeInDelay}ms`;
+        cell.style.opacity = '1';
+        await Promise.race([
+            this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration),
+            fastForwarded
+        ]);
+        await this.fadeInNextCell();
+    }
+    addColumnTotal(playerID) {
+        const cells = Array.from(this.tbody.querySelectorAll(`.cell-text.displayed[player-id="${playerID}"]:not(.cell-total)`));
+        let total = 0;
+        cells.forEach(cell => {
+            const cellValue = parseInt(cell.textContent || '0');
+            const isPenalty = cell.classList.contains('cell-penalty');
+            const value = isPenalty ? -1 * Math.abs(cellValue) : cellValue;
+            if (!isNaN(value))
+                total += value;
+        });
+        const totalCell = this.tbody.querySelector(`.cell-total[player-id="${playerID}"]`);
+        if (totalCell) {
+            totalCell.textContent = total.toString();
+            totalCell.classList.add('displayed');
+            totalCell.style.opacity = '1';
+        }
+    }
+    makeWinnersJump() {
+        let delay = 0;
+        for (let winner_id of this.winner_ids) {
+            this.gameui.bga.gameui.wait(delay).then(() => {
+                this.thead.querySelector(`.player-name-cell[player-id="${winner_id}"]`).classList.add('jumping-text');
+            });
+            delay += 100 + Math.random() * 50;
+        }
+    }
+    setPlayerScores() {
+        for (let player_id in this.gameui.players)
+            this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
+    }
+}
+
 class Game {
     constructor(bga) {
         this.players = {};
@@ -307,16 +479,17 @@ class Game {
             <div id="center-container"></div>
             <div id="player-hands-container"></div>
         `);
+        this.myPlayerID = this.bga.players.getCurrentPlayerId();
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
+        this.endGameScoringHandler = new EndGameScoringHandler(this);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
             const { name, color, score, player_no, game_ended, scoring_data } = this.gamedatas.players[player_id];
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
             this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
         }
-        const currentPlayerID = this.bga.players.getCurrentPlayerId();
-        if (this.players.hasOwnProperty(currentPlayerID)) {
-            this.myself = this.players[currentPlayerID];
+        if (this.players.hasOwnProperty(this.myPlayerID)) {
+            this.myself = this.players[this.myPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
             this.myself.getHand().setMyHand(true);
             for (let next_player_id of gamedatas.playerorder) {
@@ -324,6 +497,8 @@ class Game {
                 nextHandContainer.parentElement.append(nextHandContainer);
             }
         }
+        if (gamedatas.hasOwnProperty('endGameScoring'))
+            this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
         console.log("Ending game setup");
@@ -336,6 +511,58 @@ class Game {
         script. Typically, functions that are used in multiple state classes or outside a state class.
     
     */
+    format_string_recursive(log, args) {
+        try {
+            log = _(log);
+            if (log && args && !args.processed) {
+                args.processed = true;
+                // list of special keys we want to replace with images
+                const keys = ['BRIBED_ICONS_STR', 'CARDS_FROM_MARKET_STR', 'DRAWN_CARD_STR', 'NEW_CARDS_COUNT', 'MOVING_TREASURE_STR'];
+                for (let key of keys) {
+                    if (key in args) {
+                        // if(key == 'BRIBED_ICONS_STR') //ekmek uncomment
+                        //     log = this.logMutationObserver.createLogBribedCards(args['player_id'], args['bribedCards']);
+                        // else if(key == 'CARDS_FROM_MARKET_STR')
+                        //     log = this.logMutationObserver.createLogMarketVisit(args['player_id'], Object.values(args['discardedCards']), args['cost'], Object.values(args['cardsFromMarket']));
+                        // else if(key == 'DRAWN_CARD_STR')
+                        //     log = this.logMutationObserver.createLogDrawFromDeck(args['player_id'], args['drawnCardData'] || {card_id: -1, resource_type: -1});
+                        // else if(key == 'NEW_CARDS_COUNT')
+                        //     log = this.logMutationObserver.createLogCardsDealtToMarket(args['NEW_CARDS_COUNT']);
+                        // else if(key == 'MOVING_TREASURE_STR')
+                        //     log = this.logMutationObserver.createLogFavorTokenMoved(args['player_id'], args['movingTreasure'], args['moveBy']);
+                    }
+                }
+            }
+        }
+        catch (e) {
+            console.error(log, args, "Exception thrown", e.stack);
+        }
+        return this.inherited(arguments);
+    }
+    divYou(attributes = {}) {
+        let color = this.gamedatas.players[this.myPlayerID].color;
+        let color_bg = "";
+        if (this.gamedatas.players[this.myPlayerID] && this.gamedatas.players[this.myPlayerID].color_back) {
+            color_bg = "background-color:#" + this.gamedatas.players[this.myPlayerID.toString()].color_back + ";";
+        }
+        attributes['player-color'] = color;
+        let html = "<span style=\"font-weight:bold;color:#" + color + ";" + color_bg + "\" " + this.getAttributesHTML(attributes) + ">" + _("You") + "</span>";
+        return html;
+    }
+    divColoredPlayer(player_id, attributes = {}, detectYou = true) {
+        if (detectYou && parseInt(player_id) === this.myPlayerID)
+            return this.divYou(attributes);
+        player_id = player_id.toString();
+        let color = this.gamedatas.players[player_id].color;
+        let color_bg = "";
+        if (this.gamedatas.players[player_id] && this.gamedatas.players[player_id].color_back) {
+            color_bg = "background-color:#" + this.gamedatas.players[player_id].color_back + ";";
+        }
+        attributes['player-color'] = color;
+        let html = "<span style=\"color:#" + color + ";" + color_bg + "\" " + this.getAttributesHTML(attributes) + ">" + this.gamedatas.players[player_id].name + "</span>";
+        return html;
+    }
+    getAttributesHTML(attributes) { return Object.entries(attributes || {}).map(([key, value]) => `${key}="${value}"`).join(' '); }
     createCardDiv(cardData) {
         let aCard = document.createElement('div');
         aCard.className = 'a-card';
@@ -377,6 +604,13 @@ class Game {
         // pos.w = pos.width; pos.h = pos.height; //ekmek sil
         return pos;
     }
+    isDesktop() { return document.body.classList.contains('desktop_version'); }
+    isMobile() { return document.body.classList.contains('mobile_version'); }
+    clickOrTap(capitalized = false) { if (capitalized) {
+        return this.capitalizeFirstLetter(this.clickOrTap());
+    } return this.isDesktop() ? 'click' : 'tap'; }
+    capitalizeFirstLetter(str) { return `${str[0].toUpperCase()}${str.slice(1)}`; }
+    updateStatusText(statusText) { $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
     getGameStateName() {
         return this.gamedatas.gamestate.name;
     }
@@ -398,17 +632,21 @@ class Game {
         // logger: console.log
         });
     }
-    // Add the notification handler
+    // Add the notification handlers
     async notif_pass(args) {
         this.players[args.player_id].setGameEnded(true);
     }
-    // Add the notification handler
     async notif_cardsSwapped(args) {
         console.log('mein args', args);
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
         this.players[args.player_id].updateScoring(args.updatedScore);
         if (args.game_ended)
             this.players[args.player_id].setGameEnded(true);
+    }
+    async notif_displayEndGameScoring(args) {
+        console.log('notif_notifDisplayEndGameScoring', args);
+        this.updateStatusText(_('Reef scores coming up!'));
+        await this.endGameScoringHandler.displayEndGameScore(args.endGameScoring);
     }
 }
 

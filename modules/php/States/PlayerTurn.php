@@ -73,9 +73,9 @@ class PlayerTurn extends GameState
 
         $updatedScore = $this->game->getPlayerScore($activePlayerId);
         $totalScore = $updatedScore['totalScore'];
-        // $this->game->DbQuery("UPDATE `player` SET `player_score` = $totalScore WHERE `player_id` = $activePlayerId"); //ekmek sil
+
         $this->bga->playerScore->set($activePlayerId, $totalScore);
-        $this->bga->playerScoreAux->set($activePlayerId, $updatedScore['anchor_count']);
+        $this->bga->playerScoreAux->set($activePlayerId, -1 * (int) $updatedScore['anchor_count']);
 
         $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank}'), [
             "player_id" => $activePlayerId,

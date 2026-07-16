@@ -127,6 +127,10 @@ class Game extends \Bga\GameFramework\Table
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
 
+        $state = $this->gamestate->getCurrentMainState();
+        if($state->name == 'gameEnd')
+            $result['endGameScoring'] = $this->getEndGameScoring();
+        
         return $result;
     }
 
@@ -322,20 +326,30 @@ class Game extends \Bga\GameFramework\Table
             'octopus' => $octopusScore,
             'corals' => $coralScore,
             'anchor' => $anchorScore,
-            'anchor_count' => -1 * $anchorCount,
+            'anchor_count' => $anchorCount,
         ];
     }
+    private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }
 
-    /**
-     * Score a single run of consecutive, adjacent Bannerfish cards using
-     * BANNERFISH_SCORING_TABLE, capping the lookup at the "4 or more" tier.
-     */
-    private function scoreBannerfishRun(int $length): int
-    {
-        if ($length <= 0) {
-            return 0;
+    public function getEndGameScoring(): array {
+        $allScoringData = $this->getAllPlayersScoring();
+
+        $winnerIDs = [];
+        $maxScore = 0;
+
+        foreach ($allScoringData as $playerID => $playerScore) {
+            if ($playerScore['totalScore'] > $maxScore) {
+                $winnerIDs = [$playerID];
+                $maxScore = $playerScore['totalScore'];
+            } else if ($playerScore['totalScore'] == $maxScore) {
+                $winnerIDs[] = $playerID;
+            }
         }
-        return BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)];
+
+        return [
+            'winner_ids' => $winnerIDs,
+            'player_scores' => $allScoringData, 
+        ];
     }
 
     /**

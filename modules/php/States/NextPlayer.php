@@ -52,6 +52,8 @@ class NextPlayer extends \Bga\GameFramework\States\GameState
             $this->game->gamestate->changeActivePlayer($nextPlayerInGame);
             return PlayerTurn::class;
         } else { //the game has ended
+            $endGameScoring = $this->game->getEndGameScoring(); //ekmek devam test et
+            $this->notify->all("displayEndGameScoring", '', ["endGameScoring" => $endGameScoring]);
             return EndScore::class;
         }
     }

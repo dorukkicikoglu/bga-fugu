@@ -1,13 +1,14 @@
 interface FuguPlayer extends Player {
     player_no: number;
     game_ended: boolean;
-    scoring_data: ScoringData;
+    scoring_data: PlayerScore;
 }
 
 interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     // Add here variables you set up in getAllDatas
     cardsInCenter: CardInCenter[];
     cardsInHands: Record<number, CardInHand[]>;
+    endGameScoring: EndGameScoreData;
 }
 
 interface CardBase {
@@ -29,7 +30,7 @@ interface CardInHand extends CardBase {
     rank: null;
 }
 
-interface ScoringData{
+interface PlayerScore{
     anchor: number;
     bannerfish: number;
     corals: number;
@@ -39,6 +40,11 @@ interface ScoringData{
 }
 
 type CardStateInHand = 'facedown' | 'number' | 'anchor';
+
+interface EndGameScoreData {
+    winner_ids: number[];
+    player_scores: { [player_id: number]: PlayerScore };
+}
 
 /*
  * Describe here the types for your state args
