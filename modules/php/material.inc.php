@@ -20,7 +20,7 @@
  */
 
 if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple times
-    define("DECK_LENGTHS", [1 => 21, 2 => 39, 3 => 57, 4 => 75]); //ekmek solo ekle?
+    define("DECK_LENGTHS", [1 => 39, 2 => 39, 3 => 57, 4 => 75]); //ekmek solo ekle?
     define("CENTER_CARD_COUNT", 3);
     define("CARDS_PER_PLAYER", 18);
 

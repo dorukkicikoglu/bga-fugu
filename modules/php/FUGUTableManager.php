@@ -31,6 +31,16 @@ class FUGUTableManager{
                 $cardIndex++;
             }
         }
+
+        if($this->game->isSoloMode()){
+            $soloDeckIndex = 1;
+            while($cardIndex < count($cards)){
+                $cardID = $cards[$cardIndex]['card_id'];
+                $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'solo_deck', `card_location_arg` = ".$soloDeckIndex." WHERE `card_id` = $cardID");
+                $cardIndex++;
+                $soloDeckIndex++;
+            }
+        }
     }
 
     function getCardsOnTable(){

@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `cards` (
   `card_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `card_type` varchar(16) NOT NULL,
   `card_type_arg` int(11) NOT NULL,
-  `card_location` ENUM('player', 'center', 'returned_to_box') NOT NULL,
+  `card_location` ENUM('player', 'center', 'returned_to_box', 'solo_deck') NOT NULL,
   `card_location_arg` int(11) NOT NULL,
   `state_in_hand` ENUM('facedown', 'number', 'anchor') NULL,
   `location_in_hand` TINYINT UNSIGNED NULL,
