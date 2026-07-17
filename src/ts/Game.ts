@@ -51,6 +51,8 @@ export class Game {
         console.log( "Starting game setup" );
         this.gamedatas = gamedatas;
 
+        document.body.insertAdjacentHTML('afterbegin', `<div class="background-container"></div>`);
+
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
             <div id="player-hands-container"></div>
@@ -80,6 +82,8 @@ export class Game {
 
         this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
         
+
+
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
 

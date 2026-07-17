@@ -579,6 +579,7 @@ class Game {
     setup(gamedatas) {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
+        document.body.insertAdjacentHTML('afterbegin', `<div class="background-container"></div>`);
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
             <div id="player-hands-container"></div>

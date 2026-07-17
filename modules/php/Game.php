@@ -233,6 +233,8 @@ class Game extends \Bga\GameFramework\Table
         return $updatedScore;
     }
 
+    private function isSoloMode(): bool{ return $this->getPlayersNumber() === 1; }
+
     //end utility functions
 
     /**
