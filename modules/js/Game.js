@@ -49,12 +49,39 @@ class PlayerTurn {
         const handCardDiv = this.game.myself.getHand().getHandContainer().querySelector('.selected-hand-card');
         if (!centerCardDiv || !handCardDiv)
             return;
+        const centerCardRank = parseInt(centerCardDiv.getAttribute('data-rank'));
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
-        const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
-        this.bga.actions.performAction("actSwapCards", {
-            centerCardID: centerCardID,
-            handCardLocation: handCardLocation
-        });
+        const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
+        const playingFirstTurnOnBadHalf = this.isPlayingFirstTurnOnBadHalf(centerCardRank, handCardLocation);
+        const doPerformSwapCards = () => {
+            this.bga.actions.performAction("actSwapCards", {
+                centerCardID: centerCardID,
+                handCardLocation: handCardLocation
+            });
+        };
+        if (!playingFirstTurnOnBadHalf) {
+            doPerformSwapCards();
+        }
+        else {
+            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge....").replace('{$centerCardRank}', centerCardRank.toString())).then(result => {
+                if (result) {
+                    doPerformSwapCards();
+                }
+            });
+        }
+    }
+    isPlayingFirstTurnOnBadHalf(cardRank, handLocation) {
+        const handContainer = this.game.myself.getHand().getHandContainer();
+        const cardsInHand = handContainer.querySelectorAll('.a-card');
+        const numberOfCardsInPlayerHand = cardsInHand.length;
+        const isFirstTurn = handContainer.querySelectorAll('.a-card:not([data-state-in-hand="facedown"])').length === 0;
+        if (!isFirstTurn)
+            return false;
+        const isCardHigh = cardRank > (this.bga.gameui.gamedatas.deckLength / 2);
+        const isLocationHigh = handLocation >= (numberOfCardsInPlayerHand / 2);
+        if (isCardHigh === isLocationHigh)
+            return false;
+        return true;
     }
     getSwapButton() { return this.swapButton; }
     ;
@@ -304,21 +331,6 @@ class CenterHandler {
                 return true;
         }
         return false;
-        // let lowerCard: {location: number, rank: number} = null; //ekmek sil
-        // let higherCard: {location: number, rank: number} = null;
-        // handContainer.querySelectorAll('[data-state-in-hand="number"]').forEach((card) => {
-        //     const location = Number(card.getAttribute('data-location-in-hand'));
-        //     const rank = Number(card.getAttribute('data-rank'));
-        //     if(location < cardLocation && (!lowerCard || location > lowerCard.location))
-        //         lowerCard = { location, rank };
-        //     if(location > cardLocation && (!higherCard || location < higherCard.location))
-        //         higherCard = { location, rank };
-        // });
-        // if(lowerCard && lowerCard.rank > cardRank)
-        //     return true;
-        // if(higherCard && higherCard.rank < cardRank)
-        //     return true;
-        // return false;
     }
     cardsUnselected() {
         this.gameui.playerTurn.getSwapButton().style.display = 'none';

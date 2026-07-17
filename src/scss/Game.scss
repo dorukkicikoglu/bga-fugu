@@ -43,16 +43,20 @@ body{ background: #64b5d6; }
 }
 .mobile_version #center-container .a-card{ --card-width: 30vw; margin-top: calc(var(--card-width) * 0.18); margin-left: calc(var(--card-width) * 0.3); margin-right: calc(var(--card-width) * 0.3); }
 
-.a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
-	.my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
-	.cards-container .a-card{
-		display: inline-block; vertical-align: top; --horz-margin: calc(var(--my-card-width) * -0.13); margin-left: var(--horz-margin); margin-right: var(--horz-margin); transition: margin-top 0.3s ease;
-		&[selected="true"]{ margin-top: var(--selected-card-margin-top); }
-	}
+#player-hands-container{ margin-bottom: 110px;
+    .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
+        .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
-	&[data-is-myself="true"]{ margin-bottom: 50px; }
+        .cards-container .a-card{
+            display: inline-block; vertical-align: top; --horz-margin: calc(var(--my-card-width) * -0.13); margin-left: var(--horz-margin); margin-right: var(--horz-margin); transition: margin-top 0.3s ease;
+            &[selected="true"]{ margin-top: var(--selected-card-margin-top); }
+        }
+
+        &[data-is-myself="true"]{ margin-bottom: 50px; }
+    }
 }
+
 .mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); 
 	// &:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //cards go 1 up 1 down
 }

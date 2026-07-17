@@ -90,28 +90,6 @@ export class CenterHandler{
         }
 
         return false;
-
-        // let lowerCard: {location: number, rank: number} = null; //ekmek sil
-        // let higherCard: {location: number, rank: number} = null;
-
-        // handContainer.querySelectorAll('[data-state-in-hand="number"]').forEach((card) => {
-        //     const location = Number(card.getAttribute('data-location-in-hand'));
-        //     const rank = Number(card.getAttribute('data-rank'));
-
-        //     if(location < cardLocation && (!lowerCard || location > lowerCard.location))
-        //         lowerCard = { location, rank };
-
-        //     if(location > cardLocation && (!higherCard || location < higherCard.location))
-        //         higherCard = { location, rank };
-        // });
-
-        // if(lowerCard && lowerCard.rank > cardRank)
-        //     return true;
-
-        // if(higherCard && higherCard.rank < cardRank)
-        //     return true;
-
-        // return false;
     }
 
     public cardsUnselected(){

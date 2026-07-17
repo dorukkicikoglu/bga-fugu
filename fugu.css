@@ -380,7 +380,10 @@ body {
   margin-right: calc(var(--card-width) * 0.3);
 }
 
-.a-hand-container {
+#player-hands-container {
+  margin-bottom: 110px;
+}
+#player-hands-container .a-hand-container {
   position: relative;
   width: 100%;
   text-align: center;
@@ -391,7 +394,7 @@ body {
   min-height: calc(var(--card-width) * 2);
   --selected-card-margin-top: -30px;
 }
-.a-hand-container .my-hand-title {
+#player-hands-container .a-hand-container .my-hand-title {
   position: absolute;
   top: 0px;
   left: 27px;
@@ -408,7 +411,7 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
-.a-hand-container .cards-container .a-card {
+#player-hands-container .a-hand-container .cards-container .a-card {
   display: inline-block;
   vertical-align: top;
   --horz-margin: calc(var(--my-card-width) * -0.13);
@@ -416,10 +419,10 @@ body {
   margin-right: var(--horz-margin);
   transition: margin-top 0.3s ease;
 }
-.a-hand-container .cards-container .a-card[selected=true] {
+#player-hands-container .a-hand-container .cards-container .a-card[selected=true] {
   margin-top: var(--selected-card-margin-top);
 }
-.a-hand-container[data-is-myself=true] {
+#player-hands-container .a-hand-container[data-is-myself=true] {
   margin-bottom: 50px;
 }
 

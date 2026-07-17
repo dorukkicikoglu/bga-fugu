@@ -8,7 +8,7 @@ import { Game } from "../Game";
 export class PlayerTurn {
     private swapButton: HTMLButtonElement;
 
-    constructor(private game: Game, private bga: Bga<EmptyGamePlayer, EmptyGameGamedatas>) {
+    constructor(private game: Game, private bga: Bga<FuguPlayer, FuguGamedatas>) {
     }
 
     /**
@@ -62,13 +62,47 @@ export class PlayerTurn {
         if(!centerCardDiv || !handCardDiv)
             return;
         
+        const centerCardRank: number = parseInt(centerCardDiv.getAttribute('data-rank'));
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
-        const handCardLocation = handCardDiv.getAttribute('data-location-in-hand');
+        const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
 
-        this.bga.actions.performAction("actSwapCards", { 
-            centerCardID: centerCardID,
-            handCardLocation: handCardLocation
-        });  
+        const playingFirstTurnOnBadHalf = this.isPlayingFirstTurnOnBadHalf(centerCardRank, handCardLocation);
+        
+        const doPerformSwapCards = () => {
+            this.bga.actions.performAction("actSwapCards", { 
+                centerCardID: centerCardID,
+                handCardLocation: handCardLocation
+            }); 
+        };
+
+        if(!playingFirstTurnOnBadHalf){
+            doPerformSwapCards();
+        } else {
+            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge....").replace('{$centerCardRank}', centerCardRank.toString())).then(result => {
+                if(result){ 
+                    doPerformSwapCards();
+                }
+            });
+        }
+    }
+
+    private isPlayingFirstTurnOnBadHalf(cardRank: number, handLocation: number): boolean{
+        const handContainer = this.game.myself.getHand().getHandContainer();
+        const cardsInHand = handContainer.querySelectorAll('.a-card');
+        const numberOfCardsInPlayerHand = cardsInHand.length;
+
+        const isFirstTurn = handContainer.querySelectorAll('.a-card:not([data-state-in-hand="facedown"])').length === 0;
+
+        if(!isFirstTurn)
+            return false;
+
+        const isCardHigh: boolean = cardRank > (this.bga.gameui.gamedatas.deckLength / 2);
+        const isLocationHigh: boolean = handLocation >= (numberOfCardsInPlayerHand / 2);
+
+        if(isCardHigh === isLocationHigh)
+            return false;
+
+        return true;
     }
     
     public getSwapButton(): HTMLButtonElement{ return this.swapButton };
