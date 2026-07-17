@@ -23,6 +23,8 @@ export class EndGameScoringHandler{
             return;
         }
 
+        document.body.classList.add('displaying-end-game-score');
+
         this.endGameScoring.player_scores = endGameScoring.player_scores;
         this.winner_ids = endGameScoring.winner_ids;
 
@@ -71,6 +73,8 @@ export class EndGameScoringHandler{
         this.bindBodyScroll();
 
         await this.fadeInNextCell();
+
+        document.body.classList.remove('displaying-end-game-score');
     }
 
     private fillTable() {

@@ -287,6 +287,7 @@ class EndGameScoringHandler {
             console.error('end-game-score-container already exists');
             return;
         }
+        document.body.classList.add('displaying-end-game-score');
         this.endGameScoring.player_scores = endGameScoring.player_scores;
         this.winner_ids = endGameScoring.winner_ids;
         document.getElementById('end-game-score-container')?.remove();
@@ -325,6 +326,7 @@ class EndGameScoringHandler {
         this.scoreContainer.style.transition = null;
         this.bindBodyScroll();
         await this.fadeInNextCell();
+        document.body.classList.remove('displaying-end-game-score');
     }
     fillTable() {
         // Create header row with player names
@@ -472,7 +474,7 @@ class TooltipHandler {
         document.querySelector('.safari-mobile-revealed-cards-container').innerHTML = tooltipHTML;
     }
     getTooltipHTML() {
-        const deckLengthText = _('Highest card count is {$deckLength}').replace('{$deckLength}', '<b>' + this.deckLength.toString() + '</b>');
+        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + this.deckLength.toString() + '</b>');
         const tooltipHTML = `
             <div class="tooltip-wrapper">
                 <div class="deck-length-text">${deckLengthText}</div>
@@ -678,7 +680,6 @@ class Game {
         this.players[args.player_id].setGameEnded(true);
     }
     async notif_cardsSwapped(args) {
-        console.log('mein args', args);
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
         this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);

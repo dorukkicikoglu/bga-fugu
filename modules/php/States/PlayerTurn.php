@@ -62,7 +62,7 @@ class PlayerTurn extends GameState
         if(!$cardInHand)
             throw new UserException('Card in hand not found');
 
-        $stateInHand = $this->shouldBeNumberOrAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']);
+        $stateInHand = $this->placeCardAsNumberOrAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']);
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'player', `card_location_arg` = $activePlayerId, `state_in_hand` = '$stateInHand', `location_in_hand` = ".$cardInHand['location_in_hand']." WHERE `card_id` = $centerCardID");
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardInCenter['card_location_arg'].", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
 
@@ -71,11 +71,7 @@ class PlayerTurn extends GameState
         if($gameEnded)
             $this->game->DbQuery("UPDATE `player` SET `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
 
-        $updatedScore = $this->game->getPlayerScore($activePlayerId);
-        $totalScore = $updatedScore['totalScore'];
-
-        $this->bga->playerScore->set($activePlayerId, $totalScore);
-        $this->bga->playerScoreAux->set($activePlayerId, -1 * (int) $updatedScore['anchor_count']);
+        $updatedScore = $this->game->updatePlayerScore($activePlayerId);
 
         $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank}'), [
             "player_id" => $activePlayerId,
@@ -91,7 +87,7 @@ class PlayerTurn extends GameState
         return NextPlayer::class;
     }
 
-    private function shouldBeNumberOrAnchor(int $activePlayerId, int $cardRank, int $cardLocation): string{
+    private function placeCardAsNumberOrAnchor(int $activePlayerId, int $cardRank, int $cardLocation): string{
         $numberCards = $this->game->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'number'");
 
         $lowerCard = null;

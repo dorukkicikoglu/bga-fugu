@@ -242,8 +242,6 @@ export class Game {
     }
     
     public async notif_cardsSwapped(args: {player_id: number, handCardLocation: number, cardInHand: CardInHand, cardInCenter: CardInCenter, updatedScore: PlayerScore, newStateInHand: CardStateInHand, game_ended: boolean}) {
-        console.log('mein args', args);
-
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
         this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);

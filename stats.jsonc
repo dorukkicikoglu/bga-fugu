@@ -1,28 +1,89 @@
 {    
     // Statistics for the table
-    "table": {},
+    "table": {
+      "passCount": {
+        "id": 10,
+        "name": "Number of players who passed",
+        "type": "int"
+      },
+      "passCountPerPlayer": {
+        "id": 11,
+        "name": "Number of players who passed, per player count",
+        "type": "float"
+      },
+      "facedownCardPerPlayer": {
+        "id": 12,
+        "name": "Facedown cards remaining, per player",
+        "type": "float"
+      },
+      "bannerfishAverage": {
+        "id": 13,
+        "name": "Bannerfish score, average per player",
+        "type": "float"
+      },
+      "pufferfishAverage": {
+        "id": 14,
+        "name": "Pufferfish score, average per player",
+        "type": "float"
+      },
+      "octopusAverage": {
+        "id": 15,
+        "name": "Octopus score, average per player",
+        "type": "float"
+      },
+      "coralsAverage": {
+        "id": 16,
+        "name": "Coral score, average per player",
+        "type": "float"
+      },
+      "anchorAverage": {
+        "id": 17,
+        "name": "Anchor score, average per player",
+        "type": "float"
+      }
+    },
     
     // Statistics for each player
     "player": {
-      /* 
-      EXAMPLE:
-
-      "turns_number": {
+      "totalScore": {
         "id": 10,
-        "name": "Number of turns",
+        "name": "Total score",
         "type": "int"
       },
-      "player_teststat1": {
+      "bannerfish": {
         "id": 11,
-        "name": "player test stat 1",
+        "name": "Bannerfish score",
         "type": "int"
       },
-      "player_teststat2": {
+      "pufferfish": {
         "id": 12,
-        "name": "player test stat 2",
-        "type": "float"
+        "name": "Pufferfish score",
+        "type": "int"
+      },
+      "octopus": {
+        "id": 13,
+        "name": "Octopus score",
+        "type": "int"
+      },
+      "corals": {
+        "id": 14,
+        "name": "Coral score",
+        "type": "int"
+      },
+      "anchor": {
+        "id": 15,
+        "name": "Anchor score",
+        "type": "int"
+      },
+      "anchor_count": {
+        "id": 16,
+        "name": "Anchor count",
+        "type": "int"
+      },
+      "cardsFacedown": {
+        "id": 17,
+        "name": "Facedown cards remaining",
+        "type": "int"
       }
-      */
-
     }
 }

@@ -427,10 +427,10 @@ body {
   --horz-margin: calc(var(--my-card-width) * -0.17);
 }
 
-#overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended {
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended {
   background-color: #ba9c79;
 }
-#overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended .player_score_value {
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended .player_score_value {
   text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
 }
 
@@ -564,6 +564,7 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
   right: 11px;
   font-size: 12px;
   height: 10px;
+  color: #e9faff;
 }
 
 .gamestate_gameEnd .end-game-score-container {

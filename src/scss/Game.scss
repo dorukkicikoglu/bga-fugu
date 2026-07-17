@@ -54,10 +54,10 @@ body{ background: #64b5d6; }
 	&[data-is-myself="true"]{ margin-bottom: 50px; }
 }
 .mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); 
-	// &:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //up down
+	// &:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //cards go 1 up 1 down
 }
 
-#overall-content:not(.gamestate_gameEnd){
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd){
 	.player-board{
 		&.player-game-ended{ background-color: #ba9c79; 
 			.player_score_value{ @include text-shade(#f0f0f0, 1px); }
@@ -112,7 +112,7 @@ body.current_player_is_active:not(.lockedInterface){
     .show-table-button { cursor: pointer; color: rgb(237, 246, 252); width: 100%; height: 100%; 
         .fa6-ranking-star{ font-size: 34px; margin: 12px 0px 0px 9px; }
     }
-    .fast-forward-text{ position: absolute; bottom: 9px; right: 11px; font-size: 12px; height: 10px;  }
+    .fast-forward-text{ position: absolute; bottom: 9px; right: 11px; font-size: 12px; height: 10px; color: #e9faff; }
 }
 .gamestate_gameEnd .end-game-score-container{ top: 214px; }
 

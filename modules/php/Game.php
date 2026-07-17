@@ -222,6 +222,17 @@ class Game extends \Bga\GameFramework\Table
         return $scores;
     }
 
+    public function updatePlayerScore(int $playerID, array $updatedScore = []){
+        if(empty($updatedScore))
+            $updatedScore = $this->getPlayerScore($playerID);
+        $totalScore = $updatedScore['totalScore'];
+
+        $this->bga->playerScore->set($playerID, $totalScore);
+        $this->bga->playerScoreAux->set($playerID, -1 * (int) $updatedScore['anchor_count']);
+
+        return $updatedScore;
+    }
+
     //end utility functions
 
     /**
