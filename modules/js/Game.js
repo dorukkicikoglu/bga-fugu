@@ -16,7 +16,7 @@ class PlayerTurn {
             _('${you} must swap 2 cards or pass') :
             _('${actplayer} must play a card or pass'));
         if (isCurrentPlayerActive) {
-            this.swapButton = this.bga.statusBar.addActionButton(_('Swap selected cards'), () => this.swapClicked(), { id: 'swap-button' });
+            this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), { id: 'swap-button' });
             this.swapButton.style.display = 'none';
             this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { color: 'secondary' });
         }
@@ -153,6 +153,7 @@ class PlayerHandler {
             this.anchorTextDiv.classList.add('anchor-text');
             this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
             star.insertAdjacentElement('afterend', this.anchorTextDiv);
+            this.anchorTextDiv.insertAdjacentHTML('afterend', '<i class="fa6 fa-anchor"></i>');
         }
         this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
@@ -275,7 +276,49 @@ class CenterHandler {
             this.cardsUnselected();
             return;
         }
-        this.gameui.playerTurn.getSwapButton().style.display = null;
+        const cardRank = Number(selectedCenterCard.getAttribute('data-rank'));
+        const handCardLocation = Number(selectedHandCard.getAttribute('data-location-in-hand'));
+        const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
+        const swapButton = this.gameui.playerTurn.getSwapButton();
+        if (wouldBeAnchor) {
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + _('Swap as Anchor') + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.classList.remove('bgabutton_blue');
+            swapButton.classList.add('orange-button');
+        }
+        else {
+            swapButton.innerHTML = _('Swap Selected Cards');
+            swapButton.classList.remove('orange-button');
+            swapButton.classList.add('bgabutton_blue');
+        }
+        swapButton.style.display = null;
+    }
+    wouldBeAnchorCard(handContainer, cardLocation, cardRank) {
+        const cardsInHand = handContainer.querySelectorAll('[data-state-in-hand="number"]');
+        for (let i = 0; i < cardsInHand.length; i++) {
+            const nextCard = cardsInHand[i];
+            const nextLocation = Number(nextCard.getAttribute('data-location-in-hand'));
+            const nextRank = Number(nextCard.getAttribute('data-rank'));
+            if (nextLocation < cardLocation && nextRank > cardRank)
+                return true;
+            if (nextLocation > cardLocation && nextRank < cardRank)
+                return true;
+        }
+        return false;
+        // let lowerCard: {location: number, rank: number} = null; //ekmek sil
+        // let higherCard: {location: number, rank: number} = null;
+        // handContainer.querySelectorAll('[data-state-in-hand="number"]').forEach((card) => {
+        //     const location = Number(card.getAttribute('data-location-in-hand'));
+        //     const rank = Number(card.getAttribute('data-rank'));
+        //     if(location < cardLocation && (!lowerCard || location > lowerCard.location))
+        //         lowerCard = { location, rank };
+        //     if(location > cardLocation && (!higherCard || location < higherCard.location))
+        //         higherCard = { location, rank };
+        // });
+        // if(lowerCard && lowerCard.rank > cardRank)
+        //     return true;
+        // if(higherCard && higherCard.rank < cardRank)
+        //     return true;
+        // return false;
     }
     cardsUnselected() {
         this.gameui.playerTurn.getSwapButton().style.display = 'none';

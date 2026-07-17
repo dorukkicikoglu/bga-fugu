@@ -16,6 +16,7 @@ export class PlayerHandler{
             this.anchorTextDiv.classList.add('anchor-text');
             this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
             star.insertAdjacentElement('afterend', this.anchorTextDiv);
+            this.anchorTextDiv.insertAdjacentHTML('afterend', '<i class="fa6 fa-anchor"></i>');
         }
 
         this.setGameEnded(this.game_ended);

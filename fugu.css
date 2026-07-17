@@ -1,4 +1,3 @@
-@charset "UTF-8";
 :root {
   --player-color: #000000;
   --card-width: 6vw;
@@ -428,6 +427,10 @@ body {
   --horz-margin: calc(var(--my-card-width) * -0.17);
 }
 
+#swap-button.orange-button {
+  background: linear-gradient(148deg, #b62930 59%, #fdb420) no-repeat border-box;
+}
+
 body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended {
   background-color: #ba9c79;
 }
@@ -437,11 +440,15 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .p
 
 .player-board .anchor-text {
   display: inline-block;
-  margin-left: 2px;
+  margin-left: 3px;
 }
-.player-board .anchor-text::after {
-  content: "⚓";
-  margin-left: 2px;
+
+.player-board .fa-anchor {
+  display: inline-block;
+  color: #0f4aff;
+  font-size: 13px;
+  margin-left: 3px;
+  vertical-align: 1px;
 }
 
 body.current_player_is_active:not(.lockedInterface) #center-container .a-card,
