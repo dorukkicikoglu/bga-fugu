@@ -227,6 +227,7 @@ class PlayerHandler {
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
         await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        handContainer.style.zIndex = '100';
         const cardMoveAnimTime = 800;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
@@ -239,6 +240,7 @@ class PlayerHandler {
             centerCardClone.style.transform = 'rotate(180deg)';
         }
         await this.gameui.bga.gameui.wait(cardMoveAnimTime);
+        handContainer.style.zIndex = null;
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
         handCardClone.style.top = null;
@@ -752,7 +754,7 @@ class Game {
             this.players[args.player_id].setGameEnded(true);
     }
     async notif_displayEndGameScoring(args) {
-        console.log('notif_notifDisplayEndGameScoring', args);
+        console.log('notif_displayEndGameScoring', args);
         this.updateStatusText(_('Reef scores coming up!'));
         await this.endGameScoringHandler.displayEndGameScore(args.endGameScoring);
     }

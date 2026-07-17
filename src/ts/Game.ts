@@ -256,7 +256,7 @@ export class Game {
     }
 
     private async notif_displayEndGameScoring(args) {
-        console.log('notif_notifDisplayEndGameScoring', args);
+        console.log('notif_displayEndGameScoring', args);
 
         this.updateStatusText(_('Reef scores coming up!'));
         await this.endGameScoringHandler.displayEndGameScore(args.endGameScoring);

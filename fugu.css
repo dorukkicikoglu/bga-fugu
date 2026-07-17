@@ -381,7 +381,7 @@ body {
 }
 
 #player-hands-container {
-  margin-bottom: 110px;
+  margin-bottom: 190px;
 }
 #player-hands-container .a-hand-container {
   position: relative;
@@ -424,6 +424,10 @@ body {
 }
 #player-hands-container .a-hand-container[data-is-myself=true] {
   margin-bottom: 50px;
+}
+
+.mobile_version #player-hands-container .a-hand-container .cards-container .a-card {
+  --horz-margin: calc(var(--my-card-width) * -0.335);
 }
 
 .mobile_version .a-hand-container .cards-container .a-card {
