@@ -7,7 +7,6 @@
 }
 
 .mobile_version {
-  --card-width: 14.5vw;
   --card-width: 28.5vw;
 }
 
@@ -554,6 +553,13 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
 }
 .end-game-score-container table tbody td.score-type-icon-cell .score-type-icon[data-score-type=totalScore] {
   background-position: -500% 0%;
+}
+.end-game-score-container table tbody td.score-type-icon-cell .score-type-icon[data-score-type=soloDifficultyPenalty] {
+  background-image: none;
+  --card-width: 16px;
+  width: var(--card-width);
+  height: calc(var(--card-width) * 2);
+  margin-top: 2px;
 }
 .end-game-score-container table tbody td .cell-total {
   font-size: 24px;

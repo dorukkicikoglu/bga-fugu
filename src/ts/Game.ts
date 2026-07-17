@@ -11,12 +11,13 @@ export class Game {
     public playerTurn: PlayerTurn;
     public players: Record<number, PlayerHandler> = {};
     private myPlayerID: number;
-
+    private localCardIDCounter = 1;
+    public isSoloExpertDifficulty: boolean;
+    
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
     private endGameScoringHandler: EndGameScoringHandler;
     private tooltipHandler: TooltipHandler;
-    private localCardIDCounter = 1;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
@@ -51,6 +52,8 @@ export class Game {
         console.log( "Starting game setup" );
         this.gamedatas = gamedatas;
 
+        this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
+        
         document.body.insertAdjacentHTML('afterbegin', `<div class="background-container"></div>`);
 
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
@@ -82,8 +85,6 @@ export class Game {
 
         this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
         
-
-
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
 
@@ -206,7 +207,7 @@ export class Game {
 
     public getPos(node: HTMLDivElement): DOMRect { 
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
-        // pos.w = pos.width; pos.h = pos.height; //ekmek sil
+        // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
         return pos;
     }
     public isDesktop(): boolean { return document.body.classList.contains('desktop_version'); }
@@ -215,9 +216,8 @@ export class Game {
     public capitalizeFirstLetter(str: string): string { return `${str[0].toUpperCase()}${str.slice(1)}`; }
     public updateStatusText(statusText): void{ $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
 
-    getGameStateName(): string {
-        return this.gamedatas.gamestate.name;
-    }
+    public getGameStateName(): string { return this.gamedatas.gamestate.name; }
+    public isSoloMode(): boolean{ return this.bga.gameui.is_solo; }
     
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications

@@ -1,7 +1,7 @@
 interface FuguPlayer extends Player {
     player_no: number;
     game_ended: boolean;
-    scoring_data: PlayerScore;
+    scoring_data: SoloPlayerScore;
 }
 
 interface FuguGamedatas extends Gamedatas<FuguPlayer> {
@@ -10,6 +10,7 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     cardsInHands: Record<number, CardInHand[]>;
     endGameScoring: EndGameScoreData;
     deckLength: number;
+    isSoloExpertDifficulty: boolean;
 }
 
 interface CardBase {
@@ -41,11 +42,15 @@ interface PlayerScore{
     totalScore: number;
 }
 
+interface SoloPlayerScore extends PlayerScore{
+    soloDifficultyPenalty: number;
+}
+
 type CardStateInHand = 'facedown' | 'number' | 'anchor';
 
 interface EndGameScoreData {
     winner_ids: number[];
-    player_scores: { [player_id: number]: PlayerScore };
+    player_scores: { [player_id: number]: SoloPlayerScore };
 }
 
 /*

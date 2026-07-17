@@ -30,6 +30,11 @@ if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple t
     define("CORAL_SCORING", 3); //score 3 points per sets of corals in pink, green, yellow
     define("ANCHOR_SCORING", fn($n) => ($n * ($n + 1)) / -2); //score minus Gaussian: -1, -3, -6, -10 and so on
 
+    define("SOLO_DIFFICULTY_OPTION", 100);
+    define("SOLO_DIFFICULTY_STANDARD", 1);
+    define("SOLO_DIFFICULTY_EXPERT", 2);
+    define("SOLO_DIFFICULTY_FACEDOWN_PENALTY", 1); //expert solo: lose 1 point per face-down card remaining in your row
+
     define("CARD_NUM_TO_CARD_TYPE", [
         1 => "coral_pink",
         2 => "octopus",

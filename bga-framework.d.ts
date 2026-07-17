@@ -666,6 +666,8 @@ declare class GameGui<P extends Player = Player, G extends Gamedatas<P> = Gameda
    */
   bRealtime: boolean;  
 
+  is_solo: boolean;  
+  
   /**
    * Returns true during replay/archive mode if animations should be skipped.
    * 

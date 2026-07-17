@@ -8,10 +8,7 @@
 	--bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
 }
 
-.mobile_version{
-	--card-width: 14.5vw;
-	--card-width: 28.5vw; //ekmek sil? //buyuk kart
-}
+.mobile_version{ --card-width: 28.5vw; }
 
 @mixin text-shade($color, $size) { text-shadow: #{$size} 0 $color, -#{$size} 0 $color, 0 #{$size} $color, 0 -#{$size} $color, #{($size / 2)} #{($size / 2)} $color, -#{($size / 2)} -#{($size / 2)} $color, #{($size / 2)} -#{($size / 2)} $color, -#{($size / 2)} #{($size / 2)} $color; }
 @mixin non-selectable() { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
@@ -58,9 +55,7 @@ body{ background: #221e52; }
 }
 .mobile_version #player-hands-container .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.335); }
 
-.mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); 
-	//&:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //cards go 1 up 1 down
-}
+.mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); }
 
 //status bar
 #swap-button.orange-button{ background: linear-gradient(148deg, #b62930 59%, #fdb420) no-repeat border-box; }
@@ -113,6 +108,7 @@ body.current_player_is_active:not(.lockedInterface){
 						&[data-score-type="corals"]{ background-position: -300% 0%; }
 						&[data-score-type="anchor"]{ background-position: -400% 0%; }
 						&[data-score-type="totalScore"]{ background-position: -500% 0%; }
+                        &[data-score-type="soloDifficultyPenalty"]{ background-image: none; --card-width: 16px; width: var(--card-width); height: calc(var(--card-width) * 2); margin-top: 2px; }
                     }
                 }
                 .cell-total{ font-size: 24px; transition: opacity 0.2s ease; }

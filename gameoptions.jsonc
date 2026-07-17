@@ -20,4 +20,19 @@
     "default": 0
   }
   */
+
+  "100": {
+    "name": "Solo Difficulty Mode",
+    "displaycondition": [ { "type": "minplayers", "value": [1] } ],
+    "values": {
+      "1": {
+        "name": "Standard"
+      },
+      "2": {
+        "name": "Expert",
+        "description": "In addition to the normal scoring, lose 1 point for each face-down card remaining in your row"
+      }
+    },
+    "default": 1
+  }
 }

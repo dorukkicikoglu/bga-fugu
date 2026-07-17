@@ -136,6 +136,7 @@ class Game extends \Bga\GameFramework\Table
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
         $result['deckLength'] = DECK_LENGTHS[count($result["players"])]; 
+        $result['isSoloExpertDifficulty'] = $this->isSoloExpertDifficulty(); 
 
         $state = $this->gamestate->getCurrentMainState();
         if($state->name == 'gameEnd')
@@ -204,6 +205,9 @@ class Game extends \Bga\GameFramework\Table
 
         $this->tableManager->shuffleAndDealCards();
 
+        if($this->isSoloExpertDifficulty())
+            $this->updatePlayerScore(array_keys($players)[0]); //in expert mode, start with soloDifficultyPenalty
+
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
 
@@ -235,6 +239,10 @@ class Game extends \Bga\GameFramework\Table
 
     public function isSoloMode(): bool{ return $this->getPlayersNumber() === 1; }
 
+    public function isSoloExpertDifficulty(): bool{
+        return $this->isSoloMode() && $this->tableOptions->get(SOLO_DIFFICULTY_OPTION) === SOLO_DIFFICULTY_EXPERT;
+    }
+
     //end utility functions
 
     /**
@@ -246,7 +254,7 @@ class Game extends \Bga\GameFramework\Table
      * satisfy, since their suit isn't showing).
      *
      * @param int $playerID
-     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, anchor: int}
+     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, anchor: int, soloDifficultyPenalty: int}
      */
     public function getPlayerScore($playerID): array
     {
@@ -269,6 +277,7 @@ class Game extends \Bga\GameFramework\Table
         $octopusScore = 0;
         $coralCounts = ['coral_pink' => 0, 'coral_green' => 0, 'coral_yellow' => 0];
         $anchorCount = 0;
+        $facedownCount = 0;
 
         // --- BANNERFISH -----------------------------------------------------
         // Walk the row tracking the length of the current run of consecutive,
@@ -294,6 +303,10 @@ class Game extends \Bga\GameFramework\Table
 
             if ($card['state_in_hand'] === 'anchor') {
                 $anchorCount++;
+            }
+
+            if ($card['state_in_hand'] === 'facedown') {
+                $facedownCount++;
             }
 
             if (!$isVisibleSuit($card)) {
@@ -342,8 +355,11 @@ class Game extends \Bga\GameFramework\Table
         $anchorScoringFn = ANCHOR_SCORING;
         $anchorScore = (int) $anchorScoringFn($anchorCount);
 
-        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore;
-        
+        // --- SOLO DIFFICULTY: expert solo games penalize unplayed (face-down) cards ---
+        $soloDifficultyPenalty = $this->isSoloExpertDifficulty() ? -1 * $facedownCount * SOLO_DIFFICULTY_FACEDOWN_PENALTY : 0;
+
+        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore + $soloDifficultyPenalty;
+
         return [
             'totalScore' => $totalScore,
             'bannerfish' => $bannerfishScore,
@@ -352,6 +368,8 @@ class Game extends \Bga\GameFramework\Table
             'corals' => $coralScore,
             'anchor' => $anchorScore,
             'anchorCount' => $anchorCount,
+            'soloDifficultyPenalty' => $soloDifficultyPenalty,
+            'ekmek' => $facedownCount,
         ];
     }
     private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }
@@ -360,8 +378,8 @@ class Game extends \Bga\GameFramework\Table
         $allScoringData = $this->getAllPlayersScoring();
 
         $winnerIDs = [];
-        $maxScore = 0;
-        $minAnchorCount = 0;
+        $maxScore = -INF;
+        $minAnchorCount = -INF;
 
         foreach ($allScoringData as $playerID => $playerScore) {
             if ($playerScore['totalScore'] < $maxScore) {
@@ -369,6 +387,9 @@ class Game extends \Bga\GameFramework\Table
             }
             if ($playerScore['totalScore'] > $maxScore || ($playerScore['totalScore'] == $maxScore && $playerScore['anchorCount'] < $minAnchorCount)) { //new sole winner
                 $winnerIDs = [$playerID];
+                if($this->isSoloMode() && $playerScore['totalScore'] <= 0) //not winner in solo mode without points
+                    $winnerIDs = [];
+
                 $maxScore = $playerScore['totalScore'];
                 $minAnchorCount = (int) $playerScore['anchorCount'];
             } else if ($playerScore['totalScore'] == $maxScore && $playerScore['anchorCount'] == $minAnchorCount) { //share victory

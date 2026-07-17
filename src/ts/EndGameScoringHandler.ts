@@ -11,7 +11,7 @@ export class EndGameScoringHandler{
     private bodyClickHandler = null;
     private winner_ids: number[];
     private delayAfterFadeIns = 5000;
-    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'totalScore'];
+    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
 
 	constructor(private gameui: Game) { }
 
@@ -93,8 +93,17 @@ export class EndGameScoringHandler{
         for(let i = 0; i < this.scoringRowNames.length; i++) {
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
-            
-            row.innerHTML = `<td class="score-type-icon-cell"><div class="score-type-icon" data-score-type="${scoreType}"></div></td>`;
+
+            if(scoreType == 'soloDifficultyPenalty' && !(this.gameui.isSoloMode() && this.gameui.isSoloExpertDifficulty)){
+                continue;
+            }
+            const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
+            const iconClass = isSoloDifficultyPenalty ? 'score-type-icon a-card' : 'score-type-icon';
+            const facedownAttr = isSoloDifficultyPenalty ? ' data-state-in-hand="facedown"' : '';
+            row.innerHTML = `
+                <td class="score-type-icon-cell">
+                    <div class="${iconClass}" data-score-type="${scoreType}"${facedownAttr}></div>
+                </td>`;
 
             for(let player_id in this.gameui.players) {
                 const playerScore = this.endGameScoring.player_scores[player_id];
@@ -154,7 +163,7 @@ export class EndGameScoringHandler{
             const allCells = Array.from(this.tbody.querySelectorAll('.cell-text'));
             allCells.forEach((cell: HTMLDivElement) => { cell.style.opacity = ''; });
             this.makeWinnersJump();
-            this.setPlayerScores();
+            this.setEndGamePlayerScores();
 
             await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
             return;
@@ -219,7 +228,7 @@ export class EndGameScoringHandler{
         }
     }
 
-    private setPlayerScores() {
+    private setEndGamePlayerScores() {
         for(let player_id in this.gameui.players)
             this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
     }

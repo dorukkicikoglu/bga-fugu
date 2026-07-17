@@ -345,7 +345,7 @@ class EndGameScoringHandler {
         this.gameui = gameui;
         this.bodyClickHandler = null;
         this.delayAfterFadeIns = 5000;
-        this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'totalScore'];
+        this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
     }
     async displayEndGameScore(endGameScoring) {
         this.endGameScoring = endGameScoring;
@@ -408,7 +408,16 @@ class EndGameScoringHandler {
         for (let i = 0; i < this.scoringRowNames.length; i++) {
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
-            row.innerHTML = `<td class="score-type-icon-cell"><div class="score-type-icon" data-score-type="${scoreType}"></div></td>`;
+            if (scoreType == 'soloDifficultyPenalty' && !(this.gameui.isSoloMode() && this.gameui.isSoloExpertDifficulty)) {
+                continue;
+            }
+            const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
+            const iconClass = isSoloDifficultyPenalty ? 'score-type-icon a-card' : 'score-type-icon';
+            const facedownAttr = isSoloDifficultyPenalty ? ' data-state-in-hand="facedown"' : '';
+            row.innerHTML = `
+                <td class="score-type-icon-cell">
+                    <div class="${iconClass}" data-score-type="${scoreType}"${facedownAttr}></div>
+                </td>`;
             for (let player_id in this.gameui.players) {
                 const playerScore = this.endGameScoring.player_scores[player_id];
                 const cellScore = playerScore[scoreType];
@@ -456,7 +465,7 @@ class EndGameScoringHandler {
             const allCells = Array.from(this.tbody.querySelectorAll('.cell-text'));
             allCells.forEach((cell) => { cell.style.opacity = ''; });
             this.makeWinnersJump();
-            this.setPlayerScores();
+            this.setEndGamePlayerScores();
             await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
             return;
         }
@@ -508,7 +517,7 @@ class EndGameScoringHandler {
             delay += 100 + Math.random() * 50;
         }
     }
-    setPlayerScores() {
+    setEndGamePlayerScores() {
         for (let player_id in this.gameui.players)
             this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
     }
@@ -581,6 +590,7 @@ class Game {
     setup(gamedatas) {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
+        this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
         document.body.insertAdjacentHTML('afterbegin', `<div class="background-container"></div>`);
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
@@ -711,7 +721,7 @@ class Game {
     }
     getPos(node) {
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node);
-        // pos.w = pos.width; pos.h = pos.height; //ekmek sil
+        // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
         return pos;
     }
     isDesktop() { return document.body.classList.contains('desktop_version'); }
@@ -721,9 +731,8 @@ class Game {
     } return this.isDesktop() ? 'click' : 'tap'; }
     capitalizeFirstLetter(str) { return `${str[0].toUpperCase()}${str.slice(1)}`; }
     updateStatusText(statusText) { $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
-    getGameStateName() {
-        return this.gamedatas.gamestate.name;
-    }
+    getGameStateName() { return this.gamedatas.gamestate.name; }
+    isSoloMode() { return this.bga.gameui.is_solo; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
     /*
