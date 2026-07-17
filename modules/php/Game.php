@@ -359,12 +359,17 @@ class Game extends \Bga\GameFramework\Table
 
         $winnerIDs = [];
         $maxScore = 0;
+        $minAnchorCount = 0;
 
         foreach ($allScoringData as $playerID => $playerScore) {
-            if ($playerScore['totalScore'] > $maxScore) {
+            if ($playerScore['totalScore'] < $maxScore) {
+                continue;
+            }
+            if ($playerScore['totalScore'] > $maxScore || ($playerScore['totalScore'] == $maxScore && $playerScore['anchorCount'] < $minAnchorCount)) { //new sole winner
                 $winnerIDs = [$playerID];
                 $maxScore = $playerScore['totalScore'];
-            } else if ($playerScore['totalScore'] == $maxScore) {
+                $minAnchorCount = (int) $playerScore['anchorCount'];
+            } else if ($playerScore['totalScore'] == $maxScore && $playerScore['anchorCount'] == $minAnchorCount) { //share victory
                 $winnerIDs[] = $playerID;
             }
         }
