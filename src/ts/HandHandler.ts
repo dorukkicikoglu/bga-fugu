@@ -36,8 +36,6 @@ export class HandHandler{
 
         for(let cardData of this.handData)
             this.insertCardToHand(cardData);
-
-        // this.setHandCountAttrForMobileResizing(false); //ekmek devam
     }
 
     private insertCardToHand(cardData){ 

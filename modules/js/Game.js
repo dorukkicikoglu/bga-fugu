@@ -116,7 +116,6 @@ class HandHandler {
         this.cardsContainer.innerHTML = ''; // Clear existing cards
         for (let cardData of this.handData)
             this.insertCardToHand(cardData);
-        // this.setHandCountAttrForMobileResizing(false); //ekmek devam
     }
     insertCardToHand(cardData) {
         let aCard = this.gameui.createCardDiv(cardData);
@@ -228,7 +227,7 @@ class PlayerHandler {
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
         await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
         handContainer.style.zIndex = '100';
-        const cardMoveAnimTime = 800;
+        const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
         centerCardClone.style.top = handCard.offsetTop + 'px';
@@ -336,6 +335,37 @@ class CenterHandler {
     }
     cardsUnselected() {
         this.gameui.playerTurn.getSwapButton().style.display = 'none';
+    }
+    async animateCardReplace(discardedCardData, newCenterCardData) {
+        const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
+        const oldCenterCardClone = this.gameui.cloneCard(oldCenterCard);
+        const newCenterCard = this.gameui.createCardDiv(newCenterCardData);
+        const newCenterCardClone = this.gameui.cloneCard(newCenterCard);
+        oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
+        oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
+        console.log('oldCenterCard', oldCenterCard);
+        console.log('newCenterCardClone', newCenterCardClone);
+        this.gameui.placeOnObject(oldCenterCardClone, oldCenterCard);
+        this.gameui.placeOnObject(newCenterCardClone, oldCenterCard);
+        const newCenterCardOriginalTop = newCenterCardClone.style.top;
+        const newCenterCardOriginalLeft = newCenterCardClone.style.left;
+        newCenterCardClone.style.left = 'calc(var(--card-width) * -2)';
+        newCenterCardClone.style.top = (parseInt(newCenterCardOriginalTop) - 160) + 'px';
+        oldCenterCard.style.opacity = '0';
+        const flyAwayAnimTime = 400;
+        oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
+        oldCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        oldCenterCardClone.style.left = `calc(var(--card-width) * ` + (3 + Math.random() * 2) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
+        const flyInAnimTime = 400;
+        newCenterCardClone.style.transition = `top ${flyInAnimTime}ms ease-in, left ${flyInAnimTime}ms ease-in`;
+        newCenterCardClone.style.top = newCenterCardOriginalTop;
+        newCenterCardClone.style.left = newCenterCardOriginalLeft;
+        await this.gameui.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
+        oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
+        oldCenterCard.setAttribute('data-card-id', newCenterCardData.card_id.toString());
+        oldCenterCard.style.opacity = null;
+        newCenterCardClone.remove();
+        oldCenterCardClone.remove();
     }
     getCenterContainer() { return this.centerContainer; }
 }
@@ -757,6 +787,8 @@ class Game {
     }
     async notif_cardsSwapped(args) {
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        if (this.isSoloMode())
+            await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
         this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);
         if (args.game_ended)

@@ -20,7 +20,7 @@
  */
 
 if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple times
-    define("DECK_LENGTHS", [1 => 39, 2 => 39, 3 => 57, 4 => 75]); //ekmek solo ekle?
+    define("DECK_LENGTHS", [1 => 39, 2 => 39, 3 => 57, 4 => 75]);
     define("CENTER_CARD_COUNT", 3);
     define("CARDS_PER_PLAYER", 18);
 
@@ -34,6 +34,7 @@ if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple t
     define("SOLO_DIFFICULTY_STANDARD", 1);
     define("SOLO_DIFFICULTY_EXPERT", 2);
     define("SOLO_DIFFICULTY_FACEDOWN_PENALTY", 1); //expert solo: lose 1 point per face-down card remaining in your row
+    define("SOLO_DIFFICULTY_RANK_THRESHOLD", 20); //solo: revealed rank below this discards the lower-numbered center card, at/above discards the higher-numbered one
 
     define("CARD_NUM_TO_CARD_TYPE", [
         1 => "coral_pink",

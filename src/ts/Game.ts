@@ -245,8 +245,11 @@ export class Game {
         this.players[args.player_id].setGameEnded(true);
     }
     
-    public async notif_cardsSwapped(args: {player_id: number, handCardLocation: number, cardInHand: CardInHand, cardInCenter: CardInCenter, updatedScore: PlayerScore, newStateInHand: CardStateInHand, game_ended: boolean}) {
+    public async notif_cardsSwapped(args: {player_id: number, handCardLocation: number, cardInHand: CardInHand, cardInCenter: CardInCenter, updatedScore: PlayerScore, newStateInHand: CardStateInHand, game_ended: boolean, soloCenterCardReplacement: soloCenterCardReplacement}) {
         await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+
+        if(this.isSoloMode())
+            await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
 
         this.tooltipHandler.addTooltipToCards();
         this.players[args.player_id].updateScoring(args.updatedScore);

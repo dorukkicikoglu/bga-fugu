@@ -81,7 +81,7 @@ export class PlayerHandler{
 
         handContainer.style.zIndex = '100';
 
-        const cardMoveAnimTime = 800;
+        const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
         

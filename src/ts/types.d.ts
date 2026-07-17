@@ -48,6 +48,11 @@ interface SoloPlayerScore extends PlayerScore{
 
 type CardStateInHand = 'facedown' | 'number' | 'anchor';
 
+interface soloCenterCardReplacement{
+    discardedCardData: CardInCenter;
+    newCenterCardData: CardInCenter;
+}
+
 interface EndGameScoreData {
     winner_ids: number[];
     player_scores: { [player_id: number]: SoloPlayerScore };

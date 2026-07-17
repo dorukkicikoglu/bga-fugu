@@ -369,7 +369,6 @@ class Game extends \Bga\GameFramework\Table
             'anchor' => $anchorScore,
             'anchorCount' => $anchorCount,
             'soloDifficultyPenalty' => $soloDifficultyPenalty,
-            'ekmek' => $facedownCount,
         ];
     }
     private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }

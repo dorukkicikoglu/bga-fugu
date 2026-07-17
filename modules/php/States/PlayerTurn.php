@@ -46,7 +46,7 @@ class PlayerTurn extends GameState
      * @throws UserException
      */
     #[PossibleAction]
-    public function actSwapCards(int $centerCardID, int $handCardLocation , int $activePlayerId, array $args)
+    public function actSwapCards(int $centerCardID, int $handCardLocation, int $activePlayerId, array $args)
     {
         if (!in_array($centerCardID, $args['possibleCenterCardIDs']))
             throw new UserException('Invalid center card choice');
@@ -66,6 +66,8 @@ class PlayerTurn extends GameState
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'player', `card_location_arg` = $activePlayerId, `state_in_hand` = '$stateInHand', `location_in_hand` = ".$cardInHand['location_in_hand']." WHERE `card_id` = $centerCardID");
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardInCenter['card_location_arg'].", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
 
+        $soloCenterCardReplacement = $this->game->isSoloMode() ? $this->soloReplaceCenterCard((int) $cardInHand['rank'], (int) $cardInCenter['card_location_arg']) : [];
+
         $anyFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'facedown' LIMIT 1");
         $gameEnded = !$anyFacedownCard;
         if($gameEnded)
@@ -73,16 +75,26 @@ class PlayerTurn extends GameState
 
         $updatedScore = $this->game->updatePlayerScore($activePlayerId);
 
-        $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank}'), [
+        $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank} and placed ${handCardRank}'), [
             "player_id" => $activePlayerId,
             "centerCardRank" => $cardInCenter['rank'],
+            "handCardRank" => $cardInHand['rank'],
             "handCardLocation" => $handCardLocation,
             "cardInHand" => $cardInHand,
             "cardInCenter" => $cardInCenter,
             "newStateInHand" => $stateInHand,
             "updatedScore" => $updatedScore,
             "game_ended" => $gameEnded,
+            "soloCenterCardReplacement" => $soloCenterCardReplacement,
         ]);
+
+        if($soloCenterCardReplacement){
+            $this->bga->notify->all("centerCardReplaced", clienttranslate('${player_name} ${newCardNum} replaces ${oldCardNum}'), [
+                "oldCardNum" => $soloCenterCardReplacement['discardedCardData']['rank'],
+                "newCardNum" => $soloCenterCardReplacement['newCenterCardData']['rank'],
+                "player_id" => $activePlayerId,
+            ]);
+        }
 
         return NextPlayer::class;
     }
@@ -109,6 +121,29 @@ class PlayerTurn extends GameState
         }
 
         return "number";
+    }
+
+    private function soloReplaceCenterCard(int $handCardRank, int $centerCardLocation): array{
+        if(!$this->game->isSoloMode())
+            return[];
+
+        $otherCenterCards = $this->game->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'center' AND `card_location_arg` <> $centerCardLocation ORDER BY `rank` ASC;");
+
+        if ($handCardRank < SOLO_DIFFICULTY_RANK_THRESHOLD) {
+            $cardToDiscard = $otherCenterCards[0]['rank'] < $otherCenterCards[1]['rank'] ? $otherCenterCards[0] : $otherCenterCards[1];
+        } else {
+            $cardToDiscard = $otherCenterCards[0]['rank'] > $otherCenterCards[1]['rank'] ? $otherCenterCards[0] : $otherCenterCards[1];
+        }
+
+        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'returned_to_box' WHERE `card_id` = ".$cardToDiscard['card_id']);
+
+        $replacementCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'solo_deck' ORDER BY `card_location_arg` DESC LIMIT 1");
+        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardToDiscard['card_location_arg']." WHERE `card_id` = ".$replacementCard['card_id']);
+
+        return [
+            'discardedCardData' => $cardToDiscard,
+            'newCenterCardData' => $replacementCard,
+        ];
     }
 
     /**
