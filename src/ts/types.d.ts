@@ -37,6 +37,7 @@ interface PlayerScore{
     corals: number;
     octopus: number;
     pufferfish: number;
+    anchorCount: number;
     totalScore: number;
 }
 

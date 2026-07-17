@@ -1,3 +1,4 @@
+@charset "UTF-8";
 :root {
   --player-color: #000000;
   --card-width: 6vw;
@@ -432,6 +433,15 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .p
 }
 body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended .player_score_value {
   text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
+}
+
+.player-board .anchor-text {
+  display: inline-block;
+  margin-left: 2px;
+}
+.player-board .anchor-text::after {
+  content: "⚓";
+  margin-left: 2px;
 }
 
 body.current_player_is_active:not(.lockedInterface) #center-container .a-card,

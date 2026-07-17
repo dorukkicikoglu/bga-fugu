@@ -228,7 +228,7 @@ class Game extends \Bga\GameFramework\Table
         $totalScore = $updatedScore['totalScore'];
 
         $this->bga->playerScore->set($playerID, $totalScore);
-        $this->bga->playerScoreAux->set($playerID, -1 * (int) $updatedScore['anchor_count']);
+        $this->bga->playerScoreAux->set($playerID, -1 * (int) $updatedScore['anchorCount']);
 
         return $updatedScore;
     }
@@ -349,7 +349,7 @@ class Game extends \Bga\GameFramework\Table
             'octopus' => $octopusScore,
             'corals' => $coralScore,
             'anchor' => $anchorScore,
-            'anchor_count' => $anchorCount,
+            'anchorCount' => $anchorCount,
         ];
     }
     private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }

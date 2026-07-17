@@ -69,7 +69,7 @@ class NextPlayer extends \Bga\GameFramework\States\GameState
         $cardTypeTotals = array_fill_keys($cardTypeStats, 0);
 
         foreach ($endGameScoring['player_scores'] as $playerID => $playerScore) {
-            foreach (['totalScore', ...$cardTypeStats, 'anchor_count'] as $stat) {
+            foreach (['totalScore', ...$cardTypeStats, 'anchorCount'] as $stat) {
                 $this->game->playerStats->set($stat, $playerScore[$stat], (int) $playerID);
             }
             foreach ($cardTypeStats as $stat) {

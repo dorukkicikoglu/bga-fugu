@@ -75,7 +75,7 @@
         "name": "Anchor score",
         "type": "int"
       },
-      "anchor_count": {
+      "anchorCount": {
         "id": 16,
         "name": "Anchor count",
         "type": "int"

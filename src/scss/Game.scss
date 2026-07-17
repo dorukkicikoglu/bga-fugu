@@ -57,6 +57,7 @@ body{ background: #64b5d6; }
 	// &:nth-child(even) { margin-top: calc(var(--my-card-width) * 0.53); } //ekmek sil? //cards go 1 up 1 down
 }
 
+//player board
 body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd){
 	.player-board{
 		&.player-game-ended{ background-color: #ba9c79; 
@@ -64,6 +65,10 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd){
 		}
 	}
 }
+.player-board .anchor-text{ display: inline-block; margin-left: 2px;
+    &::after{ content: "⚓"; margin-left: 2px; }
+}
+//end player board
 
 body.current_player_is_active:not(.lockedInterface){
 	#center-container .a-card,

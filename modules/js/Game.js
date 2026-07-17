@@ -147,6 +147,13 @@ class PlayerHandler {
         this.game_ended = game_ended;
         this.scoringData = scoringData;
         this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
+        const star = this.overallPlayerBoard.querySelector('.fa-star');
+        if (star) {
+            this.anchorTextDiv = document.createElement('div');
+            this.anchorTextDiv.classList.add('anchor-text');
+            this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
+            star.insertAdjacentElement('afterend', this.anchorTextDiv);
+        }
         this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {
@@ -163,7 +170,9 @@ class PlayerHandler {
     }
     updateScoring(updatedScoring) {
         this.scoringData = updatedScoring;
-        this.scoreCounter.toValue(this.scoringData['totalScore']);
+        this.scoreCounter.toValue(this.scoringData.totalScore);
+        if (this.anchorTextDiv)
+            this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
     }
     async animateCardSwap(handCardLocation, cardInCenter, cardInHand, newStateInHand) {
         const centerContainer = this.gameui.centerHandler.getCenterContainer();

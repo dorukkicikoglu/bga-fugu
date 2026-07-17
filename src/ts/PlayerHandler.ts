@@ -4,10 +4,20 @@ import { HandHandler } from "./HandHandler";
 export class PlayerHandler{
     private overallPlayerBoard: HTMLDivElement;
     private scoreCounter: Counter;
+    private anchorTextDiv: HTMLDivElement;
     private hand: HandHandler;
     
 	constructor(private gameui: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData: PlayerScore) {
         this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
+
+        const star = this.overallPlayerBoard.querySelector('.fa-star');
+        if(star){
+            this.anchorTextDiv = document.createElement('div');
+            this.anchorTextDiv.classList.add('anchor-text');
+            this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
+            star.insertAdjacentElement('afterend', this.anchorTextDiv);
+        }
+
         this.setGameEnded(this.game_ended);
 
         this.scoreCounter = new ebg.counter();
@@ -28,7 +38,10 @@ export class PlayerHandler{
 
     public updateScoring(updatedScoring: PlayerScore): void {
         this.scoringData = updatedScoring;
-        this.scoreCounter.toValue(this.scoringData['totalScore']);
+        this.scoreCounter.toValue(this.scoringData.totalScore);
+
+        if(this.anchorTextDiv)
+            this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
     }
     
     public async animateCardSwap(handCardLocation: number, cardInCenter: CardInCenter, cardInHand: CardInHand, newStateInHand: CardStateInHand){
@@ -36,7 +49,7 @@ export class PlayerHandler{
         const handContainer = this.hand.getHandContainer();
         centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
         handContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
-        
+
         const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`) as HTMLDivElement;
         const handCard = handContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`) as HTMLDivElement;
         const handCardClone = this.gameui.createCardDiv(cardInHand);
