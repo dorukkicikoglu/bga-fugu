@@ -15,6 +15,7 @@ export class BackgroundHandler{
   private bubblesContainer: HTMLDivElement;
   private targetBubbleSetting: BubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
   private bubblesInitialized = false;
+  private bodyClickListener: (event: MouseEvent) => void;
 
   constructor(private gameui: Game) {
     this.backgroundContainer = document.createElement('div');
@@ -24,6 +25,14 @@ export class BackgroundHandler{
     this.bubblesContainer = document.createElement('div');
     this.bubblesContainer.classList.add('bubbles-container');
     this.backgroundContainer.appendChild(this.bubblesContainer);
+
+    this.bodyClickListener = (event: MouseEvent) => {
+      if(this.targetBubbleSetting.maxBubbleCount === 0)
+        return;
+
+      this.createBubble({ x: event.clientX, y: event.clientY });
+    };
+    document.body.addEventListener('click', this.bodyClickListener);
   }
 
   public adjustBubbleAmount(prefValue: number){
@@ -67,8 +76,8 @@ export class BackgroundHandler{
     }, delay);
   }
 
-  private createBubble(){
-    const bubblesInitialized = this.bubblesInitialized; //to run even if bubblesInitialized gets changed elsewhere 
+  private createBubble(position?: { x: number, y: number }){
+    const bubblesInitialized = this.bubblesInitialized; //to run even if bubblesInitialized gets changed elsewhere
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
 
@@ -84,8 +93,15 @@ export class BackgroundHandler{
     const duration = 12 + Math.random() * 4;
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
-    bubble.style.left = `${Math.random() * 100}%`;
     bubble.style.animationDuration = `${duration}s`;
+
+    if(position){
+      bubble.style.left = `${position.x - size / 2}px`;
+      bubble.style.top = `${position.y - size / 2}px`;
+      bubble.style.bottom = 'auto';
+    } else {
+      bubble.style.left = `${Math.random() * 100}%`;
+    }
 
     if(!bubblesInitialized)
       bubble.style.animationDelay = `${-1 * Math.random() * duration}s`;

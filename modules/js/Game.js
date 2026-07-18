@@ -606,6 +606,12 @@ class BackgroundHandler {
         this.bubblesContainer = document.createElement('div');
         this.bubblesContainer.classList.add('bubbles-container');
         this.backgroundContainer.appendChild(this.bubblesContainer);
+        this.bodyClickListener = (event) => {
+            if (this.targetBubbleSetting.maxBubbleCount === 0)
+                return;
+            this.createBubble({ x: event.clientX, y: event.clientY });
+        };
+        document.body.addEventListener('click', this.bodyClickListener);
     }
     adjustBubbleAmount(prefValue) {
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[prefValue] ?? BUBBLE_AMOUNT_BY_PREF[0];
@@ -640,8 +646,8 @@ class BackgroundHandler {
             this.scheduleNextBubble();
         }, delay);
     }
-    createBubble() {
-        const bubblesInitialized = this.bubblesInitialized; //to run even if bubblesInitialized gets changed elsewhere 
+    createBubble(position) {
+        const bubblesInitialized = this.bubblesInitialized; //to run even if bubblesInitialized gets changed elsewhere
         const bubble = document.createElement('div');
         bubble.classList.add('bubble');
         const bubbleOpacity = document.createElement('div');
@@ -654,8 +660,15 @@ class BackgroundHandler {
         const duration = 12 + Math.random() * 4;
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
-        bubble.style.left = `${Math.random() * 100}%`;
         bubble.style.animationDuration = `${duration}s`;
+        if (position) {
+            bubble.style.left = `${position.x - size / 2}px`;
+            bubble.style.top = `${position.y - size / 2}px`;
+            bubble.style.bottom = 'auto';
+        }
+        else {
+            bubble.style.left = `${Math.random() * 100}%`;
+        }
         if (!bubblesInitialized)
             bubble.style.animationDelay = `${-1 * Math.random() * duration}s`;
         swing.style.setProperty('--drift', `${(Math.random() * 80) - 40}px`);
