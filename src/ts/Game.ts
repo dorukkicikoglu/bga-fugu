@@ -4,6 +4,7 @@ import { CenterHandler } from "./CenterHandler";
 import { EndGameScoringHandler } from "./EndGameScoringHandler";
 import { TooltipHandler } from "./TooltipHandler";
 import { BackgroundHandler } from "./BackgroundHandler";
+import { PrefHandler } from "./PrefHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -19,7 +20,8 @@ export class Game {
     public centerHandler: CenterHandler;
     private endGameScoringHandler: EndGameScoringHandler;
     private tooltipHandler: TooltipHandler;
-    private backgroundHandler: BackgroundHandler;
+    private prefHandler: PrefHandler;
+    public backgroundHandler: BackgroundHandler;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
@@ -57,6 +59,7 @@ export class Game {
         this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
                 
         this.backgroundHandler = new BackgroundHandler(this);
+        this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
 
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>

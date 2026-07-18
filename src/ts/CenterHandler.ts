@@ -105,8 +105,6 @@ export class CenterHandler{
 
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
         oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
-        console.log('oldCenterCard', oldCenterCard);
-        console.log('newCenterCardClone', newCenterCardClone);
 
         this.gameui.placeOnObject(oldCenterCardClone, oldCenterCard);
         this.gameui.placeOnObject(newCenterCardClone, oldCenterCard);

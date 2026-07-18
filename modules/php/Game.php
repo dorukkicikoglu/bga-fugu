@@ -26,6 +26,9 @@ class Game extends \Bga\GameFramework\Table
 {
     public Deck $cardsDeck;
     public FUGUTableManager $tableManager;
+    public array $userPrefs = array(
+        'bubble_amount' => 101,
+    );
 
     /**
      * Your global variables labels:
@@ -136,6 +139,7 @@ class Game extends \Bga\GameFramework\Table
         $result['cardsInCenter'] = $cardsOnTable['center'];
         $result['cardsInHands'] = $cardsOnTable['players'];
         $result['deckLength'] = DECK_LENGTHS[count($result["players"])]; 
+        $result['pref_names'] = $this->userPrefs;
         $result['isSoloExpertDifficulty'] = $this->isSoloExpertDifficulty(); 
 
         $state = $this->gamestate->getCurrentMainState();

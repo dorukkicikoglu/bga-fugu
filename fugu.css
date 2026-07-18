@@ -718,8 +718,11 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
   bottom: -10%;
   animation: bubble-rise linear 1;
 }
-
-.bubble-swing {
+.bubble .bubble-opacity {
+  width: 100%;
+  height: 100%;
+}
+.bubble .bubble-opacity .bubble-swing {
   width: 100%;
   height: 100%;
   border-radius: 50%;

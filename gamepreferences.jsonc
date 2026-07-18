@@ -23,4 +23,26 @@
     "default": 0
   }
   */
+
+  "101": {
+    "name": "Bubble amount",
+    "values": {
+      "0": {
+        "name": "Off"
+      },
+      "1": {
+        "name": "Low"
+      },
+      "2": {
+        "name": "Mid"
+      },
+      "3": {
+        "name": "Intense"
+      },
+      "4": {
+        "name": "Bubble Bath!"
+      }
+    },
+    "default": 1
+  }
 }
