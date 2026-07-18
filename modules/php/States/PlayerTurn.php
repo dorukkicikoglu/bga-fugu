@@ -89,10 +89,9 @@ class PlayerTurn extends GameState
         ]);
 
         if($soloCenterCardReplacement){
-            $this->bga->notify->all("centerCardReplaced", clienttranslate('${player_name} ${newCardNum} replaces ${oldCardNum}'), [
+            $this->bga->notify->all("centerCardReplaced", clienttranslate('Center: ${newCardNum} replaces ${oldCardNum}'), [
                 "oldCardNum" => $soloCenterCardReplacement['discardedCardData']['rank'],
                 "newCardNum" => $soloCenterCardReplacement['newCenterCardData']['rank'],
-                "player_id" => $activePlayerId,
             ]);
         }
 

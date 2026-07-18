@@ -347,9 +347,13 @@ class CenterHandler {
         this.gameui.placeOnObject(newCenterCardClone, oldCenterCard);
         const newCenterCardOriginalTop = newCenterCardClone.style.top;
         const newCenterCardOriginalLeft = newCenterCardClone.style.left;
-        newCenterCardClone.style.left = 'calc(var(--card-width) * -2)';
-        newCenterCardClone.style.top = (parseInt(newCenterCardOriginalTop) - 160) + 'px';
+        newCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        newCenterCardClone.style.left = `calc(var(--card-width) * ` + (-1 * (3 + Math.random() * 2)) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
         oldCenterCard.style.opacity = '0';
+        const pullUpAnimTime = 200;
+        oldCenterCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
+        oldCenterCardClone.style.top = `${parseFloat(oldCenterCardClone.style.top || '0') - 20}px`;
+        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
         const flyAwayAnimTime = 400;
         oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
         oldCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
