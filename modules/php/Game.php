@@ -140,7 +140,9 @@ class Game extends \Bga\GameFramework\Table
         $result['cardsInHands'] = $cardsOnTable['players'];
         $result['deckLength'] = DECK_LENGTHS[count($result["players"])]; 
         $result['pref_names'] = $this->userPrefs;
+
         $result['isSoloExpertDifficulty'] = $this->isSoloExpertDifficulty(); 
+        $result['discardedCards'] = $this->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'returned_to_box' ORDER BY `rank` ASC");
 
         $state = $this->gamestate->getCurrentMainState();
         if($state->name == 'gameEnd')

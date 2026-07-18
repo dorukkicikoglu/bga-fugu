@@ -7,8 +7,8 @@ export class PlayerHandler{
     private anchorTextDiv: HTMLDivElement;
     private hand: HandHandler;
     
-	constructor(private gameui: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData: PlayerScore) {
-        this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
+	constructor(private game: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData: PlayerScore) {
+        this.overallPlayerBoard = this.game.bga.playerPanels.getElement(this.playerID).closest('.player-board');
 
         const star = this.overallPlayerBoard.querySelector('.fa-star');
         if(star){
@@ -28,7 +28,7 @@ export class PlayerHandler{
             playerId: this.playerID,
         });
 
-        this.hand = new HandHandler(this.gameui, this, this.playerHandData); 
+        this.hand = new HandHandler(this.game, this, this.playerHandData); 
 	}
 
     public setGameEnded(gameEnded){
@@ -46,28 +46,28 @@ export class PlayerHandler{
     }
     
     public async animateCardSwap(handCardLocation: number, cardInCenter: CardInCenter, cardInHand: CardInHand, newStateInHand: CardStateInHand){
-        const centerContainer = this.gameui.centerHandler.getCenterContainer();
+        const centerContainer = this.game.centerHandler.getCenterContainer();
         const cardsContainer: HTMLDivElement = this.hand.getHandContainer().querySelector('.cards-container');
         centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
         cardsContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
 
         const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`) as HTMLDivElement;
         const handCard = cardsContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`) as HTMLDivElement;
-        const handCardClone = this.gameui.createCardDiv(cardInHand);
+        const handCardClone = this.game.createCardDiv(cardInHand);
         handCardClone.classList.add('cloned-card');
 
         if(!centerCard || !handCard || !handCardClone)
             return;
 
-        const centerCardClone = this.gameui.cloneCard(centerCard);
+        const centerCardClone = this.game.cloneCard(centerCard);
         handCard.insertAdjacentElement('afterend', centerCardClone);
         centerCard.insertAdjacentElement('afterend', handCardClone);
 
         centerCardClone.style.margin = '0';
         handCardClone.style.margin = '0';
 
-	    this.gameui.placeOnObject(centerCardClone, centerCard);
-	    this.gameui.placeOnObject(handCardClone, handCard);
+	    this.game.placeOnObject(centerCardClone, centerCard);
+	    this.game.placeOnObject(handCardClone, handCard);
 
         centerCard.style.opacity = '0';
         handCard.style.opacity = '0';
@@ -77,7 +77,7 @@ export class PlayerHandler{
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
 	    centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
 
-        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        await this.game.bga.gameui.wait(pullUpAnimTime + 50);
 
         cardsContainer.style.zIndex = '100';
 
@@ -95,7 +95,7 @@ export class PlayerHandler{
             centerCardClone.style.transform = 'rotate(180deg)';
         }
         
-        await this.gameui.bga.gameui.wait(cardMoveAnimTime);
+        await this.game.bga.gameui.wait(cardMoveAnimTime);
         
         cardsContainer.style.zIndex = null;
         

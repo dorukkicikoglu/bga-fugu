@@ -3,23 +3,23 @@ import { Game } from "./Game";
 export class CenterHandler{
     private centerContainer: HTMLDivElement;
 
-    constructor(private gameui: Game, private centerCardsData: CardInCenter[]) {
+    constructor(private game: Game, private centerCardsData: CardInCenter[]) {
         this.centerContainer = document.querySelector('#center-container');
 
         for(let cardData of this.centerCardsData)
-            this.centerContainer.appendChild(this.gameui.createCardDiv(cardData));
+            this.centerContainer.appendChild(this.game.createCardDiv(cardData));
 
         this.centerContainer.addEventListener('click', (event: Event) => { this.centerContainerClicked(event); });
     }
 
     private centerContainerClicked(event: Event){
-        if(!this.gameui.bga.players.isCurrentPlayerActive())
+        if(!this.game.bga.players.isCurrentPlayerActive())
             return;
 
-        if(!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+        if(!['PlayerTurn'].includes(this.game.getGameStateName()))
             return;
 
-        if(this.gameui.bga.gameui.isInterfaceLocked())
+        if(this.game.bga.gameui.isInterfaceLocked())
             return;
 
         if(!(event.target as HTMLElement).classList.contains('a-card'))
@@ -39,16 +39,16 @@ export class CenterHandler{
         }
 
         cardDiv.classList.add(selectedCardClass);
-        this.gameui.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected();
     }
 
     public checkBothCardsSelected(): void{
-        if(!this.gameui.myself)
+        if(!this.game.myself)
             return;
 
         const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
         
-        const myHandContainer = this.gameui.myself.getHand().getHandContainer();
+        const myHandContainer = this.game.myself.getHand().getHandContainer();
         const selectedHandCard = myHandContainer.querySelector('.selected-hand-card');
         
         if(!selectedCenterCard || !selectedHandCard){
@@ -60,13 +60,13 @@ export class CenterHandler{
         const handCardLocation = Number(selectedHandCard.getAttribute('data-location-in-hand'));
         const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
 
-        const swapButton = this.gameui.playerTurn.getSwapButton();
+        const swapButton = this.game.playerTurn.getSwapButton();
         if(wouldBeAnchor){
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.gameui.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         } else {
-            swapButton.innerHTML = this.gameui.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
+            swapButton.innerHTML = this.game.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
             swapButton.classList.remove('orange-button');
             swapButton.classList.add('bgabutton_blue');
         }
@@ -93,21 +93,21 @@ export class CenterHandler{
     }
 
     public cardsUnselected(){
-        this.gameui.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.getSwapButton().style.display = 'none';
     }
 
     public async animateCardReplace(discardedCardData: CardInCenter, newCenterCardData: CardInCenter){
         const oldCenterCard: HTMLDivElement = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`) as HTMLDivElement;
-        const oldCenterCardClone = this.gameui.cloneCard(oldCenterCard);
+        const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
 
-        const newCenterCard : HTMLDivElement = this.gameui.createCardDiv(newCenterCardData);
-        const newCenterCardClone = this.gameui.cloneCard(newCenterCard);
+        const newCenterCard : HTMLDivElement = this.game.createCardDiv(newCenterCardData);
+        const newCenterCardClone = this.game.cloneCard(newCenterCard);
 
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
         oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
 
-        this.gameui.placeOnObject(oldCenterCardClone, oldCenterCard);
-        this.gameui.placeOnObject(newCenterCardClone, oldCenterCard);
+        this.game.placeOnObject(oldCenterCardClone, oldCenterCard);
+        this.game.placeOnObject(newCenterCardClone, oldCenterCard);
         
         const newCenterCardOriginalTop = newCenterCardClone.style.top;
         const newCenterCardOriginalLeft = newCenterCardClone.style.left;
@@ -119,7 +119,7 @@ export class CenterHandler{
         oldCenterCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         oldCenterCardClone.style.top = `${parseFloat(oldCenterCardClone.style.top || '0') - 20}px`;
 
-        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        await this.game.bga.gameui.wait(pullUpAnimTime + 50);
 
         const flyAwayAnimTime = 400;
         oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
@@ -131,7 +131,7 @@ export class CenterHandler{
         newCenterCardClone.style.top = newCenterCardOriginalTop;
         newCenterCardClone.style.left = newCenterCardOriginalLeft;
 
-        await this.gameui.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
+        await this.game.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
 
         oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
         oldCenterCard.setAttribute('data-card-id', newCenterCardData.card_id.toString());
@@ -139,6 +139,9 @@ export class CenterHandler{
 
         newCenterCardClone.remove();
         oldCenterCardClone.remove();
+
+        if(this.game.isSoloMode())
+            this.game.soloDiscardDisplayHandler.insertDiscardedCardIcon(discardedCardData);
     }
 
     public getCenterContainer(): HTMLDivElement{ return this.centerContainer; }

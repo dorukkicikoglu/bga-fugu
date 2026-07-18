@@ -1,21 +1,21 @@
 import { Game } from "./Game";
 
 export class TooltipHandler{
-    constructor(private gameui: Game) { 
+    constructor(private game: Game) { 
         this.addTooltipToCards();
 	}
 
 	public addTooltipToCards(){
-        if(document.body.classList.contains('safari-browser') && this.gameui.isMobile()) {
+        if(document.body.classList.contains('safari-browser') && this.game.isMobile()) {
             this.addTooltipToBottomForSafari();
             return;
         }
         const tooltipHTML = this.getTooltipHTML();
-        this.gameui.bga.gameui.addTooltipHtmlToClass('a-card', tooltipHTML, 400);
+        this.game.bga.gameui.addTooltipHtmlToClass('a-card', tooltipHTML, 400);
     }
 
     private addTooltipToBottomForSafari(){
-        if(!document.body.classList.contains('safari-browser') || !this.gameui.isMobile())
+        if(!document.body.classList.contains('safari-browser') || !this.game.isMobile())
             return;
 
         if (document.querySelector('.safari-mobile-revealed-cards-container'))
@@ -31,7 +31,7 @@ export class TooltipHandler{
     }
 
     private getTooltipHTML(): string {
-        const deckLength = this.gameui.getDeckLength();
+        const deckLength = this.game.getDeckLength();
         const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + deckLength.toString() + '</b>');
         const tooltipHTML = `
             <div class="tooltip-wrapper">

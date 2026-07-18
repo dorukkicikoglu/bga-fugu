@@ -12,10 +12,16 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     deckLength: number;
     isSoloExpertDifficulty: boolean;
     pref_names: Record<string, number>;
+    discardedCards: CardInDiscard[];
 }
 
 interface CardBase {
     card_id: number;
+}
+
+interface CardInDiscard extends CardBase {
+    suit: string;
+    rank: number;
 }
 
 interface CardInCenter extends CardBase {

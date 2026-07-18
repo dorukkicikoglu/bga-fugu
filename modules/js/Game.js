@@ -90,8 +90,8 @@ class PlayerTurn {
 }
 
 class HandHandler {
-    constructor(gameui, owner, handData) {
-        this.gameui = gameui;
+    constructor(game, owner, handData) {
+        this.game = game;
         this.owner = owner;
         this.handData = handData;
         this.isMyHand = false;
@@ -121,7 +121,7 @@ class HandHandler {
         this.setFacedownCountForMobileStretching();
     }
     insertCardToHand(cardData) {
-        let aCard = this.gameui.createCardDiv(cardData);
+        let aCard = this.game.createCardDiv(cardData);
         aCard.setAttribute('data-state-in-hand', cardData.state_in_hand);
         aCard.setAttribute('data-location-in-hand', cardData.location_in_hand);
         aCard.style.zIndex = cardData.location_in_hand.toString();
@@ -135,11 +135,11 @@ class HandHandler {
     cardsContainerClicked(event) {
         if (!this.isMyHand)
             return;
-        if (!this.gameui.bga.players.isCurrentPlayerActive())
+        if (!this.game.bga.players.isCurrentPlayerActive())
             return;
-        if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+        if (!['PlayerTurn'].includes(this.game.getGameStateName()))
             return;
-        if (this.gameui.bga.gameui.isInterfaceLocked())
+        if (this.game.bga.gameui.isInterfaceLocked())
             return;
         if (!event.target.classList.contains('a-card'))
             return;
@@ -152,14 +152,14 @@ class HandHandler {
         const cardWasAlreadySelected = cardDiv.classList.contains(selectedCardClass);
         this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
         if (cardWasAlreadySelected) {
-            this.gameui.centerHandler.cardsUnselected();
+            this.game.centerHandler.cardsUnselected();
             return;
         }
         cardDiv.classList.add(selectedCardClass);
-        this.gameui.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected();
     }
     setFacedownCountForMobileStretching() {
-        if (!this.gameui.isMobile())
+        if (!this.game.isMobile())
             return;
         const newFacedownCount = this.cardsContainer.querySelectorAll('.a-card[data-state-in-hand="facedown"]').length;
         const countInitialized = this.cardsContainer.hasAttribute('facedown-count-for-mobile-stretching');
@@ -215,8 +215,8 @@ class HandHandler {
 }
 
 class PlayerHandler {
-    constructor(gameui, playerID, playerName, playerColor, playerNo, playerHandData, game_ended, scoringData) {
-        this.gameui = gameui;
+    constructor(game, playerID, playerName, playerColor, playerNo, playerHandData, game_ended, scoringData) {
+        this.game = game;
         this.playerID = playerID;
         this.playerName = playerName;
         this.playerColor = playerColor;
@@ -224,7 +224,7 @@ class PlayerHandler {
         this.playerHandData = playerHandData;
         this.game_ended = game_ended;
         this.scoringData = scoringData;
-        this.overallPlayerBoard = this.gameui.bga.playerPanels.getElement(this.playerID).closest('.player-board');
+        this.overallPlayerBoard = this.game.bga.playerPanels.getElement(this.playerID).closest('.player-board');
         const star = this.overallPlayerBoard.querySelector('.fa-star');
         if (star) {
             this.anchorTextDiv = document.createElement('div');
@@ -240,7 +240,7 @@ class PlayerHandler {
             playerCounter: 'Points',
             playerId: this.playerID,
         });
-        this.hand = new HandHandler(this.gameui, this, this.playerHandData);
+        this.hand = new HandHandler(this.game, this, this.playerHandData);
     }
     setGameEnded(gameEnded) {
         this.game_ended = gameEnded;
@@ -254,30 +254,30 @@ class PlayerHandler {
             this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
     }
     async animateCardSwap(handCardLocation, cardInCenter, cardInHand, newStateInHand) {
-        const centerContainer = this.gameui.centerHandler.getCenterContainer();
+        const centerContainer = this.game.centerHandler.getCenterContainer();
         const cardsContainer = this.hand.getHandContainer().querySelector('.cards-container');
         centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
         cardsContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
         const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`);
         const handCard = cardsContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`);
-        const handCardClone = this.gameui.createCardDiv(cardInHand);
+        const handCardClone = this.game.createCardDiv(cardInHand);
         handCardClone.classList.add('cloned-card');
         if (!centerCard || !handCard || !handCardClone)
             return;
-        const centerCardClone = this.gameui.cloneCard(centerCard);
+        const centerCardClone = this.game.cloneCard(centerCard);
         handCard.insertAdjacentElement('afterend', centerCardClone);
         centerCard.insertAdjacentElement('afterend', handCardClone);
         centerCardClone.style.margin = '0';
         handCardClone.style.margin = '0';
-        this.gameui.placeOnObject(centerCardClone, centerCard);
-        this.gameui.placeOnObject(handCardClone, handCard);
+        this.game.placeOnObject(centerCardClone, centerCard);
+        this.game.placeOnObject(handCardClone, handCard);
         centerCard.style.opacity = '0';
         handCard.style.opacity = '0';
         centerCardClone.style.zIndex = handCard.style.zIndex;
         const pullUpAnimTime = 200;
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
-        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        await this.game.bga.gameui.wait(pullUpAnimTime + 50);
         cardsContainer.style.zIndex = '100';
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
@@ -290,7 +290,7 @@ class PlayerHandler {
             centerCardClone.style.boxShadow = 'none';
             centerCardClone.style.transform = 'rotate(180deg)';
         }
-        await this.gameui.bga.gameui.wait(cardMoveAnimTime);
+        await this.game.bga.gameui.wait(cardMoveAnimTime);
         cardsContainer.style.zIndex = null;
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
@@ -318,20 +318,20 @@ class PlayerHandler {
 }
 
 class CenterHandler {
-    constructor(gameui, centerCardsData) {
-        this.gameui = gameui;
+    constructor(game, centerCardsData) {
+        this.game = game;
         this.centerCardsData = centerCardsData;
         this.centerContainer = document.querySelector('#center-container');
         for (let cardData of this.centerCardsData)
-            this.centerContainer.appendChild(this.gameui.createCardDiv(cardData));
+            this.centerContainer.appendChild(this.game.createCardDiv(cardData));
         this.centerContainer.addEventListener('click', (event) => { this.centerContainerClicked(event); });
     }
     centerContainerClicked(event) {
-        if (!this.gameui.bga.players.isCurrentPlayerActive())
+        if (!this.game.bga.players.isCurrentPlayerActive())
             return;
-        if (!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+        if (!['PlayerTurn'].includes(this.game.getGameStateName()))
             return;
-        if (this.gameui.bga.gameui.isInterfaceLocked())
+        if (this.game.bga.gameui.isInterfaceLocked())
             return;
         if (!event.target.classList.contains('a-card'))
             return;
@@ -346,13 +346,13 @@ class CenterHandler {
             return;
         }
         cardDiv.classList.add(selectedCardClass);
-        this.gameui.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected();
     }
     checkBothCardsSelected() {
-        if (!this.gameui.myself)
+        if (!this.game.myself)
             return;
         const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
-        const myHandContainer = this.gameui.myself.getHand().getHandContainer();
+        const myHandContainer = this.game.myself.getHand().getHandContainer();
         const selectedHandCard = myHandContainer.querySelector('.selected-hand-card');
         if (!selectedCenterCard || !selectedHandCard) {
             this.cardsUnselected();
@@ -361,14 +361,14 @@ class CenterHandler {
         const cardRank = Number(selectedCenterCard.getAttribute('data-rank'));
         const handCardLocation = Number(selectedHandCard.getAttribute('data-location-in-hand'));
         const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
-        const swapButton = this.gameui.playerTurn.getSwapButton();
+        const swapButton = this.game.playerTurn.getSwapButton();
         if (wouldBeAnchor) {
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.gameui.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         }
         else {
-            swapButton.innerHTML = this.gameui.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
+            swapButton.innerHTML = this.game.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
             swapButton.classList.remove('orange-button');
             swapButton.classList.add('bgabutton_blue');
         }
@@ -388,17 +388,17 @@ class CenterHandler {
         return false;
     }
     cardsUnselected() {
-        this.gameui.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.getSwapButton().style.display = 'none';
     }
     async animateCardReplace(discardedCardData, newCenterCardData) {
         const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
-        const oldCenterCardClone = this.gameui.cloneCard(oldCenterCard);
-        const newCenterCard = this.gameui.createCardDiv(newCenterCardData);
-        const newCenterCardClone = this.gameui.cloneCard(newCenterCard);
+        const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
+        const newCenterCard = this.game.createCardDiv(newCenterCardData);
+        const newCenterCardClone = this.game.cloneCard(newCenterCard);
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
         oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
-        this.gameui.placeOnObject(oldCenterCardClone, oldCenterCard);
-        this.gameui.placeOnObject(newCenterCardClone, oldCenterCard);
+        this.game.placeOnObject(oldCenterCardClone, oldCenterCard);
+        this.game.placeOnObject(newCenterCardClone, oldCenterCard);
         const newCenterCardOriginalTop = newCenterCardClone.style.top;
         const newCenterCardOriginalLeft = newCenterCardClone.style.left;
         newCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
@@ -407,7 +407,7 @@ class CenterHandler {
         const pullUpAnimTime = 200;
         oldCenterCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         oldCenterCardClone.style.top = `${parseFloat(oldCenterCardClone.style.top || '0') - 20}px`;
-        await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
+        await this.game.bga.gameui.wait(pullUpAnimTime + 50);
         const flyAwayAnimTime = 400;
         oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
         oldCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
@@ -416,19 +416,21 @@ class CenterHandler {
         newCenterCardClone.style.transition = `top ${flyInAnimTime}ms ease-in, left ${flyInAnimTime}ms ease-in`;
         newCenterCardClone.style.top = newCenterCardOriginalTop;
         newCenterCardClone.style.left = newCenterCardOriginalLeft;
-        await this.gameui.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
+        await this.game.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
         oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
         oldCenterCard.setAttribute('data-card-id', newCenterCardData.card_id.toString());
         oldCenterCard.style.opacity = null;
         newCenterCardClone.remove();
         oldCenterCardClone.remove();
+        if (this.game.isSoloMode())
+            this.game.soloDiscardDisplayHandler.insertDiscardedCardIcon(discardedCardData);
     }
     getCenterContainer() { return this.centerContainer; }
 }
 
 class EndGameScoringHandler {
-    constructor(gameui) {
-        this.gameui = gameui;
+    constructor(game) {
+        this.game = game;
         this.bodyClickHandler = null;
         this.delayAfterFadeIns = 5000;
         this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
@@ -439,6 +441,7 @@ class EndGameScoringHandler {
             console.error('end-game-score-container already exists');
             return;
         }
+        this.game.soloDiscardDisplayHandler.hideDiscardedCardIconsContainer();
         document.body.classList.add('displaying-end-game-score');
         this.endGameScoring.player_scores = endGameScoring.player_scores;
         this.winner_ids = endGameScoring.winner_ids;
@@ -457,7 +460,7 @@ class EndGameScoringHandler {
                     <tbody></tbody>
                 </table>
                 <div class="fast-forward-text"></div>
-                ${this.gameui.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
+                ${this.game.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
             </div>
         `;
         document.querySelector('#game_play_area').appendChild(this.scoreContainer);
@@ -469,13 +472,13 @@ class EndGameScoringHandler {
         this.soloScoreFlavorText = this.scoreContainer.querySelector('.solo-score-flavor-text');
         this.fillTable();
         this.bindShowHideButtons();
-        this.fastForwardButton.innerHTML = '* ' + _(this.gameui.clickOrTap(true) + ' anywhere to fast forward');
-        const instantFadeIn = this.gameui.getGameStateName() === 'EndScore';
+        this.fastForwardButton.innerHTML = '* ' + _(this.game.clickOrTap(true) + ' anywhere to fast forward');
+        const instantFadeIn = this.game.getGameStateName() === 'EndScore';
         const fadeInDuration = instantFadeIn ? 0 : 1000;
         const fadeInDelay = instantFadeIn ? 0 : 100;
         this.scoreContainer.style.transition = `opacity ${fadeInDuration}ms ease ${fadeInDelay}ms`;
         this.scoreContainer.style.opacity = '1';
-        await this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration);
+        await this.game.bga.gameui.wait(fadeInDelay + fadeInDuration);
         this.scoreContainer.style.opacity = null;
         this.scoreContainer.style.transition = null;
         this.bindBodyScroll();
@@ -487,8 +490,8 @@ class EndGameScoringHandler {
         const headerRow = document.createElement('tr');
         headerRow.innerHTML = '<th class="corner-no-border-cell"></th>'; // Empty corner cell
         // Add player name columns
-        for (let player_id in this.gameui.players) {
-            const playerNameDiv = this.gameui.divColoredPlayer(player_id, {}, false);
+        for (let player_id in this.game.players) {
+            const playerNameDiv = this.game.divColoredPlayer(player_id, {}, false);
             headerRow.innerHTML += `<th class="player-name-cell" player-id="${player_id}">${playerNameDiv}</th>`;
         }
         this.thead.appendChild(headerRow);
@@ -496,7 +499,7 @@ class EndGameScoringHandler {
         for (let i = 0; i < this.scoringRowNames.length; i++) {
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
-            if (scoreType == 'soloDifficultyPenalty' && !(this.gameui.isSoloMode() && this.gameui.isSoloExpertDifficulty)) {
+            if (scoreType == 'soloDifficultyPenalty' && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)) {
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
@@ -506,7 +509,7 @@ class EndGameScoringHandler {
                 <td class="score-type-icon-cell">
                     <div class="${iconClass}" data-score-type="${scoreType}"${facedownAttr}></div>
                 </td>`;
-            for (let player_id in this.gameui.players) {
+            for (let player_id in this.game.players) {
                 const playerScore = this.endGameScoring.player_scores[player_id];
                 const cellScore = playerScore[scoreType];
                 row.innerHTML += `<td><div class="cell-text cell-${scoreType}" style="opacity: 0;" row-index="${i}" player-id="${player_id}">${cellScore}</div></td>`;
@@ -535,7 +538,7 @@ class EndGameScoringHandler {
         window.addEventListener('scroll', () => {
             const generation = ++fadeInGeneration;
             this.scoreContainer.style.opacity = '0.3';
-            this.gameui.bga.gameui.wait(100).then(() => {
+            this.game.bga.gameui.wait(100).then(() => {
                 if (generation === fadeInGeneration)
                     this.scoreContainer.style.opacity = '1';
             });
@@ -545,7 +548,7 @@ class EndGameScoringHandler {
         const cells = Array.from(this.tbody.querySelectorAll('.cell-text:not(.displayed)'));
         const overallContent = document.getElementById('overall-content');
         overallContent.removeEventListener('click', this.bodyClickHandler);
-        if (cells.length <= Object.keys(this.gameui.players).length * 2) {
+        if (cells.length <= Object.keys(this.game.players).length * 2) {
             this.fastForwardButton.style.transition = 'opacity 400ms ease';
             this.fastForwardButton.style.opacity = '0';
         }
@@ -555,7 +558,7 @@ class EndGameScoringHandler {
             this.makeWinnersJump();
             this.setEndGamePlayerScores();
             this.displaySoloScoreFlavorText();
-            await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
+            await this.game.bga.gameui.wait(this.delayAfterFadeIns);
             return;
         }
         let cell = cells[0];
@@ -576,7 +579,7 @@ class EndGameScoringHandler {
         cell.style.transition = `opacity ${fadeInDuration}ms ease ${fadeInDelay}ms`;
         cell.style.opacity = '1';
         await Promise.race([
-            this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration),
+            this.game.bga.gameui.wait(fadeInDelay + fadeInDuration),
             fastForwarded
         ]);
         await this.fadeInNextCell();
@@ -601,16 +604,16 @@ class EndGameScoringHandler {
     makeWinnersJump() {
         let delay = 0;
         for (let winner_id of this.winner_ids) {
-            this.gameui.bga.gameui.wait(delay).then(() => {
+            this.game.bga.gameui.wait(delay).then(() => {
                 this.thead.querySelector(`.player-name-cell[player-id="${winner_id}"]`).classList.add('jumping-text');
             });
             delay += 100 + Math.random() * 50;
         }
     }
     displaySoloScoreFlavorText() {
-        if (!this.gameui.isSoloMode())
+        if (!this.game.isSoloMode())
             return;
-        const player_id = Object.keys(this.gameui.players)[0];
+        const player_id = Object.keys(this.game.players)[0];
         const totalScore = this.endGameScoring.player_scores[player_id].totalScore;
         let text;
         if (totalScore >= 25)
@@ -628,26 +631,26 @@ class EndGameScoringHandler {
         this.soloScoreFlavorText.style.opacity = '1';
     }
     setEndGamePlayerScores() {
-        for (let player_id in this.gameui.players)
-            this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
+        for (let player_id in this.game.players)
+            this.game.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
     }
 }
 
 class TooltipHandler {
-    constructor(gameui) {
-        this.gameui = gameui;
+    constructor(game) {
+        this.game = game;
         this.addTooltipToCards();
     }
     addTooltipToCards() {
-        if (document.body.classList.contains('safari-browser') && this.gameui.isMobile()) {
+        if (document.body.classList.contains('safari-browser') && this.game.isMobile()) {
             this.addTooltipToBottomForSafari();
             return;
         }
         const tooltipHTML = this.getTooltipHTML();
-        this.gameui.bga.gameui.addTooltipHtmlToClass('a-card', tooltipHTML, 400);
+        this.game.bga.gameui.addTooltipHtmlToClass('a-card', tooltipHTML, 400);
     }
     addTooltipToBottomForSafari() {
-        if (!document.body.classList.contains('safari-browser') || !this.gameui.isMobile())
+        if (!document.body.classList.contains('safari-browser') || !this.game.isMobile())
             return;
         if (document.querySelector('.safari-mobile-revealed-cards-container'))
             return;
@@ -658,7 +661,7 @@ class TooltipHandler {
         document.querySelector('.safari-mobile-revealed-cards-container').innerHTML = tooltipHTML;
     }
     getTooltipHTML() {
-        const deckLength = this.gameui.getDeckLength();
+        const deckLength = this.game.getDeckLength();
         const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + deckLength.toString() + '</b>');
         const tooltipHTML = `
             <div class="tooltip-wrapper">
@@ -678,8 +681,8 @@ const BUBBLE_AMOUNT_BY_PREF = {
     4: { maxBubbleCount: 50, minScheduleTime: 150, maxScheduleTime: 350 }, // bubble bath
 };
 class BackgroundHandler {
-    constructor(gameui) {
-        this.gameui = gameui;
+    constructor(game) {
+        this.game = game;
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
         this.bubblesInitialized = false;
         this.backgroundContainer = document.createElement('div');
@@ -766,19 +769,54 @@ class BackgroundHandler {
 }
 
 class PrefHandler {
-    constructor(gameui, prefNameToIndex) {
-        this.gameui = gameui;
+    constructor(game, prefNameToIndex) {
+        this.game = game;
         this.prefNameToIndex = prefNameToIndex;
-        this.gameui.bga.userPreferences.onChange = (prefIndex, prefValue) => this.onGameUserPreferenceChanged(prefIndex, prefValue);
+        this.game.bga.userPreferences.onChange = (prefIndex, prefValue) => this.onGameUserPreferenceChanged(prefIndex, prefValue);
         const bubbleAmountPrefIndex = this.prefNameToIndex['bubble_amount'];
-        this.onGameUserPreferenceChanged(bubbleAmountPrefIndex, this.gameui.bga.userPreferences.get(bubbleAmountPrefIndex));
+        this.onGameUserPreferenceChanged(bubbleAmountPrefIndex, this.game.bga.userPreferences.get(bubbleAmountPrefIndex));
     }
     onGameUserPreferenceChanged(prefIndex, prefValue) {
         switch (prefIndex) {
             case 101:
-                this.gameui.backgroundHandler.adjustBubbleAmount(prefValue);
+                this.game.backgroundHandler.adjustBubbleAmount(prefValue);
                 break;
         }
+    }
+}
+
+class SoloDiscardDisplayHandler {
+    constructor(game, discardedCards) {
+        this.game = game;
+        this.discardedCards = discardedCards;
+        this.createDiscardedCardIconsContainer();
+    }
+    createDiscardedCardIconsContainer() {
+        if (!this.game.isSoloMode())
+            return;
+        const playerHandsContainer = document.querySelector('#player-hands-container');
+        if (!playerHandsContainer)
+            return;
+        this.discardedCardIconsContainer = document.createElement('div');
+        this.discardedCardIconsContainer.id = 'discarded-card-icons-container';
+        this.discardedCardIconsContainer.innerHTML = `<div class="container-title discarded-cards-title">${_('Discarded Cards')}</div>`;
+        playerHandsContainer.appendChild(this.discardedCardIconsContainer);
+        for (const cardData of this.discardedCards)
+            this.insertDiscardedCardIcon(cardData);
+    }
+    insertDiscardedCardIcon(cardData) {
+        if (!this.game.isSoloMode())
+            return;
+        const cardIcon = document.createElement('div');
+        cardIcon.className = 'discarded-card-icon';
+        const dummyCard = this.game.createCardDiv(cardData);
+        cardIcon.appendChild(dummyCard);
+        this.discardedCardIconsContainer.appendChild(cardIcon);
+    }
+    hideDiscardedCardIconsContainer() {
+        this.discardedCardIconsContainer.style.transition = 'opacity 500ms ease';
+        this.discardedCardIconsContainer.style.opacity = '0';
+        setTimeout(() => { this.discardedCardIconsContainer.style.display = 'none'; }, 500);
     }
 }
 
@@ -838,6 +876,7 @@ class Game {
             }
         }
         this.tooltipHandler = new TooltipHandler(this);
+        this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)

@@ -14,7 +14,7 @@ export class EndGameScoringHandler{
     private delayAfterFadeIns = 5000;
     private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
 
-	constructor(private gameui: Game) { }
+	constructor(private game: Game) { }
 
     public async displayEndGameScore(endGameScoring: EndGameScoreData) {
         this.endGameScoring = endGameScoring;
@@ -24,6 +24,7 @@ export class EndGameScoringHandler{
             return;
         }
 
+        this.game.soloDiscardDisplayHandler.hideDiscardedCardIconsContainer();
         document.body.classList.add('displaying-end-game-score');
 
         this.endGameScoring.player_scores = endGameScoring.player_scores;
@@ -45,7 +46,7 @@ export class EndGameScoringHandler{
                     <tbody></tbody>
                 </table>
                 <div class="fast-forward-text"></div>
-                ${this.gameui.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
+                ${this.game.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
             </div>
         `;
 
@@ -61,16 +62,16 @@ export class EndGameScoringHandler{
         this.fillTable();
         this.bindShowHideButtons();
 
-        this.fastForwardButton.innerHTML = '* ' + _(this.gameui.clickOrTap(true) + ' anywhere to fast forward');
+        this.fastForwardButton.innerHTML = '* ' + _(this.game.clickOrTap(true) + ' anywhere to fast forward');
 
-        const instantFadeIn = this.gameui.getGameStateName() === 'EndScore';
+        const instantFadeIn = this.game.getGameStateName() === 'EndScore';
         const fadeInDuration = instantFadeIn ? 0 : 1000;
         const fadeInDelay = instantFadeIn ? 0 : 100;
 
         this.scoreContainer.style.transition = `opacity ${fadeInDuration}ms ease ${fadeInDelay}ms`;
         this.scoreContainer.style.opacity = '1';
 
-        await this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration);
+        await this.game.bga.gameui.wait(fadeInDelay + fadeInDuration);
         this.scoreContainer.style.opacity = null;
         this.scoreContainer.style.transition = null;
         this.bindBodyScroll();
@@ -86,8 +87,8 @@ export class EndGameScoringHandler{
         headerRow.innerHTML = '<th class="corner-no-border-cell"></th>'; // Empty corner cell
         
         // Add player name columns
-        for(let player_id in this.gameui.players) {
-            const playerNameDiv = this.gameui.divColoredPlayer(player_id, {}, false);
+        for(let player_id in this.game.players) {
+            const playerNameDiv = this.game.divColoredPlayer(player_id, {}, false);
             headerRow.innerHTML += `<th class="player-name-cell" player-id="${player_id}">${playerNameDiv}</th>`;
         }
         this.thead.appendChild(headerRow);
@@ -97,7 +98,7 @@ export class EndGameScoringHandler{
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
 
-            if(scoreType == 'soloDifficultyPenalty' && !(this.gameui.isSoloMode() && this.gameui.isSoloExpertDifficulty)){
+            if(scoreType == 'soloDifficultyPenalty' && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)){
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
@@ -108,7 +109,7 @@ export class EndGameScoringHandler{
                     <div class="${iconClass}" data-score-type="${scoreType}"${facedownAttr}></div>
                 </td>`;
 
-            for(let player_id in this.gameui.players) {
+            for(let player_id in this.game.players) {
                 const playerScore = this.endGameScoring.player_scores[player_id];
                 const cellScore = playerScore[scoreType];
 
@@ -144,7 +145,7 @@ export class EndGameScoringHandler{
             const generation = ++fadeInGeneration;
             this.scoreContainer.style.opacity = '0.3';
 
-            this.gameui.bga.gameui.wait(100).then(() => {
+            this.game.bga.gameui.wait(100).then(() => {
                 if(generation === fadeInGeneration)
                     this.scoreContainer.style.opacity = '1';
             });
@@ -157,7 +158,7 @@ export class EndGameScoringHandler{
         const overallContent: HTMLDivElement = document.getElementById('overall-content') as HTMLDivElement;
         overallContent.removeEventListener('click', this.bodyClickHandler);
     
-        if(cells.length <= Object.keys(this.gameui.players).length * 2){
+        if(cells.length <= Object.keys(this.game.players).length * 2){
             this.fastForwardButton.style.transition = 'opacity 400ms ease';
             this.fastForwardButton.style.opacity = '0';
         }
@@ -169,7 +170,7 @@ export class EndGameScoringHandler{
             this.setEndGamePlayerScores();
             this.displaySoloScoreFlavorText();
 
-            await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
+            await this.game.bga.gameui.wait(this.delayAfterFadeIns);
             return;
         }
 
@@ -198,7 +199,7 @@ export class EndGameScoringHandler{
         cell.style.opacity = '1';
 
         await Promise.race([
-            this.gameui.bga.gameui.wait(fadeInDelay + fadeInDuration),
+            this.game.bga.gameui.wait(fadeInDelay + fadeInDuration),
             fastForwarded
         ]);
         await this.fadeInNextCell();
@@ -226,7 +227,7 @@ export class EndGameScoringHandler{
     private makeWinnersJump() {
         let delay = 0;
         for(let winner_id of this.winner_ids){
-            this.gameui.bga.gameui.wait(delay).then(() => {
+            this.game.bga.gameui.wait(delay).then(() => {
                 this.thead.querySelector(`.player-name-cell[player-id="${winner_id}"]`).classList.add('jumping-text');
             });
             delay += 100 + Math.random() * 50;
@@ -234,10 +235,10 @@ export class EndGameScoringHandler{
     }
 
     private displaySoloScoreFlavorText() {
-        if(!this.gameui.isSoloMode())
+        if(!this.game.isSoloMode())
             return;
 
-        const player_id = Object.keys(this.gameui.players)[0];
+        const player_id = Object.keys(this.game.players)[0];
         const totalScore = this.endGameScoring.player_scores[player_id].totalScore;
         let text: string;
 
@@ -258,7 +259,7 @@ export class EndGameScoringHandler{
     }
 
     private setEndGamePlayerScores() {
-        for(let player_id in this.gameui.players)
-            this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
+        for(let player_id in this.game.players)
+            this.game.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
     }
 }

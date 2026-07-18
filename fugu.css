@@ -377,6 +377,23 @@ body {
   margin-right: calc(var(--card-width) * 0.4);
 }
 
+.container-title {
+  position: absolute;
+  top: 0px;
+  left: 27px;
+  transform: translateY(-50%);
+  font-family: "Roboto", sans-serif;
+  border-radius: 6px;
+  font-size: 20px;
+  text-shadow: 2px 0 #f0f0f0, -2px 0 #f0f0f0, 0 2px #f0f0f0, 0 -2px #f0f0f0, 1px 1px #f0f0f0, -1px -1px #f0f0f0, 1px -1px #f0f0f0, -1px 1px #f0f0f0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 #player-hands-container {
   margin-bottom: 110vh;
 }
@@ -421,6 +438,34 @@ body {
 }
 #player-hands-container .a-hand-container[data-is-myself=true] {
   margin-bottom: 50px;
+}
+
+#discarded-card-icons-container {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--player-color);
+  border-radius: 10px;
+  margin-top: -18px;
+  padding: 30px 0px 10px 0px;
+}
+#discarded-card-icons-container .discarded-cards-title {
+  color: #1a1b52;
+}
+#discarded-card-icons-container .discarded-card-icon {
+  display: inline-block;
+  vertical-align: top;
+  margin: -17px 4px 5px 4px;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 34px;
+  height: 50px;
+}
+#discarded-card-icons-container .discarded-card-icon .a-card {
+  margin-top: -17%;
+  margin-left: -18%;
+  width: 380%;
+  height: 560%;
 }
 
 .mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="18"] {
@@ -925,3 +970,5 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
     transform: translateY(-10px) rotate(5deg);
   }
 }
+
+/*# sourceMappingURL=fugu.css.map */

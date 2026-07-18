@@ -5,6 +5,7 @@ import { EndGameScoringHandler } from "./EndGameScoringHandler";
 import { TooltipHandler } from "./TooltipHandler";
 import { BackgroundHandler } from "./BackgroundHandler";
 import { PrefHandler } from "./PrefHandler";
+import { SoloDiscardDisplayHandler } from "./SoloDiscardDisplayHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -22,6 +23,7 @@ export class Game {
     private tooltipHandler: TooltipHandler;
     private prefHandler: PrefHandler;
     public backgroundHandler: BackgroundHandler;
+    public soloDiscardDisplayHandler: SoloDiscardDisplayHandler;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
@@ -89,6 +91,7 @@ export class Game {
         }
 
         this.tooltipHandler = new TooltipHandler(this);
+        this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
@@ -164,7 +167,7 @@ export class Game {
     }
     private getAttributesHTML(attributes): string{ return Object.entries(attributes || {}).map(([key, value]) => `${key}="${value}"`).join(' '); }
     
-    createCardDiv(cardData: CardInCenter | CardInHand): HTMLDivElement {
+    createCardDiv(cardData: CardInCenter | CardInHand | CardInDiscard): HTMLDivElement {
         let aCard = document.createElement('div');
         aCard.className = 'a-card';
         aCard.setAttribute('data-suit', cardData.suit);

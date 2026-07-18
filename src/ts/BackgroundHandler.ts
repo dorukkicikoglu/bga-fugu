@@ -17,7 +17,7 @@ export class BackgroundHandler{
   private bubblesInitialized = false;
   private bodyClickListener: (event: MouseEvent) => void;
 
-  constructor(private gameui: Game) {
+  constructor(private game: Game) {
     this.backgroundContainer = document.createElement('div');
     this.backgroundContainer.classList.add('background-container');
     document.body.insertAdjacentElement('afterbegin', this.backgroundContainer);

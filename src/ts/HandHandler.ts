@@ -6,7 +6,7 @@ export class HandHandler{
     private cardsContainer: HTMLDivElement;
     private isMyHand: boolean = false;
 
-    constructor(private gameui: Game, private owner: PlayerHandler, private handData: CardInHand[]) {
+    constructor(private game: Game, private owner: PlayerHandler, private handData: CardInHand[]) {
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
@@ -41,7 +41,7 @@ export class HandHandler{
     }
 
     private insertCardToHand(cardData){ 
-        let aCard = this.gameui.createCardDiv(cardData);
+        let aCard = this.game.createCardDiv(cardData);
         
         aCard.setAttribute('data-state-in-hand', cardData.state_in_hand);
         aCard.setAttribute('data-location-in-hand', cardData.location_in_hand);
@@ -61,13 +61,13 @@ export class HandHandler{
         if(!this.isMyHand)
             return;
 
-        if(!this.gameui.bga.players.isCurrentPlayerActive())
+        if(!this.game.bga.players.isCurrentPlayerActive())
             return;
 
-        if(!['PlayerTurn'].includes(this.gameui.getGameStateName()))
+        if(!['PlayerTurn'].includes(this.game.getGameStateName()))
             return;
 
-        if(this.gameui.bga.gameui.isInterfaceLocked())
+        if(this.game.bga.gameui.isInterfaceLocked())
             return;
 
         if(!(event.target as HTMLElement).classList.contains('a-card'))
@@ -85,16 +85,16 @@ export class HandHandler{
         this.cardsContainer.querySelectorAll('div.a-card').forEach((card) => card.classList.remove(selectedCardClass));
         
         if(cardWasAlreadySelected){
-            this.gameui.centerHandler.cardsUnselected();
+            this.game.centerHandler.cardsUnselected();
             return;
         }
 
         cardDiv.classList.add(selectedCardClass);
-        this.gameui.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected();
     }
 
     public setFacedownCountForMobileStretching(){
-        if(!this.gameui.isMobile())
+        if(!this.game.isMobile())
             return;
 
         const newFacedownCount = this.cardsContainer.querySelectorAll('.a-card[data-state-in-hand="facedown"]').length;
