@@ -11,7 +11,7 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     endGameScoring: EndGameScoreData;
     deckLength: number;
     isSoloExpertDifficulty: boolean;
-    pref_names: any; //ekmek type ekle
+    pref_names: Record<string, number>;
 }
 
 interface CardBase {

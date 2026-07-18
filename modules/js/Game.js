@@ -13,7 +13,7 @@ class PlayerTurn {
      */
     onEnteringState(args, isCurrentPlayerActive) {
         this.bga.statusBar.setTitle(isCurrentPlayerActive ?
-            _('${you} must swap 2 cards or pass') :
+            (this.game.isDesktop() ? _('${you} must swap 2 cards or pass') : _('${you} must swap or pass')) :
             _('${actplayer} must play a card or pass'));
         if (isCurrentPlayerActive) {
             this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), { id: 'swap-button' });
@@ -116,6 +116,7 @@ class HandHandler {
         this.cardsContainer.innerHTML = ''; // Clear existing cards
         for (let cardData of this.handData)
             this.insertCardToHand(cardData);
+        this.setFacedownCountForMobileStretching();
     }
     insertCardToHand(cardData) {
         let aCard = this.gameui.createCardDiv(cardData);
@@ -154,6 +155,55 @@ class HandHandler {
         }
         cardDiv.classList.add(selectedCardClass);
         this.gameui.centerHandler.checkBothCardsSelected();
+    }
+    setFacedownCountForMobileStretching() {
+        if (!this.gameui.isMobile())
+            return;
+        const newFacedownCount = this.cardsContainer.querySelectorAll('.a-card[data-state-in-hand="facedown"]').length;
+        const countInitialized = this.cardsContainer.hasAttribute('facedown-count-for-mobile-stretching');
+        if (!countInitialized) { //page load
+            this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
+            return;
+        }
+        const lastTakenCard = this.cardsContainer.querySelector('.last-taken-card');
+        if (!lastTakenCard)
+            return;
+        const lastTaken_stateInHand = lastTakenCard.getAttribute('data-state-in-hand');
+        lastTakenCard.setAttribute('data-state-in-hand', 'facedown');
+        const cards = Array.from(this.cardsContainer.querySelectorAll('div.a-card'));
+        const initialMargins = [];
+        for (let i = 0; i < cards.length; i++) {
+            const computed = getComputedStyle(cards[i]);
+            initialMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        }
+        ;
+        lastTakenCard.setAttribute('data-state-in-hand', lastTaken_stateInHand);
+        this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
+        const afterMargins = [];
+        for (let i = 0; i < cards.length; i++) {
+            const computed = getComputedStyle(cards[i]);
+            afterMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        }
+        ;
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].style.marginLeft = initialMargins[i].left.toString() + 'px';
+            cards[i].style.marginRight = initialMargins[i].right.toString() + 'px';
+        }
+        ;
+        const slidingTime = 300;
+        for (let i = 0; i < cards.length; i++) {
+            setTimeout(() => {
+                cards[i].style.transition = `margin ${slidingTime}ms ease`;
+                cards[i].style.marginLeft = afterMargins[i].left.toString() + 'px';
+                cards[i].style.marginRight = afterMargins[i].right.toString() + 'px';
+                setTimeout(() => {
+                    cards[i].style.marginLeft = null;
+                    cards[i].style.marginRight = null;
+                    cards[i].style.transition = null;
+                }, slidingTime);
+            }, 10);
+        }
+        ;
     }
     setMyHand(isMyHand) {
         this.isMyHand = isMyHand;
@@ -203,11 +253,11 @@ class PlayerHandler {
     }
     async animateCardSwap(handCardLocation, cardInCenter, cardInHand, newStateInHand) {
         const centerContainer = this.gameui.centerHandler.getCenterContainer();
-        const handContainer = this.hand.getHandContainer();
+        const cardsContainer = this.hand.getHandContainer().querySelector('.cards-container');
         centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
-        handContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
+        cardsContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
         const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`);
-        const handCard = handContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`);
+        const handCard = cardsContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`);
         const handCardClone = this.gameui.createCardDiv(cardInHand);
         handCardClone.classList.add('cloned-card');
         if (!centerCard || !handCard || !handCardClone)
@@ -226,7 +276,7 @@ class PlayerHandler {
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
         await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
-        handContainer.style.zIndex = '100';
+        cardsContainer.style.zIndex = '100';
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
@@ -239,12 +289,13 @@ class PlayerHandler {
             centerCardClone.style.transform = 'rotate(180deg)';
         }
         await this.gameui.bga.gameui.wait(cardMoveAnimTime);
-        handContainer.style.zIndex = null;
+        cardsContainer.style.zIndex = null;
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
         handCardClone.style.top = null;
         handCardClone.style.left = null;
         handCardClone.style.transition = null;
+        cardsContainer.querySelectorAll('.a-card.last-taken-card').forEach((card) => { card.classList.remove('last-taken-card'); });
         centerCardClone.classList.remove('cloned-card');
         centerCardClone.style.margin = null;
         centerCardClone.style.top = null;
@@ -252,6 +303,7 @@ class PlayerHandler {
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
+        centerCardClone.classList.add('last-taken-card'); //this class is needed in setFacedownCountForMobileStretching
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
         centerCard.replaceWith(handCardClone);
@@ -309,12 +361,12 @@ class CenterHandler {
         const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
         const swapButton = this.gameui.playerTurn.getSwapButton();
         if (wouldBeAnchor) {
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + _('Swap as Anchor') + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.gameui.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         }
         else {
-            swapButton.innerHTML = _('Swap Selected Cards');
+            swapButton.innerHTML = this.gameui.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
             swapButton.classList.remove('orange-button');
             swapButton.classList.add('bgabutton_blue');
         }
@@ -901,13 +953,15 @@ class Game {
         this.players[args.player_id].setGameEnded(true);
     }
     async notif_cardsSwapped(args) {
-        await this.players[args.player_id].animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        const swappingPlayer = this.players[args.player_id];
+        await swappingPlayer.animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        swappingPlayer.getHand().setFacedownCountForMobileStretching();
         if (this.isSoloMode())
             await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
         this.tooltipHandler.addTooltipToCards();
-        this.players[args.player_id].updateScoring(args.updatedScore);
+        swappingPlayer.updateScoring(args.updatedScore);
         if (args.game_ended)
-            this.players[args.player_id].setGameEnded(true);
+            swappingPlayer.setGameEnded(true);
     }
     async notif_displayEndGameScoring(args) {
         console.log('notif_displayEndGameScoring', args);

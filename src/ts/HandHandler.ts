@@ -36,6 +36,8 @@ export class HandHandler{
 
         for(let cardData of this.handData)
             this.insertCardToHand(cardData);
+
+        this.setFacedownCountForMobileStretching();
     }
 
     private insertCardToHand(cardData){ 
@@ -89,6 +91,60 @@ export class HandHandler{
 
         cardDiv.classList.add(selectedCardClass);
         this.gameui.centerHandler.checkBothCardsSelected();
+    }
+
+    public setFacedownCountForMobileStretching(){
+        if(!this.gameui.isMobile())
+            return;
+
+        const newFacedownCount = this.cardsContainer.querySelectorAll('.a-card[data-state-in-hand="facedown"]').length;
+        const countInitialized: boolean = this.cardsContainer.hasAttribute('facedown-count-for-mobile-stretching');
+
+        if(!countInitialized){ //page load
+            this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
+            return;
+        }
+
+        const lastTakenCard: HTMLDivElement = this.cardsContainer.querySelector('.last-taken-card');
+        if(!lastTakenCard)
+            return;
+        const lastTaken_stateInHand: string = lastTakenCard.getAttribute('data-state-in-hand');
+        lastTakenCard.setAttribute('data-state-in-hand', 'facedown');
+
+        const cards: HTMLDivElement[] = Array.from(this.cardsContainer.querySelectorAll('div.a-card'));
+        const initialMargins:{left: number, right: number}[] = [];
+        for(let i = 0; i < cards.length; i++){
+            const computed = getComputedStyle(cards[i]);
+            initialMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        };
+        lastTakenCard.setAttribute('data-state-in-hand', lastTaken_stateInHand);
+
+        this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
+        const afterMargins:{left: number, right: number}[] = [];
+
+        for(let i = 0; i < cards.length; i++){
+            const computed = getComputedStyle(cards[i]);
+            afterMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        };
+
+        for(let i = 0; i < cards.length; i++){
+            cards[i].style.marginLeft = initialMargins[i].left.toString() + 'px';
+            cards[i].style.marginRight = initialMargins[i].right.toString() + 'px';
+        };
+
+        const slidingTime = 300;
+        for(let i = 0; i < cards.length; i++){
+            setTimeout(() => {
+                cards[i].style.transition = `margin ${slidingTime}ms ease`;
+                cards[i].style.marginLeft = afterMargins[i].left.toString() + 'px';
+                cards[i].style.marginRight = afterMargins[i].right.toString() + 'px';
+                setTimeout(() => {
+                    cards[i].style.marginLeft = null;
+                    cards[i].style.marginRight = null;
+                    cards[i].style.transition = null;
+                }, slidingTime);
+            }, 10);
+        };
     }
 
     public setMyHand(isMyHand: boolean): void{

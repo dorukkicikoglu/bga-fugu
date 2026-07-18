@@ -16,7 +16,7 @@ export class PlayerTurn {
      */
     onEnteringState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
         this.bga.statusBar.setTitle(isCurrentPlayerActive ? 
-            _('${you} must swap 2 cards or pass') :
+            (this.game.isDesktop() ? _('${you} must swap 2 cards or pass') :  _('${you} must swap or pass')) :
             _('${actplayer} must play a card or pass')
         );
 

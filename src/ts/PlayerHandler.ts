@@ -47,12 +47,12 @@ export class PlayerHandler{
     
     public async animateCardSwap(handCardLocation: number, cardInCenter: CardInCenter, cardInHand: CardInHand, newStateInHand: CardStateInHand){
         const centerContainer = this.gameui.centerHandler.getCenterContainer();
-        const handContainer = this.hand.getHandContainer();
+        const cardsContainer: HTMLDivElement = this.hand.getHandContainer().querySelector('.cards-container');
         centerContainer.querySelectorAll('.a-card.selected-center-card').forEach(element => element.classList.remove('selected-center-card'));
-        handContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
+        cardsContainer.querySelectorAll('.a-card.selected-hand-card').forEach(element => element.classList.remove('selected-hand-card'));
 
         const centerCard = centerContainer.querySelector(`[data-card-id="${cardInCenter.card_id}"]`) as HTMLDivElement;
-        const handCard = handContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`) as HTMLDivElement;
+        const handCard = cardsContainer.querySelector(`[data-location-in-hand="${handCardLocation}"]`) as HTMLDivElement;
         const handCardClone = this.gameui.createCardDiv(cardInHand);
         handCardClone.classList.add('cloned-card');
 
@@ -79,7 +79,7 @@ export class PlayerHandler{
 
         await this.gameui.bga.gameui.wait(pullUpAnimTime + 50);
 
-        handContainer.style.zIndex = '100';
+        cardsContainer.style.zIndex = '100';
 
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
@@ -97,13 +97,15 @@ export class PlayerHandler{
         
         await this.gameui.bga.gameui.wait(cardMoveAnimTime);
         
-        handContainer.style.zIndex = null;
+        cardsContainer.style.zIndex = null;
         
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
         handCardClone.style.top = null;
         handCardClone.style.left = null;
         handCardClone.style.transition = null;
+
+        cardsContainer.querySelectorAll('.a-card.last-taken-card').forEach((card) => { card.classList.remove('last-taken-card'); });
 
         centerCardClone.classList.remove('cloned-card');
         centerCardClone.style.margin = null;
@@ -112,6 +114,7 @@ export class PlayerHandler{
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
+        centerCardClone.classList.add('last-taken-card'); //this class is needed in setFacedownCountForMobileStretching
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
 

@@ -373,10 +373,8 @@ body {
 }
 
 .mobile_version #center-container .a-card {
-  --card-width: 30vw;
-  margin-top: calc(var(--card-width) * 0.18);
-  margin-left: calc(var(--card-width) * 0.3);
-  margin-right: calc(var(--card-width) * 0.3);
+  margin-left: calc(var(--card-width) * 0.4);
+  margin-right: calc(var(--card-width) * 0.4);
 }
 
 #player-hands-container {
@@ -425,8 +423,89 @@ body {
   margin-bottom: 50px;
 }
 
-.mobile_version #player-hands-container .a-hand-container .cards-container .a-card {
-  --horz-margin: calc(var(--my-card-width) * -0.335);
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="18"] {
+  --horz-stretch-facedown: -0.345;
+  --horz-stretch-faceup: 0;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="17"] {
+  --horz-stretch-facedown: -0.365;
+  --horz-stretch-faceup: 0.24;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="16"] {
+  --horz-stretch-facedown: -0.37;
+  --horz-stretch-faceup: 0.07;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="15"] {
+  --horz-stretch-facedown: -0.37;
+  --horz-stretch-faceup: -0.1;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="14"] {
+  --horz-stretch-facedown: -0.38;
+  --horz-stretch-faceup: -0.12;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="13"] {
+  --horz-stretch-facedown: -0.385;
+  --horz-stretch-faceup: -0.13;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="12"] {
+  --horz-stretch-facedown: -0.39;
+  --horz-stretch-faceup: -0.135;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="11"] {
+  --horz-stretch-facedown: -0.393;
+  --horz-stretch-faceup: -0.14;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="10"] {
+  --horz-stretch-facedown: -0.396;
+  --horz-stretch-faceup: -0.173;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="9"] {
+  --horz-stretch-facedown: -0.397;
+  --horz-stretch-faceup: -0.2;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="8"] {
+  --horz-stretch-facedown: -0.398;
+  --horz-stretch-faceup: -0.215;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="7"] {
+  --horz-stretch-facedown: -0.399;
+  --horz-stretch-faceup: -0.23;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="6"] {
+  --horz-stretch-facedown: -0.399;
+  --horz-stretch-faceup: -0.245;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="5"] {
+  --horz-stretch-facedown: -0.395;
+  --horz-stretch-faceup: -0.26;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="4"] {
+  --horz-stretch-facedown: -0.395;
+  --horz-stretch-faceup: -0.275;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="3"] {
+  --horz-stretch-facedown: -0.39;
+  --horz-stretch-faceup: -0.29;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="2"] {
+  --horz-stretch-facedown: -0.385;
+  --horz-stretch-faceup: -0.305;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="1"] {
+  --horz-stretch-facedown: -0.37;
+  --horz-stretch-faceup: -0.32;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="0"] {
+  --horz-stretch-facedown: -0.37;
+  --horz-stretch-faceup: -0.32;
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching] .a-card[data-state-in-hand=facedown] {
+  margin-right: calc(var(--my-card-width) * var(--horz-stretch-facedown));
+  margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown));
+}
+.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching] .a-card:not(.mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching] .a-card[data-state-in-hand=facedown]) {
+  margin-right: calc(var(--my-card-width) * var(--horz-stretch-faceup));
+  margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown));
 }
 
 .mobile_version .a-hand-container .cards-container .a-card {
@@ -461,6 +540,9 @@ body.current_player_is_active:not(.lockedInterface) #center-container .a-card,
 body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
   cursor: pointer;
   animation: selectable-card-glow-pulse 3s ease-in-out infinite;
+}
+body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
+  animation: mobile-selectable-card-glow-pulse 3s ease-in-out infinite;
 }
 
 .end-game-score-container {
@@ -807,6 +889,17 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
     box-shadow: 0 0 5px 5px #FFD700;
   }
 }
+@keyframes mobile-selectable-card-glow-pulse {
+  0% {
+    box-shadow: 0 0 4px 4px #FFD700;
+  }
+  50% {
+    box-shadow: 0 0 8px 8px #ffd483;
+  }
+  100% {
+    box-shadow: 0 0 4px 4px #FFD700;
+  }
+}
 @keyframes jumpAndTilt {
   0%, 100% {
     transform: translateY(0) rotate(0deg);
@@ -818,3 +911,5 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
     transform: translateY(-10px) rotate(5deg);
   }
 }
+
+/*# sourceMappingURL=fugu.css.map */

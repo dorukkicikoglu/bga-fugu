@@ -62,11 +62,11 @@ export class CenterHandler{
 
         const swapButton = this.gameui.playerTurn.getSwapButton();
         if(wouldBeAnchor){
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + _('Swap as Anchor') + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.gameui.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         } else {
-            swapButton.innerHTML = _('Swap Selected Cards');
+            swapButton.innerHTML = this.gameui.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
             swapButton.classList.remove('orange-button');
             swapButton.classList.add('bgabutton_blue');
         }
