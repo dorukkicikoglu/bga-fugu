@@ -41,7 +41,7 @@ body{ background: #221e52; }
 .mobile_version #center-container .a-card{ --card-width: 30vw; margin-top: calc(var(--card-width) * 0.18); margin-left: calc(var(--card-width) * 0.3); margin-right: calc(var(--card-width) * 0.3); }
 
 
-#player-hands-container{ margin-bottom: 190px;
+#player-hands-container{ margin-bottom: 110vh;
     .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
         .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
@@ -167,8 +167,45 @@ body.current_player_is_active:not(.lockedInterface){
 
 //end tooltip
 
+//background
 .background-container { position: fixed; width: 100%; height: 100%; display: block; background-image: url(img/bg_fugu.webp); background-size: 108% 108%; background-repeat: repeat-x; transform-origin: center center; animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 8s ease-in-out infinite alternate; }
 .mobile_version .background-container{ background-image: url(img/bg_mobile_fugu.webp); background-size: 136%; margin-top: 5%; }
+
+.bubbles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1; }
+
+.bubble {
+  position: absolute;
+  bottom: -10%;
+  animation: bubble-rise linear 1;
+}
+
+.bubble-swing {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5);
+  animation: bubble-wobble ease-in-out 1;
+}
+
+@keyframes bubble-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-110vh); opacity: 0; }
+}
+
+@keyframes bubble-wobble {
+  0% { transform: translateX(0) rotate(0deg); }
+  22% { transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22)); }
+  41% { transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41)); }
+  63% { transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63)); }
+  82% { transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82)); }
+  100% { transform: translateX(var(--drift)) rotate(var(--rotation)); }
+}
+
+//end background
 
 @keyframes gentle-drift {
   0%   { background-position: 4% 4%; }

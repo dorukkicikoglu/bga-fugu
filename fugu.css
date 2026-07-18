@@ -380,7 +380,7 @@ body {
 }
 
 #player-hands-container {
-  margin-bottom: 190px;
+  margin-bottom: 110vh;
 }
 #player-hands-container .a-hand-container {
   position: relative;
@@ -702,6 +702,69 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
   margin-top: 5%;
 }
 
+.bubbles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -10%;
+  animation: bubble-rise linear 1;
+}
+
+.bubble-swing {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5);
+  animation: bubble-wobble ease-in-out 1;
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-110vh);
+    opacity: 0;
+  }
+}
+@keyframes bubble-wobble {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  22% {
+    transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22));
+  }
+  41% {
+    transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41));
+  }
+  63% {
+    transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63));
+  }
+  82% {
+    transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82));
+  }
+  100% {
+    transform: translateX(var(--drift)) rotate(var(--rotation));
+  }
+}
 @keyframes gentle-drift {
   0% {
     background-position: 4% 4%;
