@@ -63,7 +63,9 @@ class PlayerTurn {
             doPerformSwapCards();
         }
         else {
-            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge....").replace('{$centerCardRank}', centerCardRank.toString())).then(result => {
+            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge as the highest card value is {$highestCardInDeck}")
+                .replace('{$centerCardRank}', `<b>${centerCardRank.toString()}</b>`)
+                .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`)).then(result => {
                 if (result) {
                     doPerformSwapCards();
                 }
@@ -454,7 +456,8 @@ class EndGameScoringHandler {
                     <thead></thead>
                     <tbody></tbody>
                 </table>
-                <div class="fast-forward-text"></div> 
+                <div class="fast-forward-text"></div>
+                ${this.gameui.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
             </div>
         `;
         document.querySelector('#game_play_area').appendChild(this.scoreContainer);
@@ -463,6 +466,7 @@ class EndGameScoringHandler {
         this.showButton = this.scoreContainer.querySelector('.show-table-button');
         this.hideButton = this.scoreContainer.querySelector('.collapse-table-button');
         this.fastForwardButton = this.scoreContainer.querySelector('.fast-forward-text');
+        this.soloScoreFlavorText = this.scoreContainer.querySelector('.solo-score-flavor-text');
         this.fillTable();
         this.bindShowHideButtons();
         this.fastForwardButton.innerHTML = '* ' + _(this.gameui.clickOrTap(true) + ' anywhere to fast forward');
@@ -550,11 +554,13 @@ class EndGameScoringHandler {
             allCells.forEach((cell) => { cell.style.opacity = ''; });
             this.makeWinnersJump();
             this.setEndGamePlayerScores();
+            this.displaySoloScoreFlavorText();
             await this.gameui.bga.gameui.wait(this.delayAfterFadeIns);
             return;
         }
         let cell = cells[0];
-        const instantFadeIn = this.gameui.getGameStateName() === 'gameEnd';
+        // const instantFadeIn = this.gameui.getGameStateName() === 'gameEnd'; //ekmek uncomment
+        const instantFadeIn = false; //ekmek sil
         cell.classList.add('displayed');
         const fadeInDuration = instantFadeIn ? 0 : 500;
         const fadeInDelay = instantFadeIn ? 0 : 100;
@@ -601,6 +607,26 @@ class EndGameScoringHandler {
             delay += 100 + Math.random() * 50;
         }
     }
+    displaySoloScoreFlavorText() {
+        if (!this.gameui.isSoloMode())
+            return;
+        const player_id = Object.keys(this.gameui.players)[0];
+        const totalScore = this.endGameScoring.player_scores[player_id].totalScore;
+        let text;
+        if (totalScore >= 25)
+            text = _('Fish whisperer alert! You’ve mastered it and the Okinawa Sea calls you by name.');
+        else if (totalScore >= 20)
+            text = _('Nice work! You glide through water like a fish, feeling the ocean’s rhythm.');
+        else if (totalScore >= 15)
+            text = _('Not bad! You can hold your breath, but remember: you’re still human and far away from sea experience.');
+        else if (totalScore >= 10)
+            text = _('Wading toes only... Sitting in the tub staring at your feet isn’t quite feeling like a fish yet!');
+        else
+            text = _('Splash! You prefer dry land. Maybe hiking the mountains is more your speed than diving like fish.');
+        this.soloScoreFlavorText.textContent = text;
+        this.soloScoreFlavorText.style.transition = 'opacity 500ms ease';
+        this.soloScoreFlavorText.style.opacity = '1';
+    }
     setEndGamePlayerScores() {
         for (let player_id in this.gameui.players)
             this.gameui.players[player_id].updateScoring(this.endGameScoring.player_scores[player_id]);
@@ -608,9 +634,8 @@ class EndGameScoringHandler {
 }
 
 class TooltipHandler {
-    constructor(gameui, deckLength) {
+    constructor(gameui) {
         this.gameui = gameui;
-        this.deckLength = deckLength;
         this.addTooltipToCards();
     }
     addTooltipToCards() {
@@ -633,7 +658,8 @@ class TooltipHandler {
         document.querySelector('.safari-mobile-revealed-cards-container').innerHTML = tooltipHTML;
     }
     getTooltipHTML() {
-        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + this.deckLength.toString() + '</b>');
+        const deckLength = this.gameui.getDeckLength();
+        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + deckLength.toString() + '</b>');
         const tooltipHTML = `
             <div class="tooltip-wrapper">
                 <div class="deck-length-text">${deckLengthText}</div>
@@ -811,7 +837,7 @@ class Game {
                 nextHandContainer.parentElement.append(nextHandContainer);
             }
         }
-        this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
+        this.tooltipHandler = new TooltipHandler(this);
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)
@@ -930,6 +956,7 @@ class Game {
     updateStatusText(statusText) { $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
     getGameStateName() { return this.gamedatas.gamestate.name; }
     isSoloMode() { return this.bga.gameui.is_solo; }
+    getDeckLength() { return this.gamedatas.deckLength; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
     /*

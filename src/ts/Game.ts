@@ -88,7 +88,7 @@ export class Game {
             }
         }
 
-        this.tooltipHandler = new TooltipHandler(this, gamedatas.deckLength);
+        this.tooltipHandler = new TooltipHandler(this);
         
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
@@ -223,7 +223,8 @@ export class Game {
 
     public getGameStateName(): string { return this.gamedatas.gamestate.name; }
     public isSoloMode(): boolean{ return this.bga.gameui.is_solo; }
-    
+
+    public getDeckLength(): number{ return this.gamedatas.deckLength; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 

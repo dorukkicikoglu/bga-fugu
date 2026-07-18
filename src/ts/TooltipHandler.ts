@@ -1,7 +1,7 @@
 import { Game } from "./Game";
 
 export class TooltipHandler{
-    constructor(private gameui: Game, private deckLength: number) { 
+    constructor(private gameui: Game) { 
         this.addTooltipToCards();
 	}
 
@@ -31,7 +31,8 @@ export class TooltipHandler{
     }
 
     private getTooltipHTML(): string {
-        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + this.deckLength.toString() + '</b>');
+        const deckLength = this.gameui.getDeckLength();
+        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + deckLength.toString() + '</b>');
         const tooltipHTML = `
             <div class="tooltip-wrapper">
                 <div class="deck-length-text">${deckLengthText}</div>

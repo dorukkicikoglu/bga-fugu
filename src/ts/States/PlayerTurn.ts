@@ -78,7 +78,9 @@ export class PlayerTurn {
         if(!playingFirstTurnOnBadHalf){
             doPerformSwapCards();
         } else {
-            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge....").replace('{$centerCardRank}', centerCardRank.toString())).then(result => {
+            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge as the highest card value is {$highestCardInDeck}")
+                .replace('{$centerCardRank}', `<b>${centerCardRank.toString()}</b>`)
+                .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`)).then(result => {
                 if(result){ 
                     doPerformSwapCards();
                 }
