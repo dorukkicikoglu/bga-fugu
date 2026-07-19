@@ -45,7 +45,13 @@ export class SoloDiscardDisplayHandler{
       this.discardedCardIconsContainer.appendChild(cardIcon);
   }
 
-  public hideDiscardedCardIconsContainer(){ 
+  public hideDiscardedCardIconsContainer(){
+    if(!this.game.isSoloMode())
+      return;
+    
+    if(!this.discardedCardIconsContainer)
+      return;
+
     this.discardedCardIconsContainer.style.transition = 'opacity 500ms ease';
     this.discardedCardIconsContainer.style.opacity = '0';
     setTimeout(() => { this.discardedCardIconsContainer.style.display = 'none'; }, 500)

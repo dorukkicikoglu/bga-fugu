@@ -544,7 +544,8 @@ class EndGameScoringHandler {
             console.error('end-game-score-container already exists');
             return;
         }
-        this.game.soloDiscardDisplayHandler.hideDiscardedCardIconsContainer();
+        if (this.game.isSoloMode())
+            this.game.soloDiscardDisplayHandler.hideDiscardedCardIconsContainer();
         document.body.classList.add('displaying-end-game-score');
         this.endGameScoring.player_scores = endGameScoring.player_scores;
         this.winner_ids = endGameScoring.winner_ids;
@@ -930,6 +931,10 @@ class SoloDiscardDisplayHandler {
             this.discardedCardIconsContainer.appendChild(cardIcon);
     }
     hideDiscardedCardIconsContainer() {
+        if (!this.game.isSoloMode())
+            return;
+        if (!this.discardedCardIconsContainer)
+            return;
         this.discardedCardIconsContainer.style.transition = 'opacity 500ms ease';
         this.discardedCardIconsContainer.style.opacity = '0';
         setTimeout(() => { this.discardedCardIconsContainer.style.display = 'none'; }, 500);
