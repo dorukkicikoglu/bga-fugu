@@ -62,11 +62,12 @@ class PlayerTurn extends GameState
         if(!$cardInHand)
             throw new UserException('Card in hand not found');
 
+        $centerCardLocation = $cardInCenter['card_location_arg'];
         $stateInHand = $this->placeCardAsNumberOrAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']);
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'player', `card_location_arg` = $activePlayerId, `state_in_hand` = '$stateInHand', `location_in_hand` = ".$cardInHand['location_in_hand']." WHERE `card_id` = $centerCardID");
-        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardInCenter['card_location_arg'].", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
+        $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$centerCardLocation.", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
 
-        $soloCenterCardReplacement = $this->game->isSoloMode() ? $this->soloReplaceCenterCard((int) $cardInHand['rank'], (int) $cardInCenter['card_location_arg']) : [];
+        $soloCenterCardReplacement = $this->game->isSoloMode() ? $this->soloReplaceCenterCard((int) $cardInHand['rank'], (int) $centerCardLocation) : [];
 
         $anyFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'facedown' LIMIT 1");
         $gameEnded = !$anyFacedownCard;
@@ -75,23 +76,41 @@ class PlayerTurn extends GameState
 
         $updatedScore = $this->game->updatePlayerScore($activePlayerId);
 
-        $this->bga->notify->all("cardsSwapped", clienttranslate('${player_name} takes ${centerCardRank} and placed ${handCardRank}'), [
+        $player_name = $this->game->getPlayerNameById($activePlayerId);
+        $centerCardRank = $cardInCenter['rank'];
+        $handCardRank = $cardInHand['rank'];
+        $centerCardIconStr = $this->game->getCardLogHTML($cardInCenter);
+        $handCardIconStr = $this->game->getCardLogHTML($cardInHand);
+
+        $swapNotifStr = "{$player_name} {$centerCardIconStr} [{$handCardLocation}] ↔ {$handCardIconStr} [{$centerCardLocation}]";
+        $swapData = [
             "player_id" => $activePlayerId,
-            "centerCardRank" => $cardInCenter['rank'],
-            "handCardRank" => $cardInHand['rank'],
+            "centerCardRank" => $centerCardRank,
+            "centerCardLocation" => $centerCardLocation,
+            "handCardRank" => $handCardRank,
             "handCardLocation" => $handCardLocation,
             "cardInHand" => $cardInHand,
             "cardInCenter" => $cardInCenter,
             "newStateInHand" => $stateInHand,
-            "updatedScore" => $updatedScore,
-            "game_ended" => $gameEnded,
-            "soloCenterCardReplacement" => $soloCenterCardReplacement,
-        ]);
+        ];
 
+        $this->bga->notify->all("cardsSwapped", '${SWAP_NOTIF_STR}', [
+            'preserve' => ['swapData', 'updatedScore', 'game_ended', 'soloCenterCardReplacement'],
+            'swapData' => $swapData,
+            "updatedScore" => $updatedScore,
+            'SWAP_NOTIF_STR' => $swapNotifStr,
+            "game_ended" => $gameEnded,
+        ]);
+        
         if($soloCenterCardReplacement){
-            $this->bga->notify->all("centerCardReplaced", clienttranslate('Center: ${newCardNum} replaces ${oldCardNum}'), [
-                "oldCardNum" => $soloCenterCardReplacement['discardedCardData']['rank'],
-                "newCardNum" => $soloCenterCardReplacement['newCenterCardData']['rank'],
+            $newCardNum = $soloCenterCardReplacement['newCenterCardData']['rank'];
+            $oldCardNum = $soloCenterCardReplacement['discardedCardData']['rank'];
+            $centerCardReplacedStr = sprintf( clienttranslate('Center: %d replaces %d'), $newCardNum, $oldCardNum);
+
+            $this->bga->notify->all("centerCardReplaced", '${CENTER_CARD_REPLACED_STR}', [
+                'preserve' => ['soloCenterCardReplacement'],
+                'CENTER_CARD_REPLACED_STR' => $centerCardReplacedStr,
+                "soloCenterCardReplacement" => $soloCenterCardReplacement,
             ]);
         }
 

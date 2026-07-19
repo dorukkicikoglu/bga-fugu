@@ -1,6 +1,7 @@
 import { PlayerTurn } from "./States/PlayerTurn";
 import { PlayerHandler } from "./PlayerHandler";
 import { CenterHandler } from "./CenterHandler";
+import { LogMutationObserver } from "./LogMutationObserver";
 import { EndGameScoringHandler } from "./EndGameScoringHandler";
 import { TooltipHandler } from "./TooltipHandler";
 import { BackgroundHandler } from "./BackgroundHandler";
@@ -19,6 +20,7 @@ export class Game {
     
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
+    public logMutationObserver: LogMutationObserver;
     private endGameScoringHandler: EndGameScoringHandler;
     private tooltipHandler: TooltipHandler;
     private prefHandler: PrefHandler;
@@ -78,7 +80,7 @@ export class Game {
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
             this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
         }
-
+        
         if(this.players.hasOwnProperty(this.myPlayerID)){
             this.myself = this.players[this.myPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
@@ -90,6 +92,7 @@ export class Game {
             }
         }
 
+        this.logMutationObserver = new LogMutationObserver(this);
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         
@@ -111,33 +114,27 @@ export class Game {
         script. Typically, functions that are used in multiple state classes or outside a state class.
     
     */
-   private format_string_recursive(log, args) {
+   private bgaFormatText(log, args) {
         try {
             log = _(log);
             if (log && args && !args.processed) {
                 args.processed = true;
 
                 // list of special keys we want to replace with images
-                const keys = ['BRIBED_ICONS_STR', 'CARDS_FROM_MARKET_STR', 'DRAWN_CARD_STR', 'NEW_CARDS_COUNT', 'MOVING_TREASURE_STR'];
+                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR'];
                 for(let key of keys) {
                     if(key in args) {
-                        // if(key == 'BRIBED_ICONS_STR') //ekmek uncomment
-                        //     log = this.logMutationObserver.createLogBribedCards(args['player_id'], args['bribedCards']);
-                        // else if(key == 'CARDS_FROM_MARKET_STR')
-                        //     log = this.logMutationObserver.createLogMarketVisit(args['player_id'], Object.values(args['discardedCards']), args['cost'], Object.values(args['cardsFromMarket']));
-                        // else if(key == 'DRAWN_CARD_STR')
-                        //     log = this.logMutationObserver.createLogDrawFromDeck(args['player_id'], args['drawnCardData'] || {card_id: -1, resource_type: -1});
-                        // else if(key == 'NEW_CARDS_COUNT')
-                        //     log = this.logMutationObserver.createLogCardsDealtToMarket(args['NEW_CARDS_COUNT']);
-                        // else if(key == 'MOVING_TREASURE_STR')
-                        //     log = this.logMutationObserver.createLogFavorTokenMoved(args['player_id'], args['movingTreasure'], args['moveBy']);
+                        if(key == 'SWAP_NOTIF_STR')
+                            log = this.logMutationObserver.createLogSwapCards(args['swapData']).log_html;
+                        else if(key == 'CENTER_CARD_REPLACED_STR')
+                            log = this.logMutationObserver.createLogCenterCardReplaced(args['soloCenterCardReplacement']).log_html;
                     }
                 }
             }
         } catch (e) {
             console.error(log,args,"Exception thrown", e.stack);
         }
-        return (this as any).inherited(arguments);
+        return { log, args };
     }
     public divYou(attributes = {}): string {
         
@@ -212,7 +209,22 @@ export class Game {
         mobileObj.style.left = (currentLeft + deltaX) + 'px';
         mobileObj.style.top = (currentTop + deltaY) + 'px';
     }
+    public rgbToHex(rgb: string): string { // Extract the numeric values using a regex
+        const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+        if (!match){
+            console.error('-- rgb --', rgb);
+            throw new Error("Invalid RGB format");
+        }
 
+        // Convert each component to a two-character hexadecimal
+        const [, r, g, b] = match;
+        return [r, g, b]
+            .map((num) => {
+                const hex = parseInt(num, 10).toString(16);
+                return hex.padStart(2, '0'); // Ensure two digits
+            })
+            .join(''); // Combine into a single string
+    }
     public getPos(node: HTMLDivElement): DOMRect { 
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
         // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
@@ -253,20 +265,26 @@ export class Game {
     public async notif_pass(args: {player_id: number}) {
         this.players[args.player_id].setGameEnded(true);
     }
-    
-    public async notif_cardsSwapped(args: {player_id: number, handCardLocation: number, cardInHand: CardInHand, cardInCenter: CardInCenter, updatedScore: PlayerScore, newStateInHand: CardStateInHand, game_ended: boolean, soloCenterCardReplacement: soloCenterCardReplacement}) {
-        const swappingPlayer: PlayerHandler = this.players[args.player_id];
-        await swappingPlayer.animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
-        swappingPlayer.getHand().setFacedownCountForMobileStretching();
 
-        if(this.isSoloMode())
-            await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
+    public async notif_cardsSwapped(args: {swapData: CardSwapData, updatedScore: PlayerScore, game_ended: boolean}) {
+        const swapData: CardSwapData = args.swapData;
+        const swappingPlayer: PlayerHandler = this.players[swapData.player_id];
+
+        await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
+        swappingPlayer.getHand().setFacedownCountForMobileStretching();
 
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);
 
         if(args.game_ended)
             swappingPlayer.setGameEnded(true);
+    }
+
+    public async notif_centerCardReplaced(args: {soloCenterCardReplacement: soloCenterCardReplacement}) {
+        if(!this.isSoloMode())
+            return;
+        
+        await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
     }
 
     private async notif_displayEndGameScoring(args) {

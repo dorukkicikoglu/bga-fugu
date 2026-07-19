@@ -4,6 +4,7 @@
   --image-source-fugu-cards: url(img/fugu_cards.webp);
   --bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
   --bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
+  --bg-gradient-logs: linear-gradient(260deg, #3a5290, #38c79d, #ffffff55 103%);
 }
 
 .mobile_version {
@@ -440,6 +441,21 @@ body {
   margin-bottom: 50px;
 }
 
+.minimised-card-icon {
+  display: inline-block;
+  vertical-align: top;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 34px;
+  aspect-ratio: 34/50;
+}
+.minimised-card-icon .a-card {
+  margin-top: -17%;
+  margin-left: -12%;
+  width: 350%;
+  height: 540%;
+}
+
 #discarded-card-icons-container {
   position: relative;
   width: 100%;
@@ -453,19 +469,7 @@ body {
   color: #1a1b52;
 }
 #discarded-card-icons-container .discarded-card-icon {
-  display: inline-block;
-  vertical-align: top;
   margin: -17px 4px 5px 4px;
-  border-radius: 6px;
-  overflow: hidden;
-  width: 34px;
-  height: 50px;
-}
-#discarded-card-icons-container .discarded-card-icon .a-card {
-  margin-top: -17%;
-  margin-left: -18%;
-  width: 380%;
-  height: 560%;
 }
 
 .mobile_version #player-hands-container .a-hand-container .cards-container[facedown-count-for-mobile-stretching="18"] {
@@ -903,42 +907,74 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   animation: bubble-wobble ease-in-out 1;
 }
 
-@keyframes bubble-rise {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.8;
-  }
-  90% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(-110vh);
-    opacity: 0;
-  }
+.log.a-game-log, .gamelogreview.a-game-log {
+  position: relative;
 }
-@keyframes bubble-wobble {
-  0% {
-    transform: translateX(0) rotate(0deg);
-  }
-  22% {
-    transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22));
-  }
-  41% {
-    transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41));
-  }
-  63% {
-    transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63));
-  }
-  82% {
-    transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82));
-  }
-  100% {
-    transform: translateX(var(--drift)) rotate(var(--rotation));
-  }
+.log.a-game-log .roundedbox, .gamelogreview.a-game-log .roundedbox {
+  background: var(--bg-gradient-logs);
+  padding-bottom: 5px;
 }
+.log.gamelogreview, .gamelogreview.gamelogreview {
+  background: var(--bg-gradient-logs);
+}
+.log.swap-cards-log, .gamelogreview.swap-cards-log {
+  width: 90%;
+  margin-left: 10%;
+}
+.log.swap-cards-log .swap-cards-row, .gamelogreview.swap-cards-log .swap-cards-row {
+  margin-bottom: -9px;
+}
+.log.swap-cards-log .swap-cards-row .log-arrow-exchange, .gamelogreview.swap-cards-log .swap-cards-row .log-arrow-exchange {
+  margin: 11px 0px 7px 2px;
+}
+.log.center-card-replaced-log, .gamelogreview.center-card-replaced-log {
+  margin-bottom: -3px;
+  width: 60%;
+  margin-left: 40%;
+}
+.log.center-card-replaced-log .center-card-replaced-row, .gamelogreview.center-card-replaced-log .center-card-replaced-row {
+  text-align: center;
+  margin-bottom: -9px;
+}
+.log.center-card-replaced-log .center-card-replaced-row .log-arrow, .gamelogreview.center-card-replaced-log .center-card-replaced-row .log-arrow {
+  z-index: 1;
+  position: relative;
+  font-size: 26px;
+  margin-top: 4px;
+}
+.log.center-card-replaced-log .center-card-replaced-row .log-arrow-right-1, .gamelogreview.center-card-replaced-log .center-card-replaced-row .log-arrow-right-1 {
+  margin-right: -12px;
+}
+.log.center-card-replaced-log .center-card-replaced-row .log-arrow-right-2, .gamelogreview.center-card-replaced-log .center-card-replaced-row .log-arrow-right-2 {
+  margin-left: -10px;
+}
+.log.center-card-replaced-log .center-card-replaced-row .minimised-card-icon:first-of-type, .gamelogreview.center-card-replaced-log .center-card-replaced-row .minimised-card-icon:first-of-type {
+  margin-right: 16px;
+}
+.log.swap-cards-log .minimised-card-icon, .log.center-card-replaced-log .minimised-card-icon, .gamelogreview.swap-cards-log .minimised-card-icon, .gamelogreview.center-card-replaced-log .minimised-card-icon {
+  width: 24px;
+  margin: 0 4px -10px 6px;
+}
+
+body.mobile_version .log .playername.swapper-name {
+  max-width: 100px;
+}
+body.mobile_version .log.swap-cards-log, body.mobile_version .gamelogreview.swap-cards-log {
+  width: 100%;
+  margin-left: 0%;
+}
+body.mobile_version .log.center-card-replaced-log, body.mobile_version .gamelogreview.center-card-replaced-log {
+  margin-left: 20%;
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+body.desktop_version .a-game-log .playername[player-color=ffa500] {
+  text-shadow: 1px 0 #1e4b39, -1px 0 #1e4b39, 0 1px #1e4b39, 0 -1px #1e4b39, 0.5px 0.5px #1e4b39, -0.5px -0.5px #1e4b39, 0.5px -0.5px #1e4b39, -0.5px 0.5px #1e4b39;
+} /* ffa500 this color doesnt look good on the logs */
+body.desktop_version .a-game-log .playername[player-color="008000"] {
+  text-shadow: 1px 0 #c7d7d0, -1px 0 #c7d7d0, 0 1px #c7d7d0, 0 -1px #c7d7d0, 0.5px 0.5px #c7d7d0, -0.5px -0.5px #c7d7d0, 0.5px -0.5px #c7d7d0, -0.5px 0.5px #c7d7d0;
+} /* 008000 this color doesnt look good on the logs */
 @keyframes gentle-drift {
   0% {
     background-position: 4% 4%;
@@ -1006,6 +1042,42 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   }
   75% {
     transform: translateY(-10px) rotate(5deg);
+  }
+}
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-110vh);
+    opacity: 0;
+  }
+}
+@keyframes bubble-wobble {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  22% {
+    transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22));
+  }
+  41% {
+    transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41));
+  }
+  63% {
+    transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63));
+  }
+  82% {
+    transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82));
+  }
+  100% {
+    transform: translateX(var(--drift)) rotate(var(--rotation));
   }
 }
 

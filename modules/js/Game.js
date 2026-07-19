@@ -244,7 +244,7 @@ class PlayerHandler {
     }
     setGameEnded(gameEnded) {
         this.game_ended = gameEnded;
-        if (gameEnded && !this.game.isSoloMode()) //in solo mode, no need to darken player mode
+        if (gameEnded && !this.game.isSoloMode()) //in solo mode, no need to darken player board
             this.overallPlayerBoard.classList.add('player-game-ended');
     }
     updateScoring(updatedScoring) {
@@ -426,6 +426,109 @@ class CenterHandler {
             this.game.soloDiscardDisplayHandler.insertDiscardedCardIcon(discardedCardData);
     }
     getCenterContainer() { return this.centerContainer; }
+}
+
+class LogMutationObserver {
+    constructor(game) {
+        this.game = game;
+        this.nextTimestampValue = '';
+        this.observeLogs();
+    }
+    observeLogs() {
+        let observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1 && node.tagName.toLowerCase() === 'div' && node.classList.contains('log')) {
+                            this.processLogDiv(node);
+                        }
+                    });
+                }
+            });
+        });
+        // Configure the MutationObserver to observe changes to the container's child nodes
+        const config = {
+            childList: true,
+            subtree: true // Set to true if you want to observe all descendants of the container
+        };
+        // Start observing the container
+        observer.observe($('logs'), config);
+        observer.observe($('chatbar'), config); //mobile notifs
+        if (g_archive_mode) { //to observe replayLogs that appears at the bottom of the page on replays
+            let replayLogsObserverStarted = false;
+            const replayLogsObserver = new MutationObserver((mutations, obs) => {
+                for (const mutation of mutations) {
+                    if (mutation.addedNodes.length) {
+                        mutation.addedNodes.forEach((node) => {
+                            if (!replayLogsObserverStarted && node instanceof HTMLElement && node.id.startsWith('replaylogs')) {
+                                this.processLogDiv(node);
+                            }
+                        });
+                    }
+                }
+            });
+            replayLogsObserver.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+    processLogDiv(node) {
+        const classTags = Array.from(node.querySelectorAll('*[log-class-tag]'));
+        for (const classTag of classTags) {
+            const logClassName = classTag.getAttribute('log-class-tag');
+            let parentLog = null;
+            let current = classTag;
+            while (current) {
+                if (current.classList.contains('gamelogreview') || current.classList.contains('log')) {
+                    parentLog = current;
+                    break;
+                }
+                current = current.parentElement;
+            }
+            if (parentLog)
+                parentLog.classList.add('a-game-log', logClassName);
+        }
+        classTags.forEach(classTag => classTag.remove());
+        node.querySelectorAll('.playername').forEach((playerName) => {
+            playerName.setAttribute('player-color', this.game.rgbToHex(window.getComputedStyle(playerName).color));
+        });
+        if (this.game.isDesktop() && node.classList.contains('a-game-log')) {
+            let timestamp = Array.from(node.querySelectorAll('.timestamp'));
+            if (timestamp.length > 0) {
+                this.nextTimestampValue = timestamp[0].innerText;
+            }
+            else if (this.observeLogs.hasOwnProperty('nextTimestampValue')) {
+                let newTimestamp = document.createElement('div');
+                newTimestamp.classList.add('timestamp');
+                newTimestamp.innerHTML = this.nextTimestampValue;
+                node.appendChild(newTimestamp);
+            }
+        }
+    }
+    addLogClassTag(logHTML, logClass) { return { log_html: logHTML + `<div log-class-tag="${logClass}"></div>`, log_class: logClass }; }
+    //create specific log types
+    createLogSwapCards(swapData) {
+        const centerCardIcon = `<div class="minimised-card-icon">${this.game.createCardDiv(swapData.cardInCenter).outerHTML}</div>`;
+        const handCardIcon = `<div class="minimised-card-icon">${this.game.createCardDiv(swapData.cardInHand).outerHTML}</div>`;
+        let logHTML = `
+            <div class="swap-cards-row">
+                ${this.game.divColoredPlayer(swapData.player_id, { class: 'playername' }, false)}
+                ${centerCardIcon}
+                <i class="log-arrow log-arrow-exchange fa6 fa-exchange"></i>
+                ${handCardIcon}
+            </div>` + ' &nbsp;';
+        return this.addLogClassTag(logHTML, 'swap-cards-log');
+    }
+    createLogCenterCardReplaced(soloCenterCardReplacement) {
+        const discardedCardIcon = `<div class="minimised-card-icon">${this.game.createCardDiv(soloCenterCardReplacement.discardedCardData).outerHTML}</div>`;
+        const newCenterCardIcon = `<div class="minimised-card-icon">${this.game.createCardDiv(soloCenterCardReplacement.newCenterCardData).outerHTML}</div>`;
+        let logHTML = `
+            <div class="center-card-replaced-row">
+                <i class="log-arrow log-arrow-right-1 fa6 fa-arrow-right"></i>
+                ${discardedCardIcon}
+                ${newCenterCardIcon}
+                <i class="log-arrow log-arrow-right-2 fa6 fa-arrow-right"></i>
+            </div>` + ' &nbsp;';
+        return this.addLogClassTag(logHTML, 'center-card-replaced-log');
+    }
 }
 
 class EndGameScoringHandler {
@@ -815,7 +918,7 @@ class SoloDiscardDisplayHandler {
         if (!this.game.isSoloMode())
             return;
         const cardIcon = document.createElement('div');
-        cardIcon.className = 'discarded-card-icon';
+        cardIcon.className = 'discarded-card-icon minimised-card-icon';
         cardIcon.setAttribute('data-rank', String(cardData.rank));
         const dummyCard = this.game.createCardDiv(cardData);
         cardIcon.appendChild(dummyCard);
@@ -888,6 +991,7 @@ class Game {
                 nextHandContainer.parentElement.append(nextHandContainer);
             }
         }
+        this.logMutationObserver = new LogMutationObserver(this);
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         if (gamedatas.hasOwnProperty('endGameScoring'))
@@ -904,25 +1008,19 @@ class Game {
         script. Typically, functions that are used in multiple state classes or outside a state class.
     
     */
-    format_string_recursive(log, args) {
+    bgaFormatText(log, args) {
         try {
             log = _(log);
             if (log && args && !args.processed) {
                 args.processed = true;
                 // list of special keys we want to replace with images
-                const keys = ['BRIBED_ICONS_STR', 'CARDS_FROM_MARKET_STR', 'DRAWN_CARD_STR', 'NEW_CARDS_COUNT', 'MOVING_TREASURE_STR'];
+                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR'];
                 for (let key of keys) {
                     if (key in args) {
-                        // if(key == 'BRIBED_ICONS_STR') //ekmek uncomment
-                        //     log = this.logMutationObserver.createLogBribedCards(args['player_id'], args['bribedCards']);
-                        // else if(key == 'CARDS_FROM_MARKET_STR')
-                        //     log = this.logMutationObserver.createLogMarketVisit(args['player_id'], Object.values(args['discardedCards']), args['cost'], Object.values(args['cardsFromMarket']));
-                        // else if(key == 'DRAWN_CARD_STR')
-                        //     log = this.logMutationObserver.createLogDrawFromDeck(args['player_id'], args['drawnCardData'] || {card_id: -1, resource_type: -1});
-                        // else if(key == 'NEW_CARDS_COUNT')
-                        //     log = this.logMutationObserver.createLogCardsDealtToMarket(args['NEW_CARDS_COUNT']);
-                        // else if(key == 'MOVING_TREASURE_STR')
-                        //     log = this.logMutationObserver.createLogFavorTokenMoved(args['player_id'], args['movingTreasure'], args['moveBy']);
+                        if (key == 'SWAP_NOTIF_STR')
+                            log = this.logMutationObserver.createLogSwapCards(args['swapData']).log_html;
+                        else if (key == 'CENTER_CARD_REPLACED_STR')
+                            log = this.logMutationObserver.createLogCenterCardReplaced(args['soloCenterCardReplacement']).log_html;
                     }
                 }
             }
@@ -930,7 +1028,7 @@ class Game {
         catch (e) {
             console.error(log, args, "Exception thrown", e.stack);
         }
-        return this.inherited(arguments);
+        return { log, args };
     }
     divYou(attributes = {}) {
         let color = this.gamedatas.players[this.myPlayerID].color;
@@ -994,6 +1092,21 @@ class Game {
         mobileObj.style.left = (currentLeft + deltaX) + 'px';
         mobileObj.style.top = (currentTop + deltaY) + 'px';
     }
+    rgbToHex(rgb) {
+        const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+        if (!match) {
+            console.error('-- rgb --', rgb);
+            throw new Error("Invalid RGB format");
+        }
+        // Convert each component to a two-character hexadecimal
+        const [, r, g, b] = match;
+        return [r, g, b]
+            .map((num) => {
+            const hex = parseInt(num, 10).toString(16);
+            return hex.padStart(2, '0'); // Ensure two digits
+        })
+            .join(''); // Combine into a single string
+    }
     getPos(node) {
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node);
         // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
@@ -1032,15 +1145,19 @@ class Game {
         this.players[args.player_id].setGameEnded(true);
     }
     async notif_cardsSwapped(args) {
-        const swappingPlayer = this.players[args.player_id];
-        await swappingPlayer.animateCardSwap(args.handCardLocation, args.cardInCenter, args.cardInHand, args.newStateInHand);
+        const swapData = args.swapData;
+        const swappingPlayer = this.players[swapData.player_id];
+        await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
         swappingPlayer.getHand().setFacedownCountForMobileStretching();
-        if (this.isSoloMode())
-            await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);
         if (args.game_ended)
             swappingPlayer.setGameEnded(true);
+    }
+    async notif_centerCardReplaced(args) {
+        if (!this.isSoloMode())
+            return;
+        await this.centerHandler.animateCardReplace(args.soloCenterCardReplacement.discardedCardData, args.soloCenterCardReplacement.newCenterCardData);
     }
     async notif_displayEndGameScoring(args) {
         console.log('notif_displayEndGameScoring', args);

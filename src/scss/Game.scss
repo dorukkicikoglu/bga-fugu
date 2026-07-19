@@ -6,6 +6,7 @@
 	--image-source-fugu-cards: url(img/fugu_cards.webp);
 	--bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
 	--bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
+    --bg-gradient-logs: linear-gradient(260deg, #3a5290, #38c79d, #ffffff55 103%);
 }
 
 .mobile_version{ --card-width: 28.5vw; }
@@ -55,12 +56,15 @@ body{ background: #221e52; }
     }
 }
 
+.minimised-card-icon{ display: inline-block; vertical-align: top; border-radius: 6px; overflow: hidden; width: 34px; aspect-ratio: 34 / 50;
+    .a-card{ margin-top: -17%; margin-left: -12%; width: 350%; height: 540%; }
+}
+
 #discarded-card-icons-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: -18px; padding: 30px 0px 10px 0px;
     .discarded-cards-title{ color: #1a1b52; }
-    .discarded-card-icon{ display: inline-block; vertical-align: top; margin: -17px 4px 5px 4px; border-radius: 6px; overflow: hidden; width: 34px; height: 50px;
-        .a-card{ margin-top: -17%; margin-left: -18%; width: 380%; height: 560%; }
-    }
+    .discarded-card-icon{ margin: -17px 4px 5px 4px; }
 }
+
 .mobile_version #player-hands-container .a-hand-container .cards-container{
     &[facedown-count-for-mobile-stretching="18"]{ --horz-stretch-facedown: -0.345; --horz-stretch-faceup: 0; }
     &[facedown-count-for-mobile-stretching="17"]{ --horz-stretch-facedown: -0.365; --horz-stretch-faceup: 0.24; }
@@ -225,24 +229,41 @@ body.current_player_is_active:not(.lockedInterface){
         }
     }
 }
-
-@keyframes bubble-rise {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 0.8; }
-  90% { opacity: 0.8; }
-  100% { transform: translateY(-110vh); opacity: 0; }
-}
-
-@keyframes bubble-wobble {
-  0% { transform: translateX(0) rotate(0deg); }
-  22% { transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22)); }
-  41% { transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41)); }
-  63% { transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63)); }
-  82% { transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82)); }
-  100% { transform: translateX(var(--drift)) rotate(var(--rotation)); }
-}
-
 //end background
+
+//logs
+.log, .gamelogreview{
+    &.a-game-log{ position: relative;
+        .roundedbox{ background: var(--bg-gradient-logs); padding-bottom: 5px; }
+    }
+    &.gamelogreview{ background: var(--bg-gradient-logs); }
+
+    &.swap-cards-log{ width: 90%; margin-left: 10%;
+        .swap-cards-row{ margin-bottom: -9px;
+            .log-arrow-exchange{ margin: 11px 0px 7px 2px; }
+        }
+    }
+    &.center-card-replaced-log{ margin-bottom: -3px; width: 60%; margin-left: 40%;
+        .center-card-replaced-row{ text-align: center; margin-bottom: -9px;
+            .log-arrow{ z-index: 1; position: relative; font-size: 26px; margin-top: 4px; }
+            .log-arrow-right-1{ margin-right: -12px; }
+            .log-arrow-right-2{ margin-left: -10px; }
+            .minimised-card-icon:first-of-type{ margin-right: 16px; }
+        }
+    }
+    &.swap-cards-log, &.center-card-replaced-log{ 
+        .minimised-card-icon{ width: 24px; margin: 0 4px -10px 6px; }
+    }
+}
+body.mobile_version{
+    .log .playername.swapper-name{ max-width: 100px; }
+    .log.swap-cards-log, .gamelogreview.swap-cards-log{ width: 100%; margin-left: 0%; }
+    .log.center-card-replaced-log, .gamelogreview.center-card-replaced-log{ margin-left: 20%; margin-bottom: 0px; margin-top: 0px; }
+}
+body.desktop_version .a-game-log .playername[player-color="ffa500"]{ @include text-shade(#1e4b39, 1px); } /* ffa500 this color doesnt look good on the logs */
+body.desktop_version .a-game-log .playername[player-color="008000"]{ @include text-shade(#c7d7d0, 1px); } /* 008000 this color doesnt look good on the logs */
+
+//end logs
 
 @keyframes gentle-drift {
   0%   { background-position: 4% 4%; }
@@ -285,4 +306,20 @@ body.current_player_is_active:not(.lockedInterface){
     75% {
         transform: translateY(-10px) rotate(5deg);
     }
+}
+
+@keyframes bubble-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-110vh); opacity: 0; }
+}
+
+@keyframes bubble-wobble {
+  0% { transform: translateX(0) rotate(0deg); }
+  22% { transform: translateX(var(--wobble-1)) rotate(calc(var(--rotation) * 0.22)); }
+  41% { transform: translateX(var(--wobble-2)) rotate(calc(var(--rotation) * 0.41)); }
+  63% { transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63)); }
+  82% { transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82)); }
+  100% { transform: translateX(var(--drift)) rotate(var(--rotation)); }
 }

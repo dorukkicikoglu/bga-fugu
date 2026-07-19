@@ -15,6 +15,11 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     discardedCards: CardInDiscard[];
 }
 
+interface LogRowData { //this is used to return strings containing log-class-tag divs
+    log_html: string;
+    log_class: string;
+}
+
 interface CardBase {
     card_id: number;
 }
@@ -37,6 +42,14 @@ interface CardInHand extends CardBase {
     state_in_hand: CardStateInHand;
     suit: null;
     rank: null;
+}
+
+interface CardSwapData{
+    player_id: number;
+    handCardLocation: number;
+    cardInHand: CardInHand;
+    cardInCenter: CardInCenter;
+    newStateInHand: CardStateInHand;
 }
 
 interface PlayerScore{

@@ -30,7 +30,7 @@ export class SoloDiscardDisplayHandler{
       return;
 
     const cardIcon = document.createElement('div');
-    cardIcon.className = 'discarded-card-icon';
+    cardIcon.className = 'discarded-card-icon minimised-card-icon';
     cardIcon.setAttribute('data-rank', String(cardData.rank));
 
     const dummyCard = this.game.createCardDiv(cardData);

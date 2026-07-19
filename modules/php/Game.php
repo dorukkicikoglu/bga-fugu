@@ -243,6 +243,12 @@ class Game extends \Bga\GameFramework\Table
         return $updatedScore;
     }
 
+    public function getCardLogHTML(array $cardData){ 
+        $rank = _($cardData['rank']);
+        $suit = _($cardData['suit']);
+        return "<span><span>{$rank}</span> <span>{$suit}</span></span>"; 
+    }
+
     public function isSoloMode(): bool{ return $this->getPlayersNumber() === 1; }
 
     public function isSoloExpertDifficulty(): bool{
