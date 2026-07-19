@@ -6,6 +6,7 @@ export class PlayerHandler{
     private scoreCounter: Counter;
     private anchorTextDiv: HTMLDivElement;
     private hand: HandHandler;
+    private CoralCounterContainer: HTMLDivElement;
     
 	constructor(private game: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData: PlayerScore) {
         this.overallPlayerBoard = this.game.bga.playerPanels.getElement(this.playerID).closest('.player-board');
@@ -28,6 +29,9 @@ export class PlayerHandler{
             playerId: this.playerID,
         });
 
+        this.createCoralCounterContainer();
+        this.displayCoralIcons();
+
         this.hand = new HandHandler(this.game, this, this.playerHandData); 
 	}
 
@@ -43,6 +47,37 @@ export class PlayerHandler{
 
         if(this.anchorTextDiv)
             this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
+
+        this.displayCoralIcons();
+    }
+
+    private createCoralCounterContainer(){
+        this.CoralCounterContainer = document.createElement('div');
+        this.CoralCounterContainer.classList.add('coral-counter-container');
+        this.CoralCounterContainer.innerHTML = `
+            <div class="coral-counter" data-coral-color="pink">
+                <div class="coral-counter-icon" data-coral-icon="pink"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+            <div class="coral-counter" data-coral-color="green">
+                <div class="coral-counter-icon" data-coral-icon="green"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+            <div class="coral-counter" data-coral-color="yellow">
+                <div class="coral-counter-icon" data-coral-icon="yellow"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+        `;
+
+        const playerScore = this.overallPlayerBoard.querySelector('.player_score');
+        playerScore.insertAdjacentElement('afterend', this.CoralCounterContainer);
+    }
+
+    public displayCoralIcons(){
+        const coralCounts = this.scoringData.coralCounts;
+        this.CoralCounterContainer.querySelector('[data-coral-color="pink"] .coral-counter-text').textContent = coralCounts.pinkCount.toString();
+        this.CoralCounterContainer.querySelector('[data-coral-color="green"] .coral-counter-text').textContent = coralCounts.greenCount.toString();
+        this.CoralCounterContainer.querySelector('[data-coral-color="yellow"] .coral-counter-text').textContent = coralCounts.yellowCount.toString();
     }
     
     public async animateCardSwap(handCardLocation: number, cardInCenter: CardInCenter, cardInHand: CardInHand, newStateInHand: CardStateInHand){

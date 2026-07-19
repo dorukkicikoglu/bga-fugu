@@ -110,8 +110,23 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd){
 		}
 	}
 }
-.player-board .anchor-text{ display: inline-block; margin-left: 3px; }
-.player-board .fa-anchor { display: inline-block; color: #0f4aff; font-size: 13px; margin-left: 3px; vertical-align: 1px; }
+.player-board {
+    .anchor-text{ display: inline-block; margin-left: 3px; }
+    .fa-anchor { display: inline-block; color: #0f4aff; font-size: 13px; margin-left: 3px; vertical-align: 1px; }
+    .coral-counter-container{ display: flex; align-items: center; gap: 8px; margin-top: 8px;
+        .coral-counter{ display: flex; align-items: center; gap: 2px;
+            .coral-counter-icon{ background-image: url("img/coral_icons.webp"); background-size: 300% 100%; width: 18px; height: 18px;
+                &[data-coral-icon="pink"]{ background-position: 0% 0%; }
+                &[data-coral-icon="green"]{ background-position: -100% 0%; }
+                &[data-coral-icon="yellow"]{ background-position: -200% 0%; }
+            }
+            .coral-counter-text{ font-size: 16px; margin-left: 0px; margin-right: 5px; }
+            &:first-child .coral-counter-text{ margin-left: -2px; }
+            &:nth-child(2) .coral-counter-text{ margin-left: 2px; }
+        }
+    }
+}
+
 //end player board
 
 body.current_player_is_active:not(.lockedInterface){

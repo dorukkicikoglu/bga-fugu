@@ -52,10 +52,17 @@ interface CardSwapData{
     newStateInHand: CardStateInHand;
 }
 
+interface CoralCounts{
+    pinkCount: number;
+    greenCount: number;
+    yellowCount: number;
+}
+
 interface PlayerScore{
     anchor: number;
     bannerfish: number;
     corals: number;
+    coralCounts: CoralCounts;
     octopus: number;
     pufferfish: number;
     anchorCount: number;

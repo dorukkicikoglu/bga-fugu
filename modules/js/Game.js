@@ -240,6 +240,8 @@ class PlayerHandler {
             playerCounter: 'Points',
             playerId: this.playerID,
         });
+        this.createCoralCounterContainer();
+        this.displayCoralIcons();
         this.hand = new HandHandler(this.game, this, this.playerHandData);
     }
     setGameEnded(gameEnded) {
@@ -252,6 +254,33 @@ class PlayerHandler {
         this.scoreCounter.toValue(this.scoringData.totalScore);
         if (this.anchorTextDiv)
             this.anchorTextDiv.innerText = this.scoringData.anchorCount.toString();
+        this.displayCoralIcons();
+    }
+    createCoralCounterContainer() {
+        this.CoralCounterContainer = document.createElement('div');
+        this.CoralCounterContainer.classList.add('coral-counter-container');
+        this.CoralCounterContainer.innerHTML = `
+            <div class="coral-counter" data-coral-color="pink">
+                <div class="coral-counter-icon" data-coral-icon="pink"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+            <div class="coral-counter" data-coral-color="green">
+                <div class="coral-counter-icon" data-coral-icon="green"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+            <div class="coral-counter" data-coral-color="yellow">
+                <div class="coral-counter-icon" data-coral-icon="yellow"></div>
+                <div class="coral-counter-text"></div>
+            </div>
+        `;
+        const playerScore = this.overallPlayerBoard.querySelector('.player_score');
+        playerScore.insertAdjacentElement('afterend', this.CoralCounterContainer);
+    }
+    displayCoralIcons() {
+        const coralCounts = this.scoringData.coralCounts;
+        this.CoralCounterContainer.querySelector('[data-coral-color="pink"] .coral-counter-text').textContent = coralCounts.pinkCount.toString();
+        this.CoralCounterContainer.querySelector('[data-coral-color="green"] .coral-counter-text').textContent = coralCounts.greenCount.toString();
+        this.CoralCounterContainer.querySelector('[data-coral-color="yellow"] .coral-counter-text').textContent = coralCounts.yellowCount.toString();
     }
     async animateCardSwap(handCardLocation, cardInCenter, cardInHand, newStateInHand) {
         const centerContainer = this.game.centerHandler.getCenterContainer();

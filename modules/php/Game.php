@@ -266,7 +266,7 @@ class Game extends \Bga\GameFramework\Table
      * satisfy, since their suit isn't showing).
      *
      * @param int $playerID
-     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, anchor: int, soloDifficultyPenalty: int}
+     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int}
      */
     public function getPlayerScore($playerID): array
     {
@@ -378,6 +378,11 @@ class Game extends \Bga\GameFramework\Table
             'pufferfish' => $pufferfishScore,
             'octopus' => $octopusScore,
             'corals' => $coralScore,
+            'coralCounts' => [
+                'pinkCount' => $coralCounts['coral_pink'],
+                'greenCount' => $coralCounts['coral_green'],
+                'yellowCount' => $coralCounts['coral_yellow'],
+            ],
             'anchor' => $anchorScore,
             'anchorCount' => $anchorCount,
             'soloDifficultyPenalty' => $soloDifficultyPenalty,
@@ -398,7 +403,7 @@ class Game extends \Bga\GameFramework\Table
             }
             if ($playerScore['totalScore'] > $maxScore || ($playerScore['totalScore'] == $maxScore && $playerScore['anchorCount'] < $minAnchorCount)) { //new sole winner
                 $winnerIDs = [$playerID];
-                if($this->isSoloMode() && $playerScore['totalScore'] <= 0) //not winner in solo mode without points
+                if($this->isSoloMode() && $playerScore['totalScore'] <= 0) //not a winner in solo mode if no points
                     $winnerIDs = [];
 
                 $maxScore = $playerScore['totalScore'];
