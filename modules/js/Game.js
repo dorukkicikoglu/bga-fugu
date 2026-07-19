@@ -816,9 +816,15 @@ class SoloDiscardDisplayHandler {
             return;
         const cardIcon = document.createElement('div');
         cardIcon.className = 'discarded-card-icon';
+        cardIcon.setAttribute('data-rank', String(cardData.rank));
         const dummyCard = this.game.createCardDiv(cardData);
         cardIcon.appendChild(dummyCard);
-        this.discardedCardIconsContainer.appendChild(cardIcon);
+        const existingIcons = Array.from(this.discardedCardIconsContainer.children).filter(child => child.classList.contains('discarded-card-icon'));
+        const nextHigherRankIcon = existingIcons.find(existingIcon => Number(existingIcon.getAttribute('data-rank')) > cardData.rank);
+        if (nextHigherRankIcon)
+            this.discardedCardIconsContainer.insertBefore(cardIcon, nextHigherRankIcon);
+        else
+            this.discardedCardIconsContainer.appendChild(cardIcon);
     }
     hideDiscardedCardIconsContainer() {
         this.discardedCardIconsContainer.style.transition = 'opacity 500ms ease';
