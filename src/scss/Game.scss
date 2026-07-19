@@ -168,7 +168,7 @@ body.current_player_is_active:not(.lockedInterface){
     .solo-score-flavor-image{ width: 120px; height: 120px; margin-bottom: 20px; background-image: url(img/victoryPuff.webp); background-size: contain; background-repeat: no-repeat; background-position: center; animation: solo-score-flavor-image-rock 1.7s ease-in-out infinite alternate; }
 }
 .gamestate_gameEnd .end-game-score-container{ top: 214px; }
-
+.mobile_version .end-game-score-container{ margin-top: 300px;  }
 
 //tooltip
 

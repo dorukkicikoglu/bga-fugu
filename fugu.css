@@ -760,6 +760,10 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   top: 214px;
 }
 
+.mobile_version .end-game-score-container {
+  margin-top: 300px;
+}
+
 .dijitTooltipContainer:has(.tooltip-wrapper) {
   background: none;
 }
