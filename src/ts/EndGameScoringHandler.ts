@@ -182,7 +182,7 @@ export class EndGameScoringHandler{
         }
 
         let cell: HTMLDivElement = cells[0];
-        const instantFadeIn = this.game.getGameStateName() === 'gameEnd'; //ekmek uncomment
+        const instantFadeIn = this.game.getGameStateName() === 'gameEnd';
         cell.classList.add('displayed');
 
         const fadeInDuration = instantFadeIn ? 0 : 500;

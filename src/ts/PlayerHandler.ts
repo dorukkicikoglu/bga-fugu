@@ -84,7 +84,7 @@ export class PlayerHandler{
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
-        
+
         centerCardClone.style.top = handCard.offsetTop + 'px';
         centerCardClone.style.left = handCard.offsetLeft + 'px';
         handCardClone.style.top = centerCard.offsetTop + 'px';
@@ -96,7 +96,7 @@ export class PlayerHandler{
         }
         
         await this.game.bga.gameui.wait(cardMoveAnimTime);
-        
+
         cardsContainer.style.zIndex = null;
         
         handCardClone.classList.remove('cloned-card');

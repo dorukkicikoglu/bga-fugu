@@ -552,6 +552,9 @@ body {
   margin-right: calc(var(--my-card-width) * var(--horz-stretch-faceup));
   margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown));
 }
+.mobile_version #player-hands-container .a-hand-container .cards-container .a-card:not(.cloned-card):nth-child(even of .a-card:not(.cloned-card)) {
+  margin-top: calc(var(--my-card-width) * 0.4);
+}
 
 .mobile_version .a-hand-container .cards-container .a-card {
   --horz-margin: calc(var(--my-card-width) * -0.17);
@@ -819,6 +822,14 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   left: -47%;
   transform: scale(1.1, 0.75) rotate(45deg);
   box-shadow: -1px 1px 2px 2px #adadad;
+}
+
+.mobile_version .tooltip-wrapper {
+  max-width: 220px;
+}
+.mobile_version .tooltip-wrapper .tooltip-title {
+  font-size: 16px;
+  text-indent: 3px;
 }
 
 .safari-mobile-revealed-cards-container {
