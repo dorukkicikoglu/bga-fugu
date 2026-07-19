@@ -82,8 +82,6 @@ body{ background: #221e52; }
     &[facedown-count-for-mobile-stretching="1"]{  --horz-stretch-facedown: -0.37;   --horz-stretch-faceup: -0.32; }
     &[facedown-count-for-mobile-stretching="0"]{  --horz-stretch-facedown: -0.37;      --horz-stretch-faceup: -0.32; }
 
-    // &[facedown-count-for-mobile-stretching="18"]{ --horz-stretch-facedown: -0.345; --horz-stretch-faceup: -0.345; } //ekmek sil
-
     &[facedown-count-for-mobile-stretching]{
         .a-card{ 
             &[data-state-in-hand="facedown"]{ margin-right: calc(var(--my-card-width) * var(--horz-stretch-facedown)); margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown)); }
@@ -163,7 +161,9 @@ body.current_player_is_active:not(.lockedInterface){
         .fa6-ranking-star{ font-size: 34px; margin: 12px 0px 0px 9px; }
     }
     .fast-forward-text{ position: absolute; bottom: 9px; right: 11px; font-size: 12px; height: 10px; color: #e9faff; }
-    .solo-score-flavor-text{ width: 160px; margin-left: 16px; padding: 0px 4px; font-size: 14px; line-height: 1.3; text-align: center; color: #e9faff; font-style: italic; }
+    .solo-score-flavor-container{ display: flex; flex-direction: column; align-items: center; margin-left: 16px; }
+    .solo-score-flavor-text{ width: 160px; padding: 0px 4px; font-size: 14px; line-height: 1.3; text-align: center; color: #e9faff; font-style: italic; }
+    .solo-score-flavor-image{ width: 120px; height: 120px; margin-bottom: 20px; background-image: url(img/victoryPuff.webp); background-size: contain; background-repeat: no-repeat; background-position: center; animation: solo-score-flavor-image-rock 1.7s ease-in-out infinite alternate; }
 }
 .gamestate_gameEnd .end-game-score-container{ top: 214px; }
 
@@ -271,6 +271,11 @@ body.current_player_is_active:not(.lockedInterface){
   0% { box-shadow: 0 0 4px 4px #FFD700; }
   50% { box-shadow: 0 0 8px 8px #ffd483; }
   100% { box-shadow: 0 0 4px 4px #FFD700; }
+}
+
+@keyframes solo-score-flavor-image-rock {
+    0%   { transform: rotate(15deg); }
+    100% { transform: rotate(345deg); }
 }
 
 @keyframes jumpAndTilt {

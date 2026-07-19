@@ -9,6 +9,7 @@ export class EndGameScoringHandler{
     private hideButton: HTMLButtonElement;
     private fastForwardButton: HTMLButtonElement;
     private soloScoreFlavorText: HTMLDivElement;
+    private soloScoreFlavorImage: HTMLDivElement;
     private bodyClickHandler = null;
     private winner_ids: number[];
     private delayAfterFadeIns = 5000;
@@ -46,7 +47,12 @@ export class EndGameScoringHandler{
                     <tbody></tbody>
                 </table>
                 <div class="fast-forward-text"></div>
-                ${this.game.isSoloMode() ? '<div class="solo-score-flavor-text" style="opacity: 0;"></div>' : ''}
+                ${this.game.isSoloMode() ? `
+                    <div class="solo-score-flavor-container">
+                        <div class="solo-score-flavor-image" style="display: none;"></div>
+                        <div class="solo-score-flavor-text" style="opacity: 0;"></div>
+                    </div>
+                ` : ''}
             </div>
         `;
 
@@ -58,6 +64,7 @@ export class EndGameScoringHandler{
         this.hideButton = this.scoreContainer.querySelector('.collapse-table-button');
         this.fastForwardButton = this.scoreContainer.querySelector('.fast-forward-text');
         this.soloScoreFlavorText = this.scoreContainer.querySelector('.solo-score-flavor-text');
+        this.soloScoreFlavorImage = this.scoreContainer.querySelector('.solo-score-flavor-image');
 
         this.fillTable();
         this.bindShowHideButtons();
@@ -175,8 +182,7 @@ export class EndGameScoringHandler{
         }
 
         let cell: HTMLDivElement = cells[0];
-        // const instantFadeIn = this.gameui.getGameStateName() === 'gameEnd'; //ekmek uncomment
-        const instantFadeIn = false; //ekmek sil
+        const instantFadeIn = this.game.getGameStateName() === 'gameEnd'; //ekmek uncomment
         cell.classList.add('displayed');
 
         const fadeInDuration = instantFadeIn ? 0 : 500;
@@ -242,16 +248,16 @@ export class EndGameScoringHandler{
         const totalScore = this.endGameScoring.player_scores[player_id].totalScore;
         let text: string;
 
-        if(totalScore >= 25)
+        if(totalScore >= 25){
             text = _('Fish whisperer alert! You’ve mastered it and the Okinawa Sea calls you by name.');
-        else if(totalScore >= 20)
+            this.soloScoreFlavorImage.style.display = 'block';
+        } else if(totalScore >= 20)
             text = _('Nice work! You glide through water like a fish, feeling the ocean’s rhythm.');
         else if(totalScore >= 15)
             text = _('Not bad! You can hold your breath, but remember: you’re still human and far away from sea experience.');
         else if(totalScore >= 10)
             text = _('Wading toes only... Sitting in the tub staring at your feet isn’t quite feeling like a fish yet!');
-        else
-            text = _('Splash! You prefer dry land. Maybe hiking the mountains is more your speed than diving like fish.');
+        else text = _('Splash! You prefer dry land. Maybe hiking the mountains is more your speed than diving like fish.');
 
         this.soloScoreFlavorText.textContent = text;
         this.soloScoreFlavorText.style.transition = 'opacity 500ms ease';
