@@ -16,6 +16,8 @@
 @mixin pearl-background(){ background: radial-gradient(ellipse farthest-corner at right bottom, #E8F4FC 0%, #D6EAF8 8%, #C9E4F5 25%, #EAF6FB 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #F4FBFF 8%, #DCEEFA 25%, #B8DCEF 62.5%, #A9C9D9 100%); }
 
 body{ background: #221e52; }
+#game_play_area{ padding-bottom: 130vh;}
+.mobile_version #game_play_area{ padding-bottom: 230vh;}
 
 .a-card{ overflow: hidden; position: relative; background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
 	&:before{ content: ""; background-size: 1000% 800%; display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
@@ -43,7 +45,7 @@ body{ background: #221e52; }
 
 .container-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
-#player-hands-container{ margin-bottom: 110vh;
+#player-hands-container{ 
     .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
         .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 

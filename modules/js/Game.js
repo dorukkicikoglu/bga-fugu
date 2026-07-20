@@ -1189,7 +1189,6 @@ class Game {
     }
     getPos(node) {
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node);
-        // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
         return pos;
     }
     isDesktop() { return document.body.classList.contains('desktop_version'); }

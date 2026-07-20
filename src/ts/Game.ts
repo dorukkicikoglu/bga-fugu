@@ -227,7 +227,6 @@ export class Game {
     }
     public getPos(node: HTMLDivElement): DOMRect { 
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
-        // pos.w = pos.width; pos.h = pos.height; //ekmek kalsin mi?
         return pos;
     }
     public isDesktop(): boolean { return document.body.classList.contains('desktop_version'); }

@@ -15,6 +15,14 @@ body {
   background: #221e52;
 }
 
+#game_play_area {
+  padding-bottom: 130vh;
+}
+
+.mobile_version #game_play_area {
+  padding-bottom: 230vh;
+}
+
 .a-card {
   overflow: hidden;
   position: relative;
@@ -395,9 +403,6 @@ body {
   user-select: none;
 }
 
-#player-hands-container {
-  margin-bottom: 110vh;
-}
 #player-hands-container .a-hand-container {
   position: relative;
   width: 100%;
