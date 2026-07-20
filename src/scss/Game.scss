@@ -233,15 +233,22 @@ body.current_player_is_active:not(.lockedInterface){
 
 .bubble { position: absolute; bottom: -10%; animation: bubble-rise linear 1;
     .bubble-opacity{ width: 100%; height: 100%;
-        .bubble-swing {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.05) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5);
-            animation: bubble-wobble ease-in-out 1;
+        //dedicated wrapper for the pop animation, kept separate from bubble-swing so popping never
+        //has to touch (and thus never disturbs) the wobble animation's own transform
+        .bubble-pop-wrapper{ width: 100%; height: 100%; border-radius: 50%;
+            .bubble-swing {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2) 60%, rgba(255, 255, 255, 0.05) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5);
+                animation: bubble-wobble ease-in-out 1;
+            }
         }
+    }
+    &.popping { animation-play-state: paused;
+        .bubble-pop-wrapper{ animation: bubble-pop 0.15s ease-out forwards; }
     }
 }
 //end background
@@ -337,4 +344,13 @@ body.desktop_version .a-game-log .playername[player-color="008000"]{ @include te
   63% { transform: translateX(var(--wobble-3)) rotate(calc(var(--rotation) * 0.63)); }
   82% { transform: translateX(var(--wobble-4)) rotate(calc(var(--rotation) * 0.82)); }
   100% { transform: translateX(var(--drift)) rotate(var(--rotation)); }
+}
+
+//uses the standalone `scale` property (not `transform`) so it composes on top of bubble-swing's
+//frozen wobble transform (set inline on pop) instead of replacing it and snapping the bubble sideways
+@keyframes bubble-pop {
+  0% { scale: 1 1; opacity: 1; box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5), 0 0 0 0 rgba(255, 255, 255, 0.6); }
+  35% { scale: 1.35 0.7; opacity: 1; box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5), 0 0 10px 4px rgba(255, 255, 255, 0.45); }
+  70% { scale: 0.8 1.2; opacity: 0.6; box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.3), 0 0 16px 10px rgba(255, 255, 255, 0.2); }
+  100% { scale: 1.7 0.25; opacity: 0; box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 20px 14px rgba(255, 255, 255, 0); }
 }

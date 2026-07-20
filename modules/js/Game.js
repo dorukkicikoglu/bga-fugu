@@ -831,12 +831,50 @@ class BackgroundHandler {
         this.bubblesContainer = document.createElement('div');
         this.bubblesContainer.classList.add('bubbles-container');
         this.backgroundContainer.appendChild(this.bubblesContainer);
-        this.bodyClickListener = (event) => {
-            if (this.targetBubbleSetting.maxBubbleCount === 0)
-                return;
-            this.createBubble({ x: event.clientX, y: event.clientY });
-        };
+        this.bodyClickListener = (event) => this.onBodyClick(event);
         document.body.addEventListener('click', this.bodyClickListener);
+    }
+    onBodyClick(event) {
+        if (this.targetBubbleSetting.maxBubbleCount === 0)
+            return;
+        const hitBubble = this.getBubbleAt(event.clientX, event.clientY);
+        if (hitBubble) {
+            const age = Date.now() - Number(hitBubble.dataset.createdAt);
+            if (age >= BackgroundHandler.POP_INVULNERABLE_MS) {
+                this.popBubble(hitBubble);
+                return;
+            }
+        }
+        this.createBubble({ x: event.clientX, y: event.clientY });
+    }
+    getBubbleAt(x, y) {
+        const bubbles = Array.from(this.bubblesContainer.children);
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            const bubble = bubbles[i];
+            if (bubble.classList.contains('popping'))
+                continue;
+            //hit-test against bubble-swing rather than bubble itself: the wobble animation's translateX/rotate
+            //is applied there, so only its rect reflects where the bubble is actually rendered on screen
+            const swing = bubble.querySelector('.bubble-swing');
+            const rect = swing.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const radius = rect.width / 2;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            if (dx * dx + dy * dy <= radius * radius)
+                return bubble;
+        }
+        return null;
+    }
+    popBubble(bubble) {
+        bubble.classList.add('popping');
+        //pop plays on its own wrapper, never on bubble-swing, so the wobble's transform is never touched
+        const popWrapper = bubble.querySelector('.bubble-pop-wrapper');
+        popWrapper.addEventListener('animationend', (event) => {
+            if (event.target === popWrapper)
+                bubble.remove();
+        });
     }
     adjustBubbleAmount(prefValue) {
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[prefValue] ?? BUBBLE_AMOUNT_BY_PREF[0];
@@ -875,12 +913,16 @@ class BackgroundHandler {
         const bubblesInitialized = this.bubblesInitialized; //to run even if bubblesInitialized gets changed elsewhere
         const bubble = document.createElement('div');
         bubble.classList.add('bubble');
+        bubble.dataset.createdAt = `${Date.now()}`;
         const bubbleOpacity = document.createElement('div');
         bubbleOpacity.classList.add('bubble-opacity');
         bubble.appendChild(bubbleOpacity);
+        const popWrapper = document.createElement('div');
+        popWrapper.classList.add('bubble-pop-wrapper');
+        bubbleOpacity.appendChild(popWrapper);
         const swing = document.createElement('div');
         swing.classList.add('bubble-swing');
-        bubbleOpacity.appendChild(swing);
+        popWrapper.appendChild(swing);
         const size = 6 + Math.random() * 34;
         const duration = 12 + Math.random() * 4;
         bubble.style.width = `${size}px`;
@@ -903,10 +945,14 @@ class BackgroundHandler {
         swing.style.setProperty('--wobble-3', `${10 + Math.random() * 20 * (Math.random() > 0.5 ? 1 : -1)}px`);
         swing.style.setProperty('--wobble-4', `${10 + Math.random() * 20 * (Math.random() > 0.5 ? 1 : -1)}px`);
         swing.style.animationDuration = `${duration}s`;
-        bubble.addEventListener('animationend', () => bubble.remove());
+        bubble.addEventListener('animationend', (event) => {
+            if (event.target === bubble)
+                bubble.remove();
+        });
         this.bubblesContainer.appendChild(bubble);
     }
 }
+BackgroundHandler.POP_INVULNERABLE_MS = 500;
 
 class PrefHandler {
     constructor(game, prefNameToIndex) {
