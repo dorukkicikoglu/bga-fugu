@@ -16,7 +16,7 @@
 @mixin pearl-background(){ background: radial-gradient(ellipse farthest-corner at right bottom, #E8F4FC 0%, #D6EAF8 8%, #C9E4F5 25%, #EAF6FB 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #F4FBFF 8%, #DCEEFA 25%, #B8DCEF 62.5%, #A9C9D9 100%); }
 
 body{ background: #221e52; }
-#game_play_area{ padding-bottom: 130vh;}
+#game_play_area{ padding-bottom: 120vh;}
 .mobile_version #game_play_area{ padding-bottom: 230vh;}
 
 .a-card{ overflow: hidden; position: relative; background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
@@ -62,7 +62,7 @@ body{ background: #221e52; }
     .a-card{ margin-top: -17%; margin-left: -12%; width: 350%; height: 540%; }
 }
 
-#discarded-card-icons-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: -18px; padding: 30px 0px 10px 0px;
+#discarded-card-icons-container{ position: relative; transition: opacity 500ms; opacity: 0; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: -18px; padding: 30px 0px 10px 0px;
     .discarded-cards-title{ color: #1a1b52; }
     .discarded-card-icon{ margin: -17px 4px 5px 4px; }
 }

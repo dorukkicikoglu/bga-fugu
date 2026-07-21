@@ -16,7 +16,7 @@ body {
 }
 
 #game_play_area {
-  padding-bottom: 130vh;
+  padding-bottom: 120vh;
 }
 
 .mobile_version #game_play_area {
@@ -463,6 +463,8 @@ body {
 
 #discarded-card-icons-container {
   position: relative;
+  transition: opacity 500ms;
+  opacity: 0;
   width: 100%;
   text-align: center;
   border: 1px solid var(--player-color);
