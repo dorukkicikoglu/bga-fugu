@@ -446,6 +446,17 @@ body {
   margin-bottom: 50px;
 }
 
+@media (min-width: 1030px) and (max-width: 1254.98px) {
+  body.desktop_version #player-hands-container .a-hand-container .cards-container .a-card {
+    --horz-margin: calc(var(--my-card-width) * -0.15);
+  }
+}
+@media (min-width: 980px) and (max-width: 1029.98px) {
+  body.desktop_version #player-hands-container .a-hand-container .cards-container .a-card {
+    --horz-margin: calc(var(--my-card-width) * -0.17);
+  }
+}
+
 .minimised-card-icon {
   display: inline-block;
   vertical-align: top;

@@ -57,6 +57,14 @@ body{ background: #221e52; }
         &[data-is-myself="true"]{ margin-bottom: 50px; }
     }
 }
+body.desktop_version{
+    @media (min-width: 1030px) and (max-width: 1254.98px){
+        #player-hands-container .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.15); }
+    }
+    @media (min-width: 980px) and (max-width: 1029.98px){
+        #player-hands-container .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); }
+    }
+}
 
 .minimised-card-icon{ display: inline-block; vertical-align: top; border-radius: 6px; overflow: hidden; width: 34px; aspect-ratio: 34 / 50;
     .a-card{ margin-top: -17%; margin-left: -12%; width: 350%; height: 540%; }
@@ -213,7 +221,7 @@ body.current_player_is_active:not(.lockedInterface){
 		&.dijitTooltipLeft .dijitTooltipConnector::after{ left: -47%; transform: scale(1.1, 0.75) rotate(45deg); box-shadow: -1px 1px 2px 2px #adadad; }
 	}		
 }
-.mobile_version{ //ekmek lazim mi
+.mobile_version{ //ekmek lazim mi 
 	.tooltip-wrapper{ max-width: 220px;
 		.tooltip-title{ font-size: 16px; text-indent: 3px; }
 	}
