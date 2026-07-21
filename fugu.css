@@ -371,12 +371,11 @@ body {
 
 #center-container {
   text-align: center;
-  border: 2px solid #000000;
-  min-height: calc(var(--card-width) * 2.5);
+  min-height: calc(var(--card-width) * 2.6);
 }
 #center-container .a-card {
   display: inline-block;
-  margin-top: calc(var(--card-width) * 0.2);
+  margin-top: calc(var(--card-width) * 0.4);
   margin-left: calc(var(--card-width) * 0.6);
   margin-right: calc(var(--card-width) * 0.6);
 }

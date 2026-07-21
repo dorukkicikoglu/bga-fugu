@@ -38,8 +38,8 @@ body{ background: #221e52; }
 	&.cloned-card{ position: absolute; z-index: 100; pointer-events: none; }
 }
 
-#center-container{ text-align: center; border: 2px solid #000000; min-height: calc(var(--card-width) * 2.5);
-	.a-card{ display: inline-block; margin-top: calc(var(--card-width) * 0.2); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6); }
+#center-container{ text-align: center; min-height: calc(var(--card-width) * 2.6);
+	.a-card{ display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6); }
 }
 .mobile_version #center-container .a-card{ margin-left: calc(var(--card-width) * 0.4); margin-right: calc(var(--card-width) * 0.4); }
 
