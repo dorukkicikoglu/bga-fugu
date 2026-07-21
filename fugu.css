@@ -1020,6 +1020,10 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   width: 24px;
   margin: 0 4px -10px 6px;
 }
+.log .log-arrow, .gamelogreview .log-arrow {
+  color: #240e52;
+  text-shadow: 1px 0 #c7d7d0, -1px 0 #c7d7d0, 0 1px #c7d7d0, 0 -1px #c7d7d0, 0.5px 0.5px #c7d7d0, -0.5px -0.5px #c7d7d0, 0.5px -0.5px #c7d7d0, -0.5px 0.5px #c7d7d0;
+}
 
 body.mobile_version .log .playername.swapper-name {
   max-width: 100px;

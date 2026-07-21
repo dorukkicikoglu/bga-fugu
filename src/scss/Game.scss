@@ -286,6 +286,7 @@ body.current_player_is_active:not(.lockedInterface){
     &.swap-cards-log, &.center-card-replaced-log{ 
         .minimised-card-icon{ width: 24px; margin: 0 4px -10px 6px; }
     }
+    .log-arrow{ color: #240e52; @include text-shade(#c7d7d0, 1px); }
 }
 body.mobile_version{
     .log .playername.swapper-name{ max-width: 100px; }
