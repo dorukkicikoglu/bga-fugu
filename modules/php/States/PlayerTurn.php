@@ -55,7 +55,7 @@ class PlayerTurn extends GameState
             throw new UserException('Invalid hand card choice');
 
         $cardInCenter = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_id` = $centerCardID AND `card_location` = 'center'");
-        $cardInHand = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND location_in_hand = $handCardLocation");
+        $cardInHand = $this->getRandomFaceDownCard($activePlayerId, $handCardLocation); // draw a random facedown cards to prevent initial table data be deterministic
 
         if(!$cardInCenter)
             throw new UserException('Card in center not found');
@@ -115,6 +115,29 @@ class PlayerTurn extends GameState
         }
 
         return NextPlayer::class;
+    }
+
+    /**
+     * Swaps a random facedown card into the requested hand slot before reading it, then returns that
+     * card's row (now reflecting the slot's location). Prevents the card at a given slot from being
+     * deterministic to anyone who inspects DB state before this action resolves.
+     */
+    private function getRandomFaceDownCard(int $activePlayerId, int $handCardLocation): ?array{
+        $initialCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `location_in_hand` = $handCardLocation");
+        if(!$initialCard)
+            return null;
+
+        $randomFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `state_in_hand` = 'facedown' ORDER BY RAND() LIMIT 1");
+        if(!$randomFacedownCard)
+            return null;
+
+        $this->game->DbQuery("UPDATE `cards` SET `card_location_arg` = ".$initialCard['card_location_arg'].", `location_in_hand` = ".$initialCard['location_in_hand']." WHERE `card_id` = ".$randomFacedownCard['card_id']);
+        $this->game->DbQuery("UPDATE `cards` SET `card_location_arg` = ".$randomFacedownCard['card_location_arg'].", `location_in_hand` = ".$randomFacedownCard['location_in_hand']." WHERE `card_id` = ".$initialCard['card_id']);
+
+        $randomFacedownCard['card_location_arg'] = $initialCard['card_location_arg'];
+        $randomFacedownCard['location_in_hand'] = $initialCard['location_in_hand'];
+
+        return $randomFacedownCard;
     }
 
     private function placeCardAsNumberOrAnchor(int $activePlayerId, int $cardRank, int $cardLocation): string{
