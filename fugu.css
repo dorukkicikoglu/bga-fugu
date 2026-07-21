@@ -888,6 +888,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 
 .mobile_version .tooltip-wrapper {
   max-width: 220px;
+  min-width: 250px;
 }
 .mobile_version .tooltip-wrapper .tooltip-title {
   font-size: 16px;

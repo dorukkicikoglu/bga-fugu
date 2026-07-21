@@ -221,8 +221,8 @@ body.current_player_is_active:not(.lockedInterface){
 		&.dijitTooltipLeft .dijitTooltipConnector::after{ left: -47%; transform: scale(1.1, 0.75) rotate(45deg); box-shadow: -1px 1px 2px 2px #adadad; }
 	}		
 }
-.mobile_version{ //ekmek lazim mi 
-	.tooltip-wrapper{ max-width: 220px;
+.mobile_version{
+	.tooltip-wrapper{ max-width: 220px; min-width: 250px;
 		.tooltip-title{ font-size: 16px; text-indent: 3px; }
 	}
 }
