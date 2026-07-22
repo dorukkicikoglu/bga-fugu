@@ -235,6 +235,24 @@ body.current_player_is_active:not(.lockedInterface){
 
 //end tooltip
 
+//modal box
+.a-modal-box{ position: absolute; z-index: 500; max-width: 240px; padding: 10px 14px; border-radius: 10px; @include pearl-background(); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); pointer-events: none;
+	.a-modal-box-content{ font-size: 14px; line-height: 1.35; text-align: center; color: #1c2b3a; }
+	.a-modal-box-arrow{ position: absolute; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; transform: translateX(-50%); }
+	&.modal-box-above .a-modal-box-arrow{ bottom: -8px; border-top: 8px solid #EAF6FB; }
+	&.modal-box-below .a-modal-box-arrow{ top: -8px; border-bottom: 8px solid #E8F4FC; }
+	&.modal-box-nudge{ animation: modal-box-nudge 0.4s ease; }
+}
+.mobile_version .a-modal-box{ max-width: 220px; }
+@keyframes modal-box-nudge{
+	0%, 100%{ transform: translateX(0); }
+	20%{ transform: translateX(-8px); }
+	40%{ transform: translateX(6px); }
+	60%{ transform: translateX(-4px); }
+	80%{ transform: translateX(2px); }
+}
+//end modal box
+
 //background
 .background-container { position: fixed; width: 100%; height: 100%; display: block; background-image: url(img/bg_fugu.webp); background-size: 108% 108%; background-repeat: repeat-x; transform-origin: center center; animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 8s ease-in-out infinite alternate; }
 .mobile_version .background-container{ background-image: url(img/bg_mobile_fugu.webp); background-size: 136%; margin-top: 5%; }

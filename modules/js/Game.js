@@ -1,3 +1,54 @@
+const GAP_TO_TARGET = 10;
+const VIEWPORT_MARGIN = 8;
+const ARROW_HALF_WIDTH = 8;
+class ModalBoxHandler {
+    constructor(game, targetElement, contentHTML, shouldNudge = false) {
+        this.game = game;
+        this.targetElement = targetElement;
+        this.boxElement = document.createElement('div');
+        this.boxElement.className = 'a-modal-box';
+        this.boxElement.innerHTML = `
+            <div class="a-modal-box-content">${contentHTML}</div>
+            <div class="a-modal-box-arrow"></div>
+        `;
+        this.arrowElement = this.boxElement.querySelector('.a-modal-box-arrow');
+        document.body.appendChild(this.boxElement);
+        this.reposition();
+        this.resizeListener = () => this.reposition();
+        window.addEventListener('resize', this.resizeListener);
+        if (shouldNudge)
+            this.nudge();
+    }
+    nudge() {
+        this.boxElement.classList.remove('modal-box-nudge');
+        void this.boxElement.offsetWidth; // restart the animation if it's already running
+        this.boxElement.classList.add('modal-box-nudge');
+        this.boxElement.addEventListener('animationend', () => {
+            this.boxElement.classList.remove('modal-box-nudge');
+        }, { once: true });
+    }
+    reposition() {
+        const targetRect = this.targetElement.getBoundingClientRect();
+        const boxRect = this.boxElement.getBoundingClientRect();
+        const placeAbove = (targetRect.top - boxRect.height - GAP_TO_TARGET) >= VIEWPORT_MARGIN;
+        const top = placeAbove
+            ? targetRect.top - boxRect.height - GAP_TO_TARGET
+            : targetRect.bottom + GAP_TO_TARGET;
+        const targetCenterX = targetRect.left + targetRect.width / 2;
+        const left = Math.max(VIEWPORT_MARGIN, Math.min(targetCenterX - boxRect.width / 2, window.innerWidth - boxRect.width - VIEWPORT_MARGIN));
+        this.boxElement.style.top = `${top + window.scrollY}px`;
+        this.boxElement.style.left = `${left + window.scrollX}px`;
+        this.boxElement.classList.toggle('modal-box-above', placeAbove);
+        this.boxElement.classList.toggle('modal-box-below', !placeAbove);
+        const arrowLeft = Math.max(ARROW_HALF_WIDTH, Math.min(targetCenterX - left, boxRect.width - ARROW_HALF_WIDTH));
+        this.arrowElement.style.left = `${arrowLeft}px`;
+    }
+    destroy() {
+        window.removeEventListener('resize', this.resizeListener);
+        this.boxElement.remove();
+    }
+}
+
 /**
  * We create one State class per declared state on the PHP side, to handle all state specific code here.
  * onEnteringState, onLeavingState and onPlayerActivationChange are predefined names that will be called by the framework.
@@ -7,6 +58,7 @@ class PlayerTurn {
     constructor(game, bga) {
         this.game = game;
         this.bga = bga;
+        this.badHalfWarningBox = null;
     }
     /**
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
@@ -27,6 +79,7 @@ class PlayerTurn {
     onLeavingState(args, isCurrentPlayerActive) {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
+        this.clearBadHalfWarning();
     }
     /**
      * This method is called each time the current player becomes active or inactive in a MULTIPLE_ACTIVE_PLAYER state. You can use this method to perform some user interface changes at this moment.
@@ -45,31 +98,40 @@ class PlayerTurn {
     swapClicked() {
         if (!this.game.myself)
             return;
+        this.clearBadHalfWarning();
         const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
         const handCardDiv = this.game.myself.getHand().getHandContainer().querySelector('.selected-hand-card');
         if (!centerCardDiv || !handCardDiv)
             return;
-        const centerCardRank = parseInt(centerCardDiv.getAttribute('data-rank'));
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
-        const playingFirstTurnOnBadHalf = this.isPlayingFirstTurnOnBadHalf(centerCardRank, handCardLocation);
-        const doPerformSwapCards = () => {
-            this.bga.actions.performAction("actSwapCards", {
-                centerCardID: centerCardID,
-                handCardLocation: handCardLocation
-            });
+        this.bga.actions.performAction("actSwapCards", {
+            centerCardID: centerCardID,
+            handCardLocation: handCardLocation
+        });
+    }
+    updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv) {
+        this.clearBadHalfWarning();
+        const resetButton = () => {
+            this.swapButton.disabled = false;
+            this.swapButton.classList.remove('bga-autoclick-button');
+            return false;
         };
-        if (!playingFirstTurnOnBadHalf) {
-            doPerformSwapCards();
+        if (!this.isPlayingFirstTurnOnBadHalf(cardRank, handCardLocation)) {
+            resetButton();
+            return;
         }
-        else {
-            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge as the highest card value is {$highestCardInDeck}")
-                .replace('{$centerCardRank}', `<b>${centerCardRank.toString()}</b>`)
-                .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`)).then(result => {
-                if (result) {
-                    doPerformSwapCards();
-                }
-            });
+        const warningHTML = _("Starting with {$centerCardRank} on that half is tough, since the highest card is {$highestCardInDeck}")
+            .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
+            .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
+        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true);
+        this.swapButton.disabled = true;
+        this.game.setAutoClick(this.swapButton, undefined, undefined, undefined, resetButton);
+    }
+    clearBadHalfWarning() {
+        if (this.badHalfWarningBox) {
+            this.badHalfWarningBox.destroy();
+            this.badHalfWarningBox = null;
         }
     }
     isPlayingFirstTurnOnBadHalf(cardRank, handLocation) {
@@ -156,7 +218,7 @@ class HandHandler {
             return;
         }
         cardDiv.classList.add(selectedCardClass);
-        this.game.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected(cardDiv);
     }
     setFacedownCountForMobileStretching() {
         if (!this.game.isMobile())
@@ -375,9 +437,9 @@ class CenterHandler {
             return;
         }
         cardDiv.classList.add(selectedCardClass);
-        this.game.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected(cardDiv);
     }
-    checkBothCardsSelected() {
+    checkBothCardsSelected(lastClickedCardDiv) {
         if (!this.game.myself)
             return;
         const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
@@ -392,7 +454,7 @@ class CenterHandler {
         const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
         const swapButton = this.game.playerTurn.getSwapButton();
         if (wouldBeAnchor) {
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Anchor')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         }
@@ -402,6 +464,7 @@ class CenterHandler {
             swapButton.classList.add('bgabutton_blue');
         }
         swapButton.style.display = null;
+        this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
     wouldBeAnchorCard(handContainer, cardLocation, cardRank) {
         const cardsInHand = handContainer.querySelectorAll('[data-state-in-hand="number"]');
@@ -418,6 +481,7 @@ class CenterHandler {
     }
     cardsUnselected() {
         this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.clearBadHalfWarning();
     }
     async animateCardReplace(discardedCardData, newCenterCardData) {
         const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
@@ -1041,6 +1105,8 @@ class Game {
     constructor(bga) {
         this.players = {};
         this.localCardIDCounter = 1;
+        this.autoClickTimeouts = {};
+        this.autoClickIncrement = 1;
         console.log('fugu constructor');
         this.bga = bga;
         // Declare the State classes
@@ -1220,6 +1286,37 @@ class Game {
     capitalizeFirstLetter(str) { return `${str[0].toUpperCase()}${str.slice(1)}`; }
     updateStatusText(statusText) { $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
     getGameStateName() { return this.gamedatas.gamestate.name; }
+    /**
+     * Sets up auto-click functionality for a button after a timeout period
+     * @param button - The button HTML element to auto-click
+     * @param timeoutDuration - Optional base duration in ms before auto-click occurs (default: 5000)
+     * @param randomIncrement - Optional random additional ms to add to timeout (default: 2000)
+     * @param autoClickID - Optional ID for the auto-click events, multiple buttons can therefore point to the same autoClick event
+     * @param onAnimationEnd - Optional callback that returns boolean to control if click should occur (default: true)
+     */
+    setAutoClick(button, timeoutDuration = 5000, randomIncrement = 2000, autoClickID = null, onAnimationEnd = () => true) {
+        const totalDuration = timeoutDuration + Math.random() * randomIncrement;
+        if (!autoClickID)
+            autoClickID = 'auto-click-' + this.autoClickIncrement++;
+        this.autoClickTimeouts[autoClickID] = this.autoClickTimeouts[autoClickID] || [];
+        button.style.setProperty('--bga-autoclick-timeout-duration', `${totalDuration}ms`);
+        button.classList.add('bga-autoclick-button');
+        const stopDoubleTrigger = () => {
+            if (!this.autoClickTimeouts[autoClickID])
+                return;
+            this.autoClickTimeouts[autoClickID].forEach(timeout => clearTimeout(timeout));
+            delete this.autoClickTimeouts[autoClickID];
+        };
+        button.addEventListener('click', stopDoubleTrigger, true);
+        this.autoClickTimeouts[autoClickID].push(setTimeout(() => {
+            stopDoubleTrigger();
+            if (!document.body.contains(button))
+                return;
+            const customEventResult = onAnimationEnd();
+            if (customEventResult)
+                button.click();
+        }, totalDuration));
+    }
     isSoloMode() { return this.bga.gameui.is_solo; }
     getDeckLength() { return this.gamedatas.deckLength; }
     ///////////////////////////////////////////////////

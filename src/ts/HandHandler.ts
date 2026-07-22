@@ -90,7 +90,7 @@ export class HandHandler{
         }
 
         cardDiv.classList.add(selectedCardClass);
-        this.game.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected(cardDiv);
     }
 
     public setFacedownCountForMobileStretching(){

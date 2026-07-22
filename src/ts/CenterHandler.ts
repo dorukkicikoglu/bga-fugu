@@ -39,18 +39,18 @@ export class CenterHandler{
         }
 
         cardDiv.classList.add(selectedCardClass);
-        this.game.centerHandler.checkBothCardsSelected();
+        this.game.centerHandler.checkBothCardsSelected(cardDiv);
     }
 
-    public checkBothCardsSelected(): void{
+    public checkBothCardsSelected(lastClickedCardDiv: HTMLDivElement): void{
         if(!this.game.myself)
             return;
 
         const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
-        
+
         const myHandContainer = this.game.myself.getHand().getHandContainer();
         const selectedHandCard = myHandContainer.querySelector('.selected-hand-card');
-        
+
         if(!selectedCenterCard || !selectedHandCard){
             this.cardsUnselected();
             return;
@@ -62,7 +62,7 @@ export class CenterHandler{
 
         const swapButton = this.game.playerTurn.getSwapButton();
         if(wouldBeAnchor){
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Swap')) + ' <i class="fa6 fa-anchor"></i>';
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Anchor')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('orange-button');
         } else {
@@ -72,6 +72,8 @@ export class CenterHandler{
         }
         
         swapButton.style.display = null;
+
+        this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
 
     private wouldBeAnchorCard(handContainer: HTMLDivElement, cardLocation: number, cardRank: number): boolean{
@@ -94,6 +96,7 @@ export class CenterHandler{
 
     public cardsUnselected(){
         this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.clearBadHalfWarning();
     }
 
     public async animateCardReplace(discardedCardData: CardInCenter, newCenterCardData: CardInCenter){

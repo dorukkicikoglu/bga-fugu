@@ -1,4 +1,5 @@
 import { Game } from "../Game";
+import { ModalBoxHandler } from "../ModalBoxHandler";
 
 /**
  * We create one State class per declared state on the PHP side, to handle all state specific code here.
@@ -7,6 +8,7 @@ import { Game } from "../Game";
  */
 export class PlayerTurn {
     private swapButton: HTMLButtonElement;
+    private badHalfWarningBox: ModalBoxHandler | null = null;
 
     constructor(private game: Game, private bga: Bga<FuguPlayer, FuguGamedatas>) {
     }
@@ -34,6 +36,7 @@ export class PlayerTurn {
     onLeavingState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
+        this.clearBadHalfWarning();
     }
 
     /**
@@ -55,36 +58,52 @@ export class PlayerTurn {
     swapClicked() {
         if(!this.game.myself)
             return;
+        
+        this.clearBadHalfWarning();
 
         const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
         const handCardDiv = this.game.myself.getHand().getHandContainer().querySelector('.selected-hand-card');
-        
+
         if(!centerCardDiv || !handCardDiv)
             return;
-        
-        const centerCardRank: number = parseInt(centerCardDiv.getAttribute('data-rank'));
+
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
 
-        const playingFirstTurnOnBadHalf = this.isPlayingFirstTurnOnBadHalf(centerCardRank, handCardLocation);
-        
-        const doPerformSwapCards = () => {
-            this.bga.actions.performAction("actSwapCards", { 
-                centerCardID: centerCardID,
-                handCardLocation: handCardLocation
-            }); 
-        };
+        this.bga.actions.performAction("actSwapCards", {
+            centerCardID: centerCardID,
+            handCardLocation: handCardLocation
+        });
+    }
 
-        if(!playingFirstTurnOnBadHalf){
-            doPerformSwapCards();
-        } else {
-            this.bga.dialogs.confirmation(_("Starting with {$centerCardRank} on that half might be a bit of a challenge as the highest card value is {$highestCardInDeck}")
-                .replace('{$centerCardRank}', `<b>${centerCardRank.toString()}</b>`)
-                .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`)).then(result => {
-                if(result){ 
-                    doPerformSwapCards();
-                }
-            });
+    public updateBadHalfWarning(cardRank: number, handCardLocation: number, lastClickedCardDiv: HTMLDivElement): void {
+        this.clearBadHalfWarning();
+        
+        const resetButton = () => {
+            this.swapButton.disabled = false;
+            this.swapButton.classList.remove('bga-autoclick-button');
+            return false;
+        }
+
+        if(!this.isPlayingFirstTurnOnBadHalf(cardRank, handCardLocation)){
+            resetButton();
+            return;
+        }
+
+        const warningHTML = _("Starting with {$centerCardRank} on that half is tough, since the highest card is {$highestCardInDeck}")
+            .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
+            .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
+
+        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true);
+
+        this.swapButton.disabled = true;
+        this.game.setAutoClick(this.swapButton, undefined, undefined, undefined, resetButton);
+    }
+
+    public clearBadHalfWarning(): void {
+        if(this.badHalfWarningBox){
+            this.badHalfWarningBox.destroy();
+            this.badHalfWarningBox = null;
         }
     }
 
