@@ -827,7 +827,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 
 .tooltip-wrapper {
   outline: 0.5px solid #ffffff;
-  max-width: 230px;
+  min-width: 230px;
   background: var(--bg-gradient-tooltip);
   padding: 10px;
   margin: -6px -6px -6px -6px;
@@ -886,7 +886,6 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 
 .mobile_version .tooltip-wrapper {
-  max-width: 220px;
   min-width: 250px;
 }
 .mobile_version .tooltip-wrapper .tooltip-title {

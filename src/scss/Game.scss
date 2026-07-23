@@ -204,7 +204,7 @@ body.current_player_is_active:not(.lockedInterface){
 .dijitTooltipContainer{
 	&:has(.tooltip-wrapper){ background: none; }
 }
-.tooltip-wrapper { outline: 0.5px solid #ffffff; max-width: 230px; background: var(--bg-gradient-tooltip); padding: 10px; margin: -6px -6px -6px -6px;
+.tooltip-wrapper { outline: 0.5px solid #ffffff; min-width: 230px; background: var(--bg-gradient-tooltip); padding: 10px; margin: -6px -6px -6px -6px;
 	.deck-length-text { font-size: 18px; color: #121635; text-indent: 6px; text-align: center; @include text-shade(#b1b2b9, 0.5px); }
 	.a-card.reference-card{ margin: auto; margin-top: 11px; margin-bottom: 10px; --my-card-width: calc(var(--card-width) * 2.1); 
 		&::before{ margin-top: -3% !important; margin-left: -3% !important; width: 106%; height: 102%; }
@@ -222,7 +222,7 @@ body.current_player_is_active:not(.lockedInterface){
 	}		
 }
 .mobile_version{
-	.tooltip-wrapper{ max-width: 220px; min-width: 250px;
+	.tooltip-wrapper{ min-width: 250px;
 		.tooltip-title{ font-size: 16px; text-indent: 3px; }
 	}
 }
