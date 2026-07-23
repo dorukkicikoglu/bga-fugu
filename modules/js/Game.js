@@ -398,6 +398,7 @@ class PlayerHandler {
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
         await this.game.bga.gameui.wait(pullUpAnimTime + 50);
         cardsContainer.style.zIndex = '100';
+        centerContainer.style.zIndex = '300';
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
@@ -427,6 +428,7 @@ class PlayerHandler {
         centerCardClone.classList.add('last-taken-card'); //this class is needed in setFacedownCountForMobileStretching
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
+        centerContainer.style.zIndex = null;
         centerCard.replaceWith(handCardClone);
         handCard.replaceWith(centerCardClone);
     }
