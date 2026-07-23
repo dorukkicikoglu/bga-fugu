@@ -232,12 +232,13 @@ body.current_player_is_active:not(.lockedInterface){
 		.tooltip-wrapper{ max-width: unset; }
 	}
 }
-
 //end tooltip
 
 //modal box
-.a-modal-box{ position: absolute; z-index: 500; max-width: 240px; padding: 10px 14px; border-radius: 10px; @include pearl-background(); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); pointer-events: none;
-	.a-modal-box-content{ font-size: 14px; line-height: 1.35; text-align: center; color: #1c2b3a; }
+.a-modal-box{ position: absolute; z-index: 500; max-width: 240px; border-radius: 10px; @include pearl-background(); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); pointer-events: none;
+	.a-modal-box-inner{ border-radius: inherit; overflow: hidden; }
+	.a-modal-box-loading-bar{ height: 5px; width: 100%; background: #2196f3; transform: scaleX(0); transform-origin: left center; transition-property: transform; transition-timing-function: linear; }
+	.a-modal-box-content{ padding: 10px 14px; font-size: 14px; line-height: 1.35; text-align: center; color: #1c2b3a; }
 	.a-modal-box-arrow{ position: absolute; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; transform: translateX(-50%); }
 	&.modal-box-above .a-modal-box-arrow{ bottom: -8px; border-top: 8px solid #EAF6FB; }
 	&.modal-box-below .a-modal-box-arrow{ top: -8px; border-bottom: 8px solid #E8F4FC; }

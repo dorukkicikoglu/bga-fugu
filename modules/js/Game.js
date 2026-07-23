@@ -2,22 +2,51 @@ const GAP_TO_TARGET = 10;
 const VIEWPORT_MARGIN = 8;
 const ARROW_HALF_WIDTH = 8;
 class ModalBoxHandler {
-    constructor(game, targetElement, contentHTML, shouldNudge = false) {
+    constructor(game, targetElement, contentHTML, shouldNudge = false, loadingBarDurationMs = null, onLoadingBarComplete) {
         this.game = game;
         this.targetElement = targetElement;
+        this.loadingBarTimeout = null;
         this.boxElement = document.createElement('div');
         this.boxElement.className = 'a-modal-box';
         this.boxElement.innerHTML = `
-            <div class="a-modal-box-content">${contentHTML}</div>
+            <div class="a-modal-box-inner">
+                ${loadingBarDurationMs !== null ? '<div class="a-modal-box-loading-bar"></div>' : ''}
+                <div class="a-modal-box-content">${contentHTML}</div>
+            </div>
             <div class="a-modal-box-arrow"></div>
         `;
         this.arrowElement = this.boxElement.querySelector('.a-modal-box-arrow');
+        this.loadingBarElement = this.boxElement.querySelector('.a-modal-box-loading-bar');
         document.body.appendChild(this.boxElement);
         this.reposition();
         this.resizeListener = () => this.reposition();
         window.addEventListener('resize', this.resizeListener);
         if (shouldNudge)
             this.nudge();
+        setTimeout(() => {
+            this.startLoadingBar(loadingBarDurationMs, onLoadingBarComplete);
+        }, shouldNudge ? 80 : 0);
+    }
+    startLoadingBar(durationMs, onComplete) {
+        if (!this.loadingBarElement)
+            return;
+        this.loadingBarElement.style.transitionDuration = `${durationMs}ms`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (this.loadingBarElement)
+                this.loadingBarElement.style.transform = 'scaleX(1)';
+        }));
+        this.loadingBarTimeout = setTimeout(() => {
+            this.loadingBarTimeout = null;
+            this.hideLoadingBar();
+            onComplete?.();
+        }, durationMs);
+    }
+    hideLoadingBar() {
+        if (!this.loadingBarElement)
+            return;
+        this.loadingBarElement.style.transitionProperty = 'opacity';
+        this.loadingBarElement.style.transitionDuration = '250ms';
+        this.loadingBarElement.style.opacity = '0';
     }
     nudge() {
         this.boxElement.classList.remove('modal-box-nudge');
@@ -45,6 +74,8 @@ class ModalBoxHandler {
     }
     destroy() {
         window.removeEventListener('resize', this.resizeListener);
+        if (this.loadingBarTimeout)
+            clearTimeout(this.loadingBarTimeout);
         this.boxElement.remove();
     }
 }
@@ -59,7 +90,6 @@ class PlayerTurn {
         this.game = game;
         this.bga = bga;
         this.badHalfWarningBox = null;
-        this.badHalfAutoClickTimeout = null;
     }
     /**
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
@@ -113,35 +143,22 @@ class PlayerTurn {
     }
     updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv) {
         this.clearBadHalfWarning();
-        const clearSwapButtonTimerClass = () => {
-            this.swapButton.disabled = false;
-            this.swapButton.classList.remove('bga-autoclick-button');
-            return false;
-        };
         if (!this.isPlayingFirstTurnOnBadHalf(cardRank, handCardLocation)) {
-            clearSwapButtonTimerClass();
+            this.swapButton.disabled = false;
             return;
         }
         const warningHTML = _("Starting with {$centerCardRank} on that half looks hard, since the highest card is {$highestCardInDeck}")
             .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
             .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
-        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true);
         this.swapButton.disabled = true;
-        this.swapButton.classList.remove('bga-autoclick-button'); //to reset the button animation 
-        const newSwapButton = this.swapButton.cloneNode(true); //to reset the button animation 
-        newSwapButton.addEventListener('click', () => this.swapClicked());
-        this.swapButton.replaceWith(newSwapButton);
-        this.swapButton = newSwapButton;
-        this.badHalfAutoClickTimeout = this.game.setAutoClick(this.swapButton, undefined, undefined, undefined, clearSwapButtonTimerClass);
+        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
+            this.swapButton.disabled = false;
+        });
     }
     clearBadHalfWarning() {
         if (this.badHalfWarningBox) {
             this.badHalfWarningBox.destroy();
             this.badHalfWarningBox = null;
-        }
-        if (this.badHalfAutoClickTimeout) {
-            clearTimeout(this.badHalfAutoClickTimeout);
-            this.badHalfAutoClickTimeout = null;
         }
     }
     isPlayingFirstTurnOnBadHalf(cardRank, handLocation) {
@@ -160,6 +177,7 @@ class PlayerTurn {
     getSwapButton() { return this.swapButton; }
     ;
 }
+PlayerTurn.BAD_HALF_LOADING_BAR_MS = 5000;
 
 class HandHandler {
     constructor(game, owner, handData) {
