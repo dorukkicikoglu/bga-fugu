@@ -59,6 +59,7 @@ class PlayerTurn {
         this.game = game;
         this.bga = bga;
         this.badHalfWarningBox = null;
+        this.badHalfAutoClickTimeout = null;
     }
     /**
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
@@ -112,26 +113,35 @@ class PlayerTurn {
     }
     updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv) {
         this.clearBadHalfWarning();
-        const resetButton = () => {
+        const clearSwapButtonTimerClass = () => {
             this.swapButton.disabled = false;
             this.swapButton.classList.remove('bga-autoclick-button');
             return false;
         };
         if (!this.isPlayingFirstTurnOnBadHalf(cardRank, handCardLocation)) {
-            resetButton();
+            clearSwapButtonTimerClass();
             return;
         }
-        const warningHTML = _("Starting with {$centerCardRank} on that half is tough, since the highest card is {$highestCardInDeck}")
+        const warningHTML = _("Starting with {$centerCardRank} on that half looks hard, since the highest card is {$highestCardInDeck}")
             .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
             .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
         this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true);
         this.swapButton.disabled = true;
-        this.game.setAutoClick(this.swapButton, undefined, undefined, undefined, resetButton);
+        this.swapButton.classList.remove('bga-autoclick-button'); //to reset the button animation 
+        const newSwapButton = this.swapButton.cloneNode(true); //to reset the button animation 
+        newSwapButton.addEventListener('click', () => this.swapClicked());
+        this.swapButton.replaceWith(newSwapButton);
+        this.swapButton = newSwapButton;
+        this.badHalfAutoClickTimeout = this.game.setAutoClick(this.swapButton, undefined, undefined, undefined, clearSwapButtonTimerClass);
     }
     clearBadHalfWarning() {
         if (this.badHalfWarningBox) {
             this.badHalfWarningBox.destroy();
             this.badHalfWarningBox = null;
+        }
+        if (this.badHalfAutoClickTimeout) {
+            clearTimeout(this.badHalfAutoClickTimeout);
+            this.badHalfAutoClickTimeout = null;
         }
     }
     isPlayingFirstTurnOnBadHalf(cardRank, handLocation) {
@@ -1308,14 +1318,16 @@ class Game {
             delete this.autoClickTimeouts[autoClickID];
         };
         button.addEventListener('click', stopDoubleTrigger, true);
-        this.autoClickTimeouts[autoClickID].push(setTimeout(() => {
+        const timeout = setTimeout(() => {
             stopDoubleTrigger();
             if (!document.body.contains(button))
                 return;
             const customEventResult = onAnimationEnd();
             if (customEventResult)
                 button.click();
-        }, totalDuration));
+        }, totalDuration);
+        this.autoClickTimeouts[autoClickID].push(timeout);
+        return timeout;
     }
     isSoloMode() { return this.bga.gameui.is_solo; }
     getDeckLength() { return this.gamedatas.deckLength; }

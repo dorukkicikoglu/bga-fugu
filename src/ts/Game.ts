@@ -245,7 +245,7 @@ export class Game {
      * @param autoClickID - Optional ID for the auto-click events, multiple buttons can therefore point to the same autoClick event
      * @param onAnimationEnd - Optional callback that returns boolean to control if click should occur (default: true)
      */
-    public setAutoClick(button: HTMLElement, timeoutDuration: number = 5000, randomIncrement = 2000, autoClickID: string | null = null, onAnimationEnd: () => boolean = () => true ): void {
+    public setAutoClick(button: HTMLElement, timeoutDuration: number = 5000, randomIncrement = 2000, autoClickID: string | null = null, onAnimationEnd: () => boolean = () => true ): ReturnType<typeof setTimeout> {
         const totalDuration = timeoutDuration + Math.random() * randomIncrement;
 
         if(!autoClickID)
@@ -263,14 +263,16 @@ export class Game {
         }
         button.addEventListener('click', stopDoubleTrigger, true);
 
-        this.autoClickTimeouts[autoClickID].push(
-            setTimeout(() => {
-                stopDoubleTrigger();
-                if (!document.body.contains(button)) return;
-                const customEventResult = onAnimationEnd();
-                if (customEventResult) button.click();
-            }, totalDuration)
-        );
+        const timeout = setTimeout(() => {
+            stopDoubleTrigger();
+            if (!document.body.contains(button)) return;
+            const customEventResult = onAnimationEnd();
+            if (customEventResult) button.click();
+        }, totalDuration);
+
+        this.autoClickTimeouts[autoClickID].push(timeout);
+
+        return timeout;
     }
 
     public isSoloMode(): boolean{ return this.bga.gameui.is_solo; }
