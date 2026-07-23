@@ -117,8 +117,8 @@ export class LogMutationObserver{
         let logHTML = `
             <div class="center-card-replaced-row">
                 <i class="log-arrow log-arrow-right-1 fa6 fa-arrow-right"></i>
-                ${discardedCardIcon}
                 ${newCenterCardIcon}
+                ${discardedCardIcon}
                 <i class="log-arrow log-arrow-right-2 fa6 fa-arrow-right"></i>
             </div>` + ' &nbsp;';
 
