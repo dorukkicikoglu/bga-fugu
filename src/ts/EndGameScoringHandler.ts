@@ -172,12 +172,15 @@ export class EndGameScoringHandler{
             this.fastForwardButton.style.opacity = '0';
         }
 
-        if(cells.length <= 0){
+        if(cells.length <= 0){ //end of score display
             const allCells = Array.from(this.tbody.querySelectorAll('.cell-text'));
             allCells.forEach((cell: HTMLDivElement) => { cell.style.opacity = ''; });
             this.makeWinnersJump();
             this.setEndGamePlayerScores();
             this.displaySoloScoreFlavorText();
+
+            if(this.winner_ids.includes(this.game.getMyPlayerID())) //show bubbles to winners
+                this.game.backgroundHandler.displayMaxBubbles(); 
 
             await this.game.bga.gameui.wait(this.delayAfterFadeIns);
             return;

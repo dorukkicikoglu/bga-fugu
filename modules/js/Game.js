@@ -783,12 +783,14 @@ class EndGameScoringHandler {
             this.fastForwardButton.style.transition = 'opacity 400ms ease';
             this.fastForwardButton.style.opacity = '0';
         }
-        if (cells.length <= 0) {
+        if (cells.length <= 0) { //end of score display
             const allCells = Array.from(this.tbody.querySelectorAll('.cell-text'));
             allCells.forEach((cell) => { cell.style.opacity = ''; });
             this.makeWinnersJump();
             this.setEndGamePlayerScores();
             this.displaySoloScoreFlavorText();
+            if (this.winner_ids.includes(this.game.getMyPlayerID())) //show bubbles to winners
+                this.game.backgroundHandler.displayMaxBubbles();
             await this.game.bga.gameui.wait(this.delayAfterFadeIns);
             return;
         }
@@ -991,6 +993,15 @@ class BackgroundHandler {
             bubbleOpacity.addEventListener('transitionend', () => {
                 bubbleToPop.remove();
             }, { once: true });
+        }
+    }
+    displayMaxBubbles() {
+        const highestKey = Math.max(...Object.keys(BUBBLE_AMOUNT_BY_PREF).map(Number));
+        this.adjustBubbleAmount(highestKey);
+        for (let i = 0; i < 10; i++) {
+            this.createBubble();
+            setTimeout(() => { this.createBubble(); }, 500);
+            setTimeout(() => { this.createBubble(); }, 1000);
         }
     }
     scheduleNextBubble() {
@@ -1349,6 +1360,7 @@ class Game {
     }
     isSoloMode() { return this.bga.gameui.is_solo; }
     getDeckLength() { return this.gamedatas.deckLength; }
+    getMyPlayerID() { return this.myPlayerID; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
     /*

@@ -139,7 +139,6 @@ export class Game {
         return { log, args };
     }
     public divYou(attributes = {}): string {
-        
         let color = this.gamedatas.players[this.myPlayerID].color;
         let color_bg = "";
         if (this.gamedatas.players[this.myPlayerID] && this.gamedatas.players[this.myPlayerID].color_back) {
@@ -277,6 +276,7 @@ export class Game {
 
     public isSoloMode(): boolean{ return this.bga.gameui.is_solo; }
     public getDeckLength(): number{ return this.gamedatas.deckLength; }
+    public getMyPlayerID(): number{ return this.myPlayerID; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 

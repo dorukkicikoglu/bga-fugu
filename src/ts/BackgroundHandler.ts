@@ -81,7 +81,7 @@ export class BackgroundHandler{
     });
   }
 
-  public adjustBubbleAmount(prefValue: number){
+  private adjustBubbleAmount(prefValue: number){
     this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[prefValue] ?? BUBBLE_AMOUNT_BY_PREF[0];
 
     if(!this.bubblesInitialized){
@@ -110,6 +110,17 @@ export class BackgroundHandler{
       bubbleOpacity.addEventListener('transitionend', () => {
         bubbleToPop.remove();
       }, { once: true });
+    }
+  }
+
+  public displayMaxBubbles(){
+    const highestKey = Math.max(...Object.keys(BUBBLE_AMOUNT_BY_PREF).map(Number));
+    this.adjustBubbleAmount(highestKey);
+
+    for(let i = 0; i < 10; i++){
+        this.createBubble();
+        setTimeout(() => { this.createBubble(); }, 500);
+        setTimeout(() => { this.createBubble(); }, 1000);
     }
   }
 
