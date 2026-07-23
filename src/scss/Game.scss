@@ -30,7 +30,7 @@ body{ background: #221e52; }
         $row: math.floor(math.div($index, 10));
 
 		&[data-rank="#{$i}"]::before{ background-position-x: #{$col * -100}#{'%'}; background-position-y: #{$row * -100}#{'%'}; }
-    }
+    }   
 
 	&.selected-hand-card,
 	&.selected-center-card{ outline: 3px solid red; }

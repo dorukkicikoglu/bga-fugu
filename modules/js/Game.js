@@ -514,8 +514,7 @@ class CenterHandler {
     async animateCardReplace(discardedCardData, newCenterCardData) {
         const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
         const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
-        const newCenterCard = this.game.createCardDiv(newCenterCardData);
-        const newCenterCardClone = this.game.cloneCard(newCenterCard);
+        const newCenterCardClone = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
         oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
         this.game.placeOnObject(oldCenterCardClone, oldCenterCard);
@@ -538,8 +537,9 @@ class CenterHandler {
         newCenterCardClone.style.top = newCenterCardOriginalTop;
         newCenterCardClone.style.left = newCenterCardOriginalLeft;
         await this.game.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
-        oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
         oldCenterCard.setAttribute('data-card-id', newCenterCardData.card_id.toString());
+        oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
+        oldCenterCard.setAttribute('data-suit', newCenterCardData.suit.toString());
         oldCenterCard.style.opacity = null;
         newCenterCardClone.remove();
         oldCenterCardClone.remove();

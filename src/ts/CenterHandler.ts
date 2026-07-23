@@ -103,8 +103,7 @@ export class CenterHandler{
         const oldCenterCard: HTMLDivElement = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`) as HTMLDivElement;
         const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
 
-        const newCenterCard : HTMLDivElement = this.game.createCardDiv(newCenterCardData);
-        const newCenterCardClone = this.game.cloneCard(newCenterCard);
+        const newCenterCardClone : HTMLDivElement = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
 
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
         oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
@@ -136,8 +135,9 @@ export class CenterHandler{
 
         await this.game.bga.gameui.wait(Math.max(flyAwayAnimTime, flyInAnimTime));
 
-        oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
         oldCenterCard.setAttribute('data-card-id', newCenterCardData.card_id.toString());
+        oldCenterCard.setAttribute('data-rank', newCenterCardData.card_id.toString());
+        oldCenterCard.setAttribute('data-suit', newCenterCardData.suit.toString());
         oldCenterCard.style.opacity = null;
 
         newCenterCardClone.remove();
