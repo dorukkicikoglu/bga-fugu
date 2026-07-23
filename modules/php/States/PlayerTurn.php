@@ -178,7 +178,7 @@ class PlayerTurn extends GameState
 
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'returned_to_box' WHERE `card_id` = ".$cardToDiscard['card_id']);
 
-        $replacementCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'solo_deck' ORDER BY `card_location_arg` DESC LIMIT 1");
+        $replacementCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'solo_deck' ORDER BY RAND() DESC LIMIT 1");
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$cardToDiscard['card_location_arg']." WHERE `card_id` = ".$replacementCard['card_id']);
 
         return [
