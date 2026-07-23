@@ -989,7 +989,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   height: 100%;
   display: block;
   background-image: url(img/bg_fugu.webp);
-  background-size: 108% 108%;
+  background-size: 108vw 53vw;
   background-repeat: repeat-x;
   transform-origin: center center;
   animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 8s ease-in-out infinite alternate;
