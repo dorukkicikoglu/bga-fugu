@@ -18,6 +18,7 @@ export class BackgroundHandler{
   private targetBubbleSetting: BubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
   private bubblesInitialized = false;
   private bodyClickListener: (event: MouseEvent) => void;
+  private nextBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private game: Game) {
     this.backgroundContainer = document.createElement('div');
@@ -93,11 +94,11 @@ export class BackgroundHandler{
       this.bubblesInitialized = true;
       return;
     }
-    
+
     //fade out and destroy bubbles
     const bubbles: HTMLDivElement[] = Array.from(this.bubblesContainer.querySelectorAll('.bubble'));
 
-    while(bubbles.length > this.targetBubbleSetting.maxBubbleCount){
+    while(bubbles.length > this.targetBubbleSetting.maxBubbleCount){ //remove any extra bubbles from the previous higher setting
       const randomBubbleIndex = Math.floor(Math.random() * bubbles.length);
       const bubbleToPop = bubbles[randomBubbleIndex];
       bubbles[randomBubbleIndex] = bubbles[bubbles.length - 1];
@@ -111,6 +112,10 @@ export class BackgroundHandler{
         bubbleToPop.remove();
       }, { once: true });
     }
+
+    if(this.nextBubbleTimeout !== null)
+      clearTimeout(this.nextBubbleTimeout);
+    this.scheduleNextBubble();
   }
 
   public displayMaxBubbles(){
@@ -126,7 +131,7 @@ export class BackgroundHandler{
 
   private scheduleNextBubble(){
     const delay = this.targetBubbleSetting.minScheduleTime + Math.random() * (this.targetBubbleSetting.maxScheduleTime - this.targetBubbleSetting.minScheduleTime);
-    setTimeout(() => {
+    this.nextBubbleTimeout = setTimeout(() => {
         if(this.bubblesContainer.childElementCount < this.targetBubbleSetting.maxBubbleCount)
             this.createBubble();
         this.scheduleNextBubble();
