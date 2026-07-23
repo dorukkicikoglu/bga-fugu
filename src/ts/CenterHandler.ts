@@ -64,10 +64,10 @@ export class CenterHandler{
         if(wouldBeAnchor){
             swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Anchor')) + ' <i class="fa6 fa-anchor"></i>';
             swapButton.classList.remove('bgabutton_blue');
-            swapButton.classList.add('orange-button');
+            swapButton.classList.add('purple-button');
         } else {
             swapButton.innerHTML = this.game.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
-            swapButton.classList.remove('orange-button');
+            swapButton.classList.remove('purple-button');
             swapButton.classList.add('bgabutton_blue');
         }
         

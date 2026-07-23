@@ -581,8 +581,8 @@ body {
   --horz-margin: calc(var(--my-card-width) * -0.17);
 }
 
-#swap-button.orange-button {
-  background: linear-gradient(148deg, #b62930 59%, #fdb420) no-repeat border-box;
+#swap-button.purple-button {
+  background: linear-gradient(148deg, #2e1a3d 59%, #6b2d5c) no-repeat border-box;
 }
 
 body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.player-game-ended {
@@ -1228,3 +1228,5 @@ body.desktop_version .a-game-log .playername[player-color="008000"] {
     box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 20px 14px rgba(255, 255, 255, 0);
   }
 }
+
+/*# sourceMappingURL=fugu.css.map */
