@@ -169,7 +169,7 @@ class PlayerTurn {
         if (!isFirstTurn)
             return false;
         const isCardHigh = cardRank > (this.bga.gameui.gamedatas.deckLength / 2);
-        const isLocationHigh = handLocation >= (numberOfCardsInPlayerHand / 2);
+        const isLocationHigh = handLocation > (numberOfCardsInPlayerHand / 2);
         if (isCardHigh === isLocationHigh)
             return false;
         return true;

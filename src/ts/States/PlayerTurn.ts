@@ -115,7 +115,7 @@ export class PlayerTurn {
             return false;
 
         const isCardHigh: boolean = cardRank > (this.bga.gameui.gamedatas.deckLength / 2);
-        const isLocationHigh: boolean = handLocation >= (numberOfCardsInPlayerHand / 2);
+        const isLocationHigh: boolean = handLocation > (numberOfCardsInPlayerHand / 2);
 
         if(isCardHigh === isLocationHigh)
             return false;
