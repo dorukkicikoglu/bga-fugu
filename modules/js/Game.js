@@ -1002,6 +1002,8 @@ class BackgroundHandler {
         this.scheduleNextBubble();
     }
     displayMaxBubbles() {
+        if (this.targetBubbleSetting.maxBubbleCount === 0)
+            return;
         const highestKey = Math.max(...Object.keys(BUBBLE_AMOUNT_BY_PREF).map(Number));
         this.adjustBubbleAmount(highestKey);
         for (let i = 0; i < 10; i++) {

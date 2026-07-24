@@ -119,6 +119,9 @@ export class BackgroundHandler{
   }
 
   public displayMaxBubbles(){
+    if(this.targetBubbleSetting.maxBubbleCount === 0)
+      return;
+    
     const highestKey = Math.max(...Object.keys(BUBBLE_AMOUNT_BY_PREF).map(Number));
     this.adjustBubbleAmount(highestKey);
 
