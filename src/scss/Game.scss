@@ -198,6 +198,9 @@ body.current_player_is_active:not(.lockedInterface){
 }
 .gamestate_gameEnd .end-game-score-container{ top: 214px; }
 .mobile_version .end-game-score-container{ margin-top: 300px;  }
+@media (orientation: landscape){
+    .end-game-score-container{ transform: scale(0.7); transform-origin: top left; }
+}
 
 //tooltip
 

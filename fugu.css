@@ -821,6 +821,12 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   margin-top: 300px;
 }
 
+@media (orientation: landscape) {
+  .end-game-score-container {
+    transform: scale(0.7);
+    transform-origin: top left;
+  }
+}
 .dijitTooltipContainer:has(.tooltip-wrapper) {
   background: none;
 }
