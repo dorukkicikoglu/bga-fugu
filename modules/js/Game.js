@@ -1006,10 +1006,19 @@ class BackgroundHandler {
             return;
         const highestKey = Math.max(...Object.keys(BUBBLE_AMOUNT_BY_PREF).map(Number));
         this.adjustBubbleAmount(highestKey);
-        for (let i = 0; i < 10; i++) {
-            this.createBubble();
-            setTimeout(() => { this.createBubble(); }, 500);
-            setTimeout(() => { this.createBubble(); }, 1000);
+        const initialBubbleCount = 20;
+        let squirtDelay = 0;
+        let slowDownBy = 1;
+        while (squirtDelay <= 5000 + (initialBubbleCount * 1000)) {
+            const slowing = (squirtDelay > 5000);
+            const bubbleCount = Math.max(1, slowing ? initialBubbleCount - slowDownBy : initialBubbleCount);
+            slowDownBy += 1;
+            squirtDelay += slowing ? 1000 : 500;
+            setTimeout(() => {
+                for (let i = 0; i <= bubbleCount; i++) {
+                    this.createBubble();
+                }
+            }, squirtDelay);
         }
     }
     scheduleNextBubble() {
