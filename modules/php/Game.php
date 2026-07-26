@@ -143,6 +143,7 @@ class Game extends \Bga\GameFramework\Table
 
         $result['isSoloExpertDifficulty'] = $this->isSoloExpertDifficulty(); 
         $result['discardedCards'] = $this->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'returned_to_box' ORDER BY `rank` ASC");
+        $result['anchoredCards'] = $this->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `state_in_hand` = 'anchor' ORDER BY `rank` ASC");
 
         $state = $this->gamestate->getCurrentMainState();
         if($state->name == 'gameEnd')

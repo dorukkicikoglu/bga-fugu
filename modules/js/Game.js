@@ -560,7 +560,7 @@ class CenterHandler {
         newCenterCardClone.remove();
         oldCenterCardClone.remove();
         if (this.game.isSoloMode())
-            this.game.soloDiscardDisplayHandler.insertDiscardedCardIcon(discardedCardData);
+            this.game.soloDiscardDisplayHandler.insertCardIcon(discardedCardData);
     }
     getCenterContainer() { return this.centerContainer; }
 }
@@ -682,7 +682,7 @@ class EndGameScoringHandler {
             return;
         }
         if (this.game.isSoloMode())
-            this.game.soloDiscardDisplayHandler.showDiscardedCardIconsContainer(false);
+            this.game.soloDiscardDisplayHandler.showCardIconsContainer(false);
         document.body.classList.add('displaying-end-game-score');
         this.endGameScoring.player_scores = endGameScoring.player_scores;
         this.winner_ids = endGameScoring.winner_ids;
@@ -1105,48 +1105,50 @@ class PrefHandler {
     }
 }
 
-class SoloDiscardDisplayHandler {
-    constructor(game, discardedCards) {
+class CardIconDisplayHandler {
+    constructor(game, initialCards) {
         this.game = game;
-        this.discardedCards = discardedCards;
-        this.createDiscardedCardIconsContainer();
+        this.initialCards = initialCards;
+        this.createIconsContainer();
     }
-    createDiscardedCardIconsContainer() {
-        if (!this.game.isSoloMode())
+    createIconsContainer() {
+        if (!this.shouldDisplay())
             return;
         const playerHandsContainer = document.querySelector('#player-hands-container');
         if (!playerHandsContainer)
             return;
-        this.discardedCardIconsContainer = document.createElement('div');
-        this.discardedCardIconsContainer.id = 'discarded-card-icons-container';
-        this.discardedCardIconsContainer.innerHTML = `<div class="container-title discarded-cards-title">${_('Discarded Cards')}</div>`;
-        playerHandsContainer.appendChild(this.discardedCardIconsContainer);
+        this.iconsContainer = document.createElement('div');
+        this.iconsContainer.id = this.getContainerId();
+        this.iconsContainer.classList.add('card-icons-display');
+        this.iconsContainer.innerHTML = `<div class="container-title ${this.getTitleClass()}">${this.getTitleText()}</div>`;
+        playerHandsContainer.appendChild(this.iconsContainer);
         this.updateContainerOpacity();
-        for (const cardData of this.discardedCards)
-            this.insertDiscardedCardIcon(cardData);
+        for (const cardData of this.initialCards)
+            this.insertCardIcon(cardData);
     }
     updateContainerOpacity() {
-        const hasCards = !!this.discardedCardIconsContainer.querySelector('.a-card');
-        this.showDiscardedCardIconsContainer(hasCards);
+        const hasCards = !!this.iconsContainer.querySelector('.a-card');
+        this.showCardIconsContainer(hasCards);
     }
-    insertDiscardedCardIcon(cardData) {
-        if (!this.game.isSoloMode())
+    insertCardIcon(cardData) {
+        if (!this.shouldDisplay())
             return;
-        const existingIcons = Array.from(this.discardedCardIconsContainer.children).filter(child => child.classList.contains('discarded-card-icon'));
+        const iconClass = this.getIconClass();
+        const existingIcons = Array.from(this.iconsContainer.children).filter(child => child.classList.contains(iconClass));
         //FLIP: record where the existing icons are before the new one shifts the centered row, so they can
         //slide into their new spot instead of jumping there
         const previousLefts = new Map(existingIcons.map(icon => [icon, icon.getBoundingClientRect().left]));
         const cardIcon = document.createElement('div');
-        cardIcon.className = 'discarded-card-icon minimised-card-icon';
+        cardIcon.className = `${iconClass} minimised-card-icon`;
         cardIcon.setAttribute('data-rank', String(cardData.rank));
         cardIcon.style.opacity = '0';
         const dummyCard = this.game.createCardDiv(cardData);
         cardIcon.appendChild(dummyCard);
         const nextHigherRankIcon = existingIcons.find(existingIcon => Number(existingIcon.getAttribute('data-rank')) > cardData.rank);
         if (nextHigherRankIcon)
-            this.discardedCardIconsContainer.insertBefore(cardIcon, nextHigherRankIcon);
+            this.iconsContainer.insertBefore(cardIcon, nextHigherRankIcon);
         else
-            this.discardedCardIconsContainer.appendChild(cardIcon);
+            this.iconsContainer.appendChild(cardIcon);
         this.updateContainerOpacity();
         for (const icon of existingIcons) {
             const deltaX = previousLefts.get(icon) - icon.getBoundingClientRect().left;
@@ -1162,13 +1164,29 @@ class SoloDiscardDisplayHandler {
             cardIcon.style.opacity = '1';
         }));
     }
-    showDiscardedCardIconsContainer(show) {
-        if (!this.game.isSoloMode())
+    showCardIconsContainer(show) {
+        if (!this.shouldDisplay())
             return;
-        if (!this.discardedCardIconsContainer)
+        if (!this.iconsContainer)
             return;
-        this.discardedCardIconsContainer.style.opacity = show ? '1' : null;
+        this.iconsContainer.style.opacity = show ? '1' : null;
     }
+}
+
+class SoloDiscardDisplayHandler extends CardIconDisplayHandler {
+    shouldDisplay() { return this.game.isSoloMode(); }
+    getContainerId() { return 'discarded-card-icons-container'; }
+    getTitleClass() { return 'discarded-cards-title'; }
+    getTitleText() { return _('Discarded Cards'); }
+    getIconClass() { return 'discarded-card-icon'; }
+}
+
+class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
+    shouldDisplay() { return !this.game.isSoloMode(); }
+    getContainerId() { return 'anchored-card-icons-container'; }
+    getTitleClass() { return 'anchored-cards-title'; }
+    getTitleText() { return _('Anchored Cards'); }
+    getIconClass() { return 'anchored-card-icon'; }
 }
 
 class Game {
@@ -1231,6 +1249,7 @@ class Game {
         this.logMutationObserver = new LogMutationObserver(this);
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
+        this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)
@@ -1419,6 +1438,8 @@ class Game {
         const swappingPlayer = this.players[swapData.player_id];
         await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
         swappingPlayer.getHand().setFacedownCountForMobileStretching();
+        if (swapData.newStateInHand === 'anchor')
+            this.anchorCardsDisplayHandler.insertCardIcon(swapData.cardInCenter);
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);
         if (args.game_ended)

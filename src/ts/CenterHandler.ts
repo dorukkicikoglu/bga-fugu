@@ -144,7 +144,7 @@ export class CenterHandler{
         oldCenterCardClone.remove();
 
         if(this.game.isSoloMode())
-            this.game.soloDiscardDisplayHandler.insertDiscardedCardIcon(discardedCardData);
+            this.game.soloDiscardDisplayHandler.insertCardIcon(discardedCardData);
     }
 
     public getCenterContainer(): HTMLDivElement{ return this.centerContainer; }

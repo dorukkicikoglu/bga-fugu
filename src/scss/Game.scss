@@ -46,7 +46,7 @@ body{ background: #221e52; }
 .container-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
 #player-hands-container{ 
-    .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
+    .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; margin-top: 50px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
         .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
 
         .cards-container .a-card{
@@ -54,7 +54,7 @@ body{ background: #221e52; }
             &[selected="true"]{ margin-top: var(--selected-card-margin-top); }
         }
 
-        &[data-is-myself="true"]{ margin-bottom: 50px; }
+        &[data-is-myself="true"]{ margin-top: 50px; }
     }
 }
 body.desktop_version{
@@ -70,9 +70,9 @@ body.desktop_version{
     .a-card{ margin-top: -17%; margin-left: -12%; width: 350%; height: 540%; }
 }
 
-#discarded-card-icons-container{ position: relative; transition: opacity 500ms; opacity: 0; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: -18px; padding: 30px 0px 10px 0px;
-    .discarded-cards-title{ color: #1a1b52; }
-    .discarded-card-icon{ margin: -17px 4px 5px 4px; }
+.card-icons-display{ position: relative; transition: opacity 500ms; opacity: 0; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: 32px; padding: 30px 0px 10px 0px;
+    .discarded-cards-title, .anchored-cards-title{ color: #1a1b52; }
+    .discarded-card-icon, .anchored-card-icon{ margin: -17px 4px 5px 4px; }
 }
 
 .mobile_version #player-hands-container .a-hand-container .cards-container{

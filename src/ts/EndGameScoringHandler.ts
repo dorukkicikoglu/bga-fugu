@@ -26,7 +26,7 @@ export class EndGameScoringHandler{
         }
 
         if(this.game.isSoloMode())
-            this.game.soloDiscardDisplayHandler.showDiscardedCardIconsContainer(false);
+            this.game.soloDiscardDisplayHandler.showCardIconsContainer(false);
         
         document.body.classList.add('displaying-end-game-score');
 

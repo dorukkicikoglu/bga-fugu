@@ -7,6 +7,7 @@ import { TooltipHandler } from "./TooltipHandler";
 import { BackgroundHandler } from "./BackgroundHandler";
 import { PrefHandler } from "./PrefHandler";
 import { SoloDiscardDisplayHandler } from "./SoloDiscardDisplayHandler";
+import { AnchorCardsDisplayHandler } from "./AnchorCardsDisplayHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -28,6 +29,7 @@ export class Game {
     private prefHandler: PrefHandler;
     public backgroundHandler: BackgroundHandler;
     public soloDiscardDisplayHandler: SoloDiscardDisplayHandler;
+    public anchorCardsDisplayHandler: AnchorCardsDisplayHandler;
 
     constructor(bga: Bga<FuguPlayer, FuguGamedatas>) {
         console.log('fugu constructor');
@@ -97,6 +99,7 @@ export class Game {
         this.logMutationObserver = new LogMutationObserver(this);
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
+        this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
         
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
@@ -309,6 +312,9 @@ export class Game {
 
         await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
         swappingPlayer.getHand().setFacedownCountForMobileStretching();
+
+        if(swapData.newStateInHand === 'anchor')
+            this.anchorCardsDisplayHandler.insertCardIcon(swapData.cardInCenter);
 
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);

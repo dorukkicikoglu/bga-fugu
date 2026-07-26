@@ -13,6 +13,7 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     isSoloExpertDifficulty: boolean;
     pref_names: Record<string, number>;
     discardedCards: CardInDiscard[];
+    anchoredCards: CardInDiscard[];
 }
 
 interface LogRowData { //this is used to return strings containing log-class-tag divs
