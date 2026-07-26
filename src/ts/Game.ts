@@ -67,7 +67,6 @@ export class Game {
         this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
                 
         this.backgroundHandler = new BackgroundHandler(this);
-        this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
 
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
@@ -100,7 +99,8 @@ export class Game {
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
-        
+        this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
+
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
 

@@ -2,9 +2,11 @@ import { Game } from "./Game";
 
 export abstract class CardIconDisplayHandler{
   protected iconsContainer: HTMLDivElement;
+  private cards: CardInDiscard[];
+  private isDisplaying = false;
 
-  constructor(protected game: Game, private initialCards: CardInDiscard[]) {
-    this.createIconsContainer();
+  constructor(protected game: Game, initialCards: CardInDiscard[]) {
+    this.cards = [...initialCards];
 	}
 
   protected abstract shouldDisplay(): boolean;
@@ -13,10 +15,25 @@ export abstract class CardIconDisplayHandler{
   protected abstract getTitleText(): string;
   protected abstract getIconClass(): string;
 
-	private createIconsContainer(){
-    if(!this.shouldDisplay())
+  //re-evaluates shouldDisplay() and creates/tears down the container accordingly; subclasses must call
+  //this once after their own construction is complete, and again whenever shouldDisplay()'s inputs change (eg. a preference)
+  public refreshDisplay(){
+    const shouldDisplayNow = this.shouldDisplay();
+    if(shouldDisplayNow === this.isDisplaying)
       return;
 
+    this.isDisplaying = shouldDisplayNow;
+
+    if(!shouldDisplayNow){
+      this.iconsContainer?.remove();
+      this.iconsContainer = null;
+      return;
+    }
+
+    this.createIconsContainer();
+  }
+
+	private createIconsContainer(){
     const playerHandsContainer = document.querySelector('#player-hands-container');
     if(!playerHandsContainer)
       return;
@@ -29,8 +46,8 @@ export abstract class CardIconDisplayHandler{
     playerHandsContainer.appendChild(this.iconsContainer);
     this.updateContainerOpacity();
 
-    for(const cardData of this.initialCards)
-      this.insertCardIcon(cardData);
+    for(const cardData of this.cards)
+      this.renderCardIcon(cardData);
   }
 
   private updateContainerOpacity(){
@@ -39,9 +56,15 @@ export abstract class CardIconDisplayHandler{
   }
 
   public insertCardIcon(cardData: CardInDiscard){
-    if(!this.shouldDisplay())
+    this.cards.push(cardData);
+
+    if(!this.isDisplaying)
       return;
 
+    this.renderCardIcon(cardData);
+  }
+
+  private renderCardIcon(cardData: CardInDiscard){
     const iconClass = this.getIconClass();
     const existingIcons = Array.from(this.iconsContainer.children).filter(child => child.classList.contains(iconClass)) as HTMLDivElement[];
 
@@ -83,9 +106,6 @@ export abstract class CardIconDisplayHandler{
   }
 
   public showCardIconsContainer(show: boolean){
-    if(!this.shouldDisplay())
-      return;
-
     if(!this.iconsContainer)
       return;
 

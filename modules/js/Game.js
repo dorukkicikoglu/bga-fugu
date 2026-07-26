@@ -1093,27 +1093,53 @@ class PrefHandler {
         this.game = game;
         this.prefNameToIndex = prefNameToIndex;
         this.game.bga.userPreferences.onChange = (prefIndex, prefValue) => this.onGameUserPreferenceChanged(prefIndex, prefValue);
-        const bubbleAmountPrefIndex = this.prefNameToIndex['bubble_amount'];
-        this.onGameUserPreferenceChanged(bubbleAmountPrefIndex, this.game.bga.userPreferences.get(bubbleAmountPrefIndex));
+        for (const prefName of ['bubble_amount', 'show_anchored_cards']) {
+            const prefIndex = this.prefNameToIndex[prefName];
+            this.onGameUserPreferenceChanged(prefIndex, this.game.bga.userPreferences.get(prefIndex));
+        }
+        if (this.game.isSoloMode())
+            this.hidePreferenceChoice(this.prefNameToIndex['show_anchored_cards']);
     }
     onGameUserPreferenceChanged(prefIndex, prefValue) {
         switch (prefIndex) {
             case 101:
                 this.game.backgroundHandler.adjustBubbleAmount(prefValue);
                 break;
+            case 102:
+                this.game.anchorCardsDisplayHandler.setPrefEnabled(prefValue === 1);
+                break;
         }
+    }
+    hidePreferenceChoice(prefIndex) {
+        document.querySelectorAll(`select[data-preference-id="${prefIndex}"]`).forEach(select => {
+            const preferenceChoice = select.closest('.preference_choice');
+            if (preferenceChoice)
+                preferenceChoice.style.display = 'none';
+        });
     }
 }
 
 class CardIconDisplayHandler {
     constructor(game, initialCards) {
         this.game = game;
-        this.initialCards = initialCards;
+        this.isDisplaying = false;
+        this.cards = [...initialCards];
+    }
+    //re-evaluates shouldDisplay() and creates/tears down the container accordingly; subclasses must call
+    //this once after their own construction is complete, and again whenever shouldDisplay()'s inputs change (eg. a preference)
+    refreshDisplay() {
+        const shouldDisplayNow = this.shouldDisplay();
+        if (shouldDisplayNow === this.isDisplaying)
+            return;
+        this.isDisplaying = shouldDisplayNow;
+        if (!shouldDisplayNow) {
+            this.iconsContainer?.remove();
+            this.iconsContainer = null;
+            return;
+        }
         this.createIconsContainer();
     }
     createIconsContainer() {
-        if (!this.shouldDisplay())
-            return;
         const playerHandsContainer = document.querySelector('#player-hands-container');
         if (!playerHandsContainer)
             return;
@@ -1123,16 +1149,20 @@ class CardIconDisplayHandler {
         this.iconsContainer.innerHTML = `<div class="container-title ${this.getTitleClass()}">${this.getTitleText()}</div>`;
         playerHandsContainer.appendChild(this.iconsContainer);
         this.updateContainerOpacity();
-        for (const cardData of this.initialCards)
-            this.insertCardIcon(cardData);
+        for (const cardData of this.cards)
+            this.renderCardIcon(cardData);
     }
     updateContainerOpacity() {
         const hasCards = !!this.iconsContainer.querySelector('.a-card');
         this.showCardIconsContainer(hasCards);
     }
     insertCardIcon(cardData) {
-        if (!this.shouldDisplay())
+        this.cards.push(cardData);
+        if (!this.isDisplaying)
             return;
+        this.renderCardIcon(cardData);
+    }
+    renderCardIcon(cardData) {
         const iconClass = this.getIconClass();
         const existingIcons = Array.from(this.iconsContainer.children).filter(child => child.classList.contains(iconClass));
         //FLIP: record where the existing icons are before the new one shifts the centered row, so they can
@@ -1165,8 +1195,6 @@ class CardIconDisplayHandler {
         }));
     }
     showCardIconsContainer(show) {
-        if (!this.shouldDisplay())
-            return;
         if (!this.iconsContainer)
             return;
         this.iconsContainer.style.opacity = show ? '1' : null;
@@ -1174,6 +1202,10 @@ class CardIconDisplayHandler {
 }
 
 class SoloDiscardDisplayHandler extends CardIconDisplayHandler {
+    constructor(game, initialCards) {
+        super(game, initialCards);
+        this.refreshDisplay();
+    }
     shouldDisplay() { return this.game.isSoloMode(); }
     getContainerId() { return 'discarded-card-icons-container'; }
     getTitleClass() { return 'discarded-cards-title'; }
@@ -1182,7 +1214,16 @@ class SoloDiscardDisplayHandler extends CardIconDisplayHandler {
 }
 
 class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
-    shouldDisplay() { return !this.game.isSoloMode(); }
+    constructor(game, initialCards) {
+        super(game, initialCards);
+        this.prefEnabled = false;
+        this.refreshDisplay();
+    }
+    setPrefEnabled(enabled) {
+        this.prefEnabled = enabled;
+        this.refreshDisplay();
+    }
+    shouldDisplay() { return !this.game.isSoloMode() && this.prefEnabled; }
     getContainerId() { return 'anchored-card-icons-container'; }
     getTitleClass() { return 'anchored-cards-title'; }
     getTitleText() { return _('Anchored Cards'); }
@@ -1223,7 +1264,6 @@ class Game {
         this.gamedatas = gamedatas;
         this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
         this.backgroundHandler = new BackgroundHandler(this);
-        this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
             <div id="player-hands-container"></div>
@@ -1250,6 +1290,7 @@ class Game {
         this.tooltipHandler = new TooltipHandler(this);
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
+        this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)

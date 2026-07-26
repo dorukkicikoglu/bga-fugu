@@ -28,6 +28,7 @@ class Game extends \Bga\GameFramework\Table
     public FUGUTableManager $tableManager;
     public array $userPrefs = array(
         'bubble_amount' => 101,
+        'show_anchored_cards' => 102,
     );
 
     /**

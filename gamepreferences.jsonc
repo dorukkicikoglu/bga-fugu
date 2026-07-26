@@ -44,5 +44,18 @@
       }
     },
     "default": 1
+  },
+
+  "102": {
+    "name": "Show anchored cards",
+    "values": {
+      "0": {
+        "name": "Off"
+      },
+      "1": {
+        "name": "On"
+      }
+    },
+    "default": 0
   }
 }
