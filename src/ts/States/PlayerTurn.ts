@@ -86,7 +86,7 @@ export class PlayerTurn {
             return;
         }
 
-        const warningHTML = _("Starting with {$centerCardRank} on that half looks hard, since the highest card is {$highestCardInDeck}")
+        const warningHTML = _("Starting with {$centerCardRank} there looks hard, since the highest card is {$highestCardInDeck}")
             .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
             .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
 
@@ -106,21 +106,36 @@ export class PlayerTurn {
 
     private isPlayingFirstTurnOnBadHalf(cardRank: number, handLocation: number): boolean{
         const handContainer = this.game.myself.getHand().getHandContainer();
-        const cardsInHand = handContainer.querySelectorAll('.a-card');
-        const numberOfCardsInPlayerHand = cardsInHand.length;
-
         const isFirstTurn = handContainer.querySelectorAll('.a-card:not([data-state-in-hand="facedown"])').length === 0;
 
         if(!isFirstTurn)
             return false;
 
-        const isCardHigh: boolean = cardRank > (this.bga.gameui.gamedatas.deckLength / 2);
-        const isLocationHigh: boolean = handLocation > (numberOfCardsInPlayerHand / 2);
+        const cardsInHand = handContainer.querySelectorAll('.a-card');
+        const numberOfCardsInHand = cardsInHand.length;
+        const deckLength = this.bga.gameui.gamedatas.deckLength;
 
-        if(isCardHigh === isLocationHigh)
-            return false;
+        if(cardRank < handLocation) //each card lower than this card would have a space on the left
+            return true;
+        if(deckLength - cardRank < numberOfCardsInHand - handLocation) //each card lower than this card would have a space on the left
+            return true;
+        // if(cardRank == 1 && handLocation > 1) //place 1 to beginning
+        //     return true;
+        // if(cardRank == this.bga.gameui.gamedatas.deckLength && handLocation < numberOfCardsInHand) //place highest card to the end
+        //     return true; //ekmek sil
 
-        return true;
+        const shouldBePlacedAt = Math.ceil((cardRank / deckLength) * numberOfCardsInHand);
+        const offset = Math.abs(shouldBePlacedAt - handLocation);
+
+        const rankDistanceToEdge = Math.min(shouldBePlacedAt - 1, numberOfCardsInHand - shouldBePlacedAt);
+        console.log('---------');
+        console.log('rankDistanceToEdge', rankDistanceToEdge);
+        console.log('shouldBePlacedAt', shouldBePlacedAt);
+        console.log('offset', offset);
+        const maxDistance = (rankDistanceToEdge <= 3) ? 2 : 3;
+        console.log('maxDistance', maxDistance);
+
+        return offset > maxDistance;
     }
     
     public getSwapButton(): HTMLButtonElement{ return this.swapButton };
