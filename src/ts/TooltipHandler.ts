@@ -32,7 +32,7 @@ export class TooltipHandler{
 
     private getTooltipHTML(): string {
         const deckLength = this.game.getDeckLength();
-        const deckLengthText = _('Highest card value is {$deckLength}').replace('{$deckLength}', '<b>' + deckLength.toString() + '</b>');
+        const deckLengthText = _('Highest card value:') + '<br><b>' + deckLength.toString() + '</b>';
         const tooltipHTML = `
             <div class="tooltip-wrapper">
                 <div class="deck-length-text">${deckLengthText}</div>

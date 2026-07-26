@@ -839,7 +839,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   margin: -6px -6px -6px -6px;
 }
 .tooltip-wrapper .deck-length-text {
-  font-size: 18px;
+  font-size: 22px;
   color: #121635;
   text-indent: 6px;
   text-align: center;

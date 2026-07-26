@@ -82,7 +82,7 @@ export class BackgroundHandler{
     });
   }
 
-  private adjustBubbleAmount(prefValue: number){
+  public adjustBubbleAmount(prefValue: number){
     this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[prefValue] ?? BUBBLE_AMOUNT_BY_PREF[0];
 
     if(!this.bubblesInitialized){
