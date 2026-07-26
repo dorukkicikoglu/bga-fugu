@@ -50,7 +50,7 @@ export class PlayerTurn {
     }
 
     passClicked() {
-        this.bga.dialogs.confirmation(_("Pass and end your game?")).then(result => {
+        this.bga.dialogs.confirmation(_("Pass and END YOUR GAME?")).then(result => {
             if(result){ 
                 this.bga.actions.performAction("actPass");
             }
