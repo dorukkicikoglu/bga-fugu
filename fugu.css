@@ -991,6 +991,15 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 .background-container {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.background-container .background-backdrop {
+  position: absolute;
+  top: -2%;
+  left: -2%;
   width: 102%;
   height: 102%;
   display: block;
@@ -999,17 +1008,8 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   background-repeat: repeat-x;
   transform-origin: center center;
   animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate;
-  top: -2%;
-  left: -2%;
 }
-
-.mobile_version .background-container {
-  background-image: url(img/bg_mobile_fugu.webp);
-  background-size: 136%;
-  margin-top: 5%;
-}
-
-.bubbles-container {
+.background-container .bubbles-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -1018,6 +1018,12 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   pointer-events: none;
   overflow: hidden;
   z-index: 1;
+}
+
+.mobile_version .background-container .background-backdrop {
+  background-image: url(img/bg_mobile_fugu.webp);
+  background-size: 136%;
+  margin-top: 5%;
 }
 
 .bubble {

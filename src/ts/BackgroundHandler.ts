@@ -14,6 +14,7 @@ export class BackgroundHandler{
   private static readonly POP_INVULNERABLE_MS = 500;
 
   private backgroundContainer: HTMLDivElement;
+  private backgroundBackdrop: HTMLDivElement;
   private bubblesContainer: HTMLDivElement;
   private targetBubbleSetting: BubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
   private bubblesInitialized = false;
@@ -25,8 +26,16 @@ export class BackgroundHandler{
     this.backgroundContainer.classList.add('background-container');
     document.body.insertAdjacentElement('afterbegin', this.backgroundContainer);
 
+    this.backgroundBackdrop = document.createElement('div');
+    this.backgroundBackdrop.classList.add('background-backdrop');
+    this.backgroundContainer.appendChild(this.backgroundBackdrop);
+
     this.bubblesContainer = document.createElement('div');
     this.bubblesContainer.classList.add('bubbles-container');
+    //kept as a sibling, not a child, of backgroundBackdrop: backgroundBackdrop is animated with a
+    //CSS transform (gentle-wobble) and is offset/oversized relative to the viewport, and a transformed
+    //ancestor becomes the containing block for position:fixed descendants - nesting bubblesContainer inside
+    //it would offset bubbles away from the viewport-relative click coordinates they're placed at
     this.backgroundContainer.appendChild(this.bubblesContainer);
 
     this.bodyClickListener = (event: MouseEvent) => this.onBodyClick(event);
