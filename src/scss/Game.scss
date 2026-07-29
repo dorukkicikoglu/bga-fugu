@@ -241,18 +241,24 @@ body.current_player_is_active:not(.lockedInterface){
 //end tooltip
 
 //modal box
-.a-modal-box{ position: absolute; z-index: 1200; max-width: 240px; border-radius: 10px; @include pearl-background(); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); pointer-events: none;
-	.a-modal-box-inner{ border-radius: inherit; overflow: hidden; }
+.a-modal-box{ position: absolute; z-index: 1200; max-width: 240px; border-radius: 10px; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35)); pointer-events: none;
+	.a-modal-box-inner{ position: relative; border-radius: inherit; overflow: hidden; @include pearl-background(); }
 	.a-modal-box-loading-bar{ height: 5px; width: 100%; background: #2196f3; transform: scaleX(0); transform-origin: left center; transition-property: transform; transition-timing-function: linear; }
 	.a-modal-box-content{ padding: 10px 14px; font-size: 14px; line-height: 1.35; text-align: center; color: #1c2b3a;
 		.modal-box-undo-link{ float: right; margin-top: 6px; margin-bottom: 10px; text-decoration: underline; font-weight: bold; cursor: pointer; pointer-events: auto;
 			&:hover{ opacity: 0.7; }
 		}
 	}
-	.a-modal-box-arrow{ position: absolute; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; transform: translateX(-50%); }
-	&.modal-box-above .a-modal-box-arrow{ bottom: -8px; border-top: 8px solid #EAF6FB; }
-	&.modal-box-below .a-modal-box-arrow{ top: -8px; border-bottom: 8px solid #E8F4FC; }
+	//a small square rotated into a diamond, tucked half-behind .a-modal-box-inner (painted after it) so its opaque background hides the seam instead of the two shapes merely touching edges
+	.a-modal-box-arrow{ position: absolute; width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg); }
+	&.modal-box-above .a-modal-box-arrow{ bottom: 0; margin-bottom: -6px; background: #EAF6FB; }
+	&.modal-box-below .a-modal-box-arrow{ top: 0; margin-top: -6px; background: #E8F4FC; }
 	&.modal-box-nudge{ animation: modal-box-nudge 0.4s ease; }
+	&.modal-box-emphasized{ filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.6)); }
+	&.modal-box-flatten-top-left{ border-top-left-radius: 0; }
+	&.modal-box-flatten-top-right{ border-top-right-radius: 0; }
+	&.modal-box-flatten-bottom-left{ border-bottom-left-radius: 0; }
+	&.modal-box-flatten-bottom-right{ border-bottom-right-radius: 0; }
 }
 .mobile_version .a-modal-box{ max-width: 220px; }
 @keyframes modal-box-nudge{

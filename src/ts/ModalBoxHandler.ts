@@ -3,6 +3,7 @@ import { Game } from "./Game";
 const GAP_TO_TARGET = 10;
 const VIEWPORT_MARGIN = 8;
 const ARROW_HALF_WIDTH = 8;
+const BOX_BORDER_RADIUS = 10;
 
 export class ModalBoxHandler{
     private boxElement: HTMLDivElement;
@@ -16,18 +17,20 @@ export class ModalBoxHandler{
         private targetElement: HTMLElement,
         contentHTML: string,
         shouldNudge: boolean = false,
+        emphasized: boolean = false,
         private destroyAfter: boolean = false,
         loadingBarDuration: number | null = null,
         onExpire?: () => void
     ) {
         this.boxElement = document.createElement('div');
         this.boxElement.className = 'a-modal-box';
+        this.boxElement.classList.toggle('modal-box-emphasized', emphasized);
         this.boxElement.innerHTML = `
+            <div class="a-modal-box-arrow"></div>
             <div class="a-modal-box-inner">
                 ${loadingBarDuration !== null && loadingBarDuration >= 0 ? '<div class="a-modal-box-loading-bar"></div>' : ''}
                 <div class="a-modal-box-content">${contentHTML}</div>
             </div>
-            <div class="a-modal-box-arrow"></div>
         `;
         this.arrowElement = this.boxElement.querySelector('.a-modal-box-arrow');
         this.loadingBarElement = this.boxElement.querySelector('.a-modal-box-loading-bar');
@@ -98,6 +101,14 @@ export class ModalBoxHandler{
 
         const arrowLeft = Math.max(ARROW_HALF_WIDTH, Math.min(targetCenterX - left, boxRect.width - ARROW_HALF_WIDTH));
         this.arrowElement.style.left = `${arrowLeft}px`;
+
+        const nearLeftCorner = (arrowLeft - ARROW_HALF_WIDTH) < BOX_BORDER_RADIUS;
+        const nearRightCorner = (arrowLeft + ARROW_HALF_WIDTH) > (boxRect.width - BOX_BORDER_RADIUS);
+
+        this.boxElement.classList.toggle('modal-box-flatten-top-left', !placeAbove && nearLeftCorner);
+        this.boxElement.classList.toggle('modal-box-flatten-top-right', !placeAbove && nearRightCorner);
+        this.boxElement.classList.toggle('modal-box-flatten-bottom-left', placeAbove && nearLeftCorner);
+        this.boxElement.classList.toggle('modal-box-flatten-bottom-right', placeAbove && nearRightCorner);
     }
 
     public destroy(): void {

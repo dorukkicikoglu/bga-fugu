@@ -75,7 +75,7 @@ export class AnchorCardsDisplayHandler extends CardIconDisplayHandler{
 
     const contentHTML = `${_('You can display Anchored Cards again from this menu')}<br><span class="modal-box-undo-link">${_('Undo')}</span>`;
 
-    this.hideConfirmationBox = new ModalBoxHandler(this.game, menuWheel, contentHTML, true, true, HIDE_CONFIRMATION_BOX_DURATION_MS, () => {
+    this.hideConfirmationBox = new ModalBoxHandler(this.game, menuWheel, contentHTML, true, true, true, HIDE_CONFIRMATION_BOX_DURATION_MS, () => {
       this.hideConfirmationBox = null;
     });
 
