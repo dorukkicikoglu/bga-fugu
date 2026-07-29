@@ -173,10 +173,6 @@ class PlayerTurn {
             return true;
         if (deckLength - cardRank < numberOfCardsInHand - handLocation) //each card lower than this card would have a space on the left
             return true;
-        // if(cardRank == 1 && handLocation > 1) //place 1 to beginning
-        //     return true;
-        // if(cardRank == this.bga.gameui.gamedatas.deckLength && handLocation < numberOfCardsInHand) //place highest card to the end
-        //     return true; //ekmek sil
         const shouldBePlacedAt = Math.ceil((cardRank / deckLength) * numberOfCardsInHand);
         const offset = Math.abs(shouldBePlacedAt - handLocation);
         const rankDistanceToEdge = Math.min(shouldBePlacedAt - 1, numberOfCardsInHand - shouldBePlacedAt);
@@ -1100,7 +1096,7 @@ class PrefHandler {
         this.game = game;
         this.prefNameToIndex = prefNameToIndex;
         this.game.bga.userPreferences.onChange = (prefIndex, prefValue) => this.onGameUserPreferenceChanged(prefIndex, prefValue);
-        for (const prefName of ['bubble_amount', 'show_anchored_cards']) {
+        for (const prefName in this.prefNameToIndex) {
             const prefIndex = this.prefNameToIndex[prefName];
             this.onGameUserPreferenceChanged(prefIndex, this.game.bga.userPreferences.get(prefIndex));
         }
@@ -1109,10 +1105,10 @@ class PrefHandler {
     }
     onGameUserPreferenceChanged(prefIndex, prefValue) {
         switch (prefIndex) {
-            case 101:
+            case this.prefNameToIndex.bubble_amount:
                 this.game.backgroundHandler.adjustBubbleAmount(prefValue);
                 break;
-            case 102:
+            case this.prefNameToIndex.show_anchored_cards:
                 this.game.anchorCardsDisplayHandler.setPrefEnabled(prefValue === 1);
                 break;
         }
@@ -1124,6 +1120,8 @@ class PrefHandler {
                 preferenceChoice.style.display = 'none';
         });
     }
+    //game specific functions
+    disableAnchorPreference() { this.onGameUserPreferenceChanged(this.prefNameToIndex.show_anchored_cards, 0); }
 }
 
 class CardIconDisplayHandler {
@@ -1245,7 +1243,12 @@ class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
     getTitleText() { return _('Anchored Cards'); }
     getIconClass() { return 'anchored-card-icon'; }
     getHideLink() {
-        return { linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>', onClick: () => this.game.bga.userPreferences.set(102, 0) };
+        return {
+            linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>',
+            onClick: () => {
+                this.game.prefHandler.disableAnchorPreference();
+            }
+        };
     }
 }
 

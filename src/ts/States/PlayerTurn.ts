@@ -119,10 +119,6 @@ export class PlayerTurn {
             return true;
         if(deckLength - cardRank < numberOfCardsInHand - handLocation) //each card lower than this card would have a space on the left
             return true;
-        // if(cardRank == 1 && handLocation > 1) //place 1 to beginning
-        //     return true;
-        // if(cardRank == this.bga.gameui.gamedatas.deckLength && handLocation < numberOfCardsInHand) //place highest card to the end
-        //     return true; //ekmek sil
 
         const shouldBePlacedAt = Math.ceil((cardRank / deckLength) * numberOfCardsInHand);
         const offset = Math.abs(shouldBePlacedAt - handLocation);

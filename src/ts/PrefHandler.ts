@@ -2,10 +2,10 @@ import { Game } from "./Game";
 
 export class PrefHandler{
 
-    constructor(private game: Game, private prefNameToIndex: Record<string, number>) {
+    constructor(private game: Game, private prefNameToIndex: GamePrefs) {
         this.game.bga.userPreferences.onChange = (prefIndex, prefValue) => this.onGameUserPreferenceChanged(prefIndex, prefValue);
 
-        for(const prefName of ['bubble_amount', 'show_anchored_cards']){
+        for(const prefName in this.prefNameToIndex){
             const prefIndex = this.prefNameToIndex[prefName];
             this.onGameUserPreferenceChanged(prefIndex, this.game.bga.userPreferences.get(prefIndex));
         }
@@ -16,10 +16,10 @@ export class PrefHandler{
 
     private onGameUserPreferenceChanged(prefIndex: number, prefValue: number): void{
         switch (prefIndex) {
-            case 101:
+            case this.prefNameToIndex.bubble_amount:
                 this.game.backgroundHandler.adjustBubbleAmount(prefValue);
             break;
-            case 102:
+            case this.prefNameToIndex.show_anchored_cards:
                 this.game.anchorCardsDisplayHandler.setPrefEnabled(prefValue === 1);
             break;
         }
@@ -32,4 +32,10 @@ export class PrefHandler{
                 preferenceChoice.style.display = 'none';
         });
     }
+
+    //game specific functions
+    
+    public disableAnchorPreference(){ this.onGameUserPreferenceChanged(this.prefNameToIndex.show_anchored_cards, 0); }
+    
+    //end game specific functions
 }

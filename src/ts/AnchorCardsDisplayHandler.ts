@@ -21,6 +21,11 @@ export class AnchorCardsDisplayHandler extends CardIconDisplayHandler{
   protected getIconClass(): string{ return 'anchored-card-icon'; }
 
   protected getHideLink(){
-    return { linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>', onClick: () => this.game.bga.userPreferences.set(102, 0) };
+    return { 
+      linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>', 
+      onClick: () =>{
+        this.game.prefHandler.disableAnchorPreference();
+      }
+    };
   }
 }

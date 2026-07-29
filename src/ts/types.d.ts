@@ -11,7 +11,7 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     endGameScoring: EndGameScoreData;
     deckLength: number;
     isSoloExpertDifficulty: boolean;
-    pref_names: Record<string, number>;
+    pref_names: GamePrefs;
     discardedCards: CardInDiscard[];
     anchoredCards: CardInDiscard[];
 }
@@ -57,6 +57,11 @@ interface CoralCounts{
     pinkCount: number;
     greenCount: number;
     yellowCount: number;
+}
+
+interface GamePrefs{
+    bubble_amount: number;
+    show_anchored_cards: number;
 }
 
 interface PlayerScore{

@@ -26,7 +26,7 @@ export class Game {
     public logMutationObserver: LogMutationObserver;
     private endGameScoringHandler: EndGameScoringHandler;
     private tooltipHandler: TooltipHandler;
-    private prefHandler: PrefHandler;
+    public prefHandler: PrefHandler;
     public backgroundHandler: BackgroundHandler;
     public soloDiscardDisplayHandler: SoloDiscardDisplayHandler;
     public anchorCardsDisplayHandler: AnchorCardsDisplayHandler;
