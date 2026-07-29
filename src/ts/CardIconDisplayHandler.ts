@@ -14,6 +14,7 @@ export abstract class CardIconDisplayHandler{
   protected abstract getTitleClass(): string;
   protected abstract getTitleText(): string;
   protected abstract getIconClass(): string;
+  protected getHideLink(): { linkHTML: string; onClick: () => void } | null{ return null; }
 
   //re-evaluates shouldDisplay() and creates/tears down the container accordingly; subclasses must call
   //this once after their own construction is complete, and again whenever shouldDisplay()'s inputs change (eg. a preference)
@@ -42,6 +43,15 @@ export abstract class CardIconDisplayHandler{
     this.iconsContainer.id = this.getContainerId();
     this.iconsContainer.classList.add('card-icons-display');
     this.iconsContainer.innerHTML = `<div class="container-title ${this.getTitleClass()}">${this.getTitleText()}</div>`;
+
+    const hideLink = this.getHideLink();
+    if(hideLink){
+      const hideLinkElement = document.createElement('div');
+      hideLinkElement.className = 'hide-cards-link';
+      hideLinkElement.innerHTML = hideLink.linkHTML;
+      hideLinkElement.addEventListener('click', hideLink.onClick);
+      this.iconsContainer.appendChild(hideLinkElement);
+    }
 
     playerHandsContainer.appendChild(this.iconsContainer);
     this.updateContainerOpacity();

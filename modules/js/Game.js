@@ -1132,6 +1132,7 @@ class CardIconDisplayHandler {
         this.isDisplaying = false;
         this.cards = [...initialCards];
     }
+    getHideLink() { return null; }
     //re-evaluates shouldDisplay() and creates/tears down the container accordingly; subclasses must call
     //this once after their own construction is complete, and again whenever shouldDisplay()'s inputs change (eg. a preference)
     refreshDisplay() {
@@ -1154,6 +1155,14 @@ class CardIconDisplayHandler {
         this.iconsContainer.id = this.getContainerId();
         this.iconsContainer.classList.add('card-icons-display');
         this.iconsContainer.innerHTML = `<div class="container-title ${this.getTitleClass()}">${this.getTitleText()}</div>`;
+        const hideLink = this.getHideLink();
+        if (hideLink) {
+            const hideLinkElement = document.createElement('div');
+            hideLinkElement.className = 'hide-cards-link';
+            hideLinkElement.innerHTML = hideLink.linkHTML;
+            hideLinkElement.addEventListener('click', hideLink.onClick);
+            this.iconsContainer.appendChild(hideLinkElement);
+        }
         playerHandsContainer.appendChild(this.iconsContainer);
         this.updateContainerOpacity();
         for (const cardData of this.cards)
@@ -1235,6 +1244,9 @@ class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
     getTitleClass() { return 'anchored-cards-title'; }
     getTitleText() { return _('Anchored Cards'); }
     getIconClass() { return 'anchored-card-icon'; }
+    getHideLink() {
+        return { linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>', onClick: () => this.game.bga.userPreferences.set(102, 0) };
+    }
 }
 
 class Game {
@@ -1423,6 +1435,7 @@ class Game {
     capitalizeFirstLetter(str) { return `${str[0].toUpperCase()}${str.slice(1)}`; }
     updateStatusText(statusText) { $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
     getGameStateName() { return this.gamedatas.gamestate.name; }
+    //end utility
     /**
      * Sets up auto-click functionality for a button after a timeout period
      * @param button - The button HTML element to auto-click

@@ -71,8 +71,11 @@ body.desktop_version{
 }
 
 .card-icons-display{ position: relative; transition: opacity 500ms; opacity: 0; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: 32px; padding: 30px 0px 10px 0px;
-    .discarded-cards-title, .anchored-cards-title{ color: #1a1b52; }
+    .discarded-cards-title, .anchored-cards-title, .hide-cards-link{ color: #1a1b52; }
     .discarded-card-icon, .anchored-card-icon{ margin: -17px 4px 5px 4px; }
+    .hide-cards-link{ position: absolute; top: 0px; right: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; font-size: 14px; cursor: pointer; @include text-shade(#f0f0f0, 2px); @include non-selectable();
+        &:hover{ opacity: 0.7; }
+    }
 }
 
 .mobile_version #player-hands-container .a-hand-container .cards-container{

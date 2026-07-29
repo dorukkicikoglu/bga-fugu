@@ -239,6 +239,9 @@ export class Game {
     public capitalizeFirstLetter(str: string): string { return `${str[0].toUpperCase()}${str.slice(1)}`; }
     public updateStatusText(statusText): void{ $('gameaction_status').innerHTML = statusText; $('pagemaintitletext').innerHTML = statusText; }
     public getGameStateName(): string { return this.gamedatas.gamestate.name; }
+
+    //end utility
+
     /**
      * Sets up auto-click functionality for a button after a timeout period
      * @param button - The button HTML element to auto-click
