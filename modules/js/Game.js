@@ -2,15 +2,16 @@ const GAP_TO_TARGET = 10;
 const VIEWPORT_MARGIN = 8;
 const ARROW_HALF_WIDTH = 8;
 class ModalBoxHandler {
-    constructor(game, targetElement, contentHTML, shouldNudge = false, loadingBarDurationMs = null, onLoadingBarComplete) {
+    constructor(game, targetElement, contentHTML, shouldNudge = false, destroyAfter = false, loadingBarDuration = null, onExpire) {
         this.game = game;
         this.targetElement = targetElement;
+        this.destroyAfter = destroyAfter;
         this.loadingBarTimeout = null;
         this.boxElement = document.createElement('div');
         this.boxElement.className = 'a-modal-box';
         this.boxElement.innerHTML = `
             <div class="a-modal-box-inner">
-                ${loadingBarDurationMs !== null ? '<div class="a-modal-box-loading-bar"></div>' : ''}
+                ${loadingBarDuration !== null && loadingBarDuration >= 0 ? '<div class="a-modal-box-loading-bar"></div>' : ''}
                 <div class="a-modal-box-content">${contentHTML}</div>
             </div>
             <div class="a-modal-box-arrow"></div>
@@ -24,11 +25,11 @@ class ModalBoxHandler {
         if (shouldNudge)
             this.nudge();
         setTimeout(() => {
-            this.startLoadingBar(loadingBarDurationMs, onLoadingBarComplete);
+            this.startLoadingBar(loadingBarDuration, onExpire);
         }, shouldNudge ? 80 : 0);
     }
-    startLoadingBar(durationMs, onComplete) {
-        if (!this.loadingBarElement)
+    startLoadingBar(durationMs, onExpire) {
+        if (!this.loadingBarElement || durationMs === null)
             return;
         this.loadingBarElement.style.transitionDuration = `${durationMs}ms`;
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -37,17 +38,12 @@ class ModalBoxHandler {
         }));
         this.loadingBarTimeout = setTimeout(() => {
             this.loadingBarTimeout = null;
-            this.hideLoadingBar();
-            onComplete?.();
+            onExpire?.();
+            if (this.destroyAfter)
+                this.destroy();
         }, durationMs);
     }
-    hideLoadingBar() {
-        if (!this.loadingBarElement)
-            return;
-        this.loadingBarElement.style.transitionProperty = 'opacity';
-        this.loadingBarElement.style.transitionDuration = '250ms';
-        this.loadingBarElement.style.opacity = '0';
-    }
+    getElement() { return this.boxElement; }
     nudge() {
         this.boxElement.classList.remove('modal-box-nudge');
         void this.boxElement.offsetWidth; // restart the animation if it's already running
@@ -76,7 +72,10 @@ class ModalBoxHandler {
         window.removeEventListener('resize', this.resizeListener);
         if (this.loadingBarTimeout)
             clearTimeout(this.loadingBarTimeout);
-        this.boxElement.remove();
+        const fadeOutTime = 300;
+        this.boxElement.style.transition = `opacity ${fadeOutTime}ms ease`;
+        this.boxElement.style.opacity = '0';
+        setTimeout(() => { this.boxElement.remove(); }, fadeOutTime);
     }
 }
 
@@ -151,7 +150,7 @@ class PlayerTurn {
             .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
             .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
         this.swapButton.disabled = true;
-        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
+        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, false, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
             this.swapButton.disabled = false;
         });
     }
@@ -1121,7 +1120,8 @@ class PrefHandler {
         });
     }
     //game specific functions
-    disableAnchorPreference() { this.onGameUserPreferenceChanged(this.prefNameToIndex.show_anchored_cards, 0); }
+    disableAnchorPreference() { this.game.bga.userPreferences.set(this.prefNameToIndex.show_anchored_cards, 0); }
+    enableAnchorPreference() { this.game.bga.userPreferences.set(this.prefNameToIndex.show_anchored_cards, 1); }
 }
 
 class CardIconDisplayHandler {
@@ -1227,10 +1227,15 @@ class SoloDiscardDisplayHandler extends CardIconDisplayHandler {
     getIconClass() { return 'discarded-card-icon'; }
 }
 
+const HIDE_CONFIRMATION_BOX_DURATION_MS = 5000;
+const PRE_SCROLL_DELAY_MS = 300;
+const SCROLL_TO_TOP_DURATION_MS = 400;
+const POST_SCROLL_DELAY_MS = 100;
 class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
     constructor(game, initialCards) {
         super(game, initialCards);
         this.prefEnabled = false;
+        this.hideConfirmationBox = null;
         this.refreshDisplay();
     }
     setPrefEnabled(enabled) {
@@ -1247,8 +1252,48 @@ class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
             linkHTML: '<u>' + _('Hide') + '</u> &nbsp; <i class="fa6 fa-times-circle"></i>',
             onClick: () => {
                 this.game.prefHandler.disableAnchorPreference();
+                this.game.bga.gameui.wait(PRE_SCROLL_DELAY_MS)
+                    .then(() => this.scrollToTop(SCROLL_TO_TOP_DURATION_MS))
+                    .then(() => this.game.bga.gameui.wait(POST_SCROLL_DELAY_MS))
+                    .then(() => this.showHideConfirmationBox());
             }
         };
+    }
+    scrollToTop(durationMs) {
+        return new Promise(resolve => {
+            const startY = window.scrollY;
+            if (startY === 0) {
+                resolve();
+                return;
+            }
+            const startTime = performance.now();
+            const step = (now) => {
+                const progress = Math.min((now - startTime) / durationMs, 1);
+                const eased = 1 - Math.pow(1 - progress, 2);
+                window.scrollTo(0, startY * (1 - eased));
+                if (progress < 1)
+                    requestAnimationFrame(step);
+                else
+                    resolve();
+            };
+            requestAnimationFrame(step);
+        });
+    }
+    showHideConfirmationBox() {
+        this.hideConfirmationBox?.destroy();
+        this.hideConfirmationBox = null;
+        const menuWheel = document.querySelector('#ingame_menu_wheel');
+        if (!menuWheel)
+            return;
+        const contentHTML = `${_('You can display Anchored Cards again from this menu')}<br><span class="modal-box-undo-link">${_('Undo')}</span>`;
+        this.hideConfirmationBox = new ModalBoxHandler(this.game, menuWheel, contentHTML, true, true, HIDE_CONFIRMATION_BOX_DURATION_MS, () => {
+            this.hideConfirmationBox = null;
+        });
+        this.hideConfirmationBox.getElement().querySelector('.modal-box-undo-link').addEventListener('click', () => {
+            this.game.prefHandler.enableAnchorPreference();
+            this.hideConfirmationBox?.destroy();
+            this.hideConfirmationBox = null;
+        });
     }
 }
 

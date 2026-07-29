@@ -940,7 +940,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 
 .a-modal-box {
   position: absolute;
-  z-index: 500;
+  z-index: 1200;
   max-width: 240px;
   border-radius: 10px;
   background: radial-gradient(ellipse farthest-corner at right bottom, #E8F4FC 0%, #D6EAF8 8%, #C9E4F5 25%, #EAF6FB 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #F4FBFF 8%, #DCEEFA 25%, #B8DCEF 62.5%, #A9C9D9 100%);
@@ -966,6 +966,18 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   line-height: 1.35;
   text-align: center;
   color: #1c2b3a;
+}
+.a-modal-box .a-modal-box-content .modal-box-undo-link {
+  float: right;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  text-decoration: underline;
+  font-weight: bold;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.a-modal-box .a-modal-box-content .modal-box-undo-link:hover {
+  opacity: 0.7;
 }
 .a-modal-box .a-modal-box-arrow {
   position: absolute;

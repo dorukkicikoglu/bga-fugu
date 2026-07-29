@@ -35,7 +35,8 @@ export class PrefHandler{
 
     //game specific functions
     
-    public disableAnchorPreference(){ this.onGameUserPreferenceChanged(this.prefNameToIndex.show_anchored_cards, 0); }
+    public disableAnchorPreference(){ this.game.bga.userPreferences.set(this.prefNameToIndex.show_anchored_cards, 0); }
+    public enableAnchorPreference(){ this.game.bga.userPreferences.set(this.prefNameToIndex.show_anchored_cards, 1); }
     
     //end game specific functions
 }

@@ -92,7 +92,7 @@ export class PlayerTurn {
 
         this.swapButton.disabled = true;
 
-        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
+        this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, false, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
             this.swapButton.disabled = false;
         });
     }

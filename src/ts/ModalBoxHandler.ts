@@ -16,14 +16,15 @@ export class ModalBoxHandler{
         private targetElement: HTMLElement,
         contentHTML: string,
         shouldNudge: boolean = false,
-        loadingBarDurationMs: number | null = null,
-        onLoadingBarComplete?: () => void
+        private destroyAfter: boolean = false,
+        loadingBarDuration: number | null = null,
+        onExpire?: () => void
     ) {
         this.boxElement = document.createElement('div');
         this.boxElement.className = 'a-modal-box';
         this.boxElement.innerHTML = `
             <div class="a-modal-box-inner">
-                ${loadingBarDurationMs !== null ? '<div class="a-modal-box-loading-bar"></div>' : ''}
+                ${loadingBarDuration !== null && loadingBarDuration >= 0 ? '<div class="a-modal-box-loading-bar"></div>' : ''}
                 <div class="a-modal-box-content">${contentHTML}</div>
             </div>
             <div class="a-modal-box-arrow"></div>
@@ -40,13 +41,13 @@ export class ModalBoxHandler{
         if(shouldNudge)
             this.nudge();
 
-        setTimeout(() => { 
-            this.startLoadingBar(loadingBarDurationMs, onLoadingBarComplete); }, 
+        setTimeout(() => {
+            this.startLoadingBar(loadingBarDuration, onExpire); },
         shouldNudge ? 80 : 0);
     }
 
-    private startLoadingBar(durationMs: number, onComplete?: () => void): void {
-        if(!this.loadingBarElement)
+    private startLoadingBar(durationMs: number | null, onExpire?: () => void): void {
+        if(!this.loadingBarElement || durationMs === null)
             return;
 
         this.loadingBarElement.style.transitionDuration = `${durationMs}ms`;
@@ -58,19 +59,14 @@ export class ModalBoxHandler{
 
         this.loadingBarTimeout = setTimeout(() => {
             this.loadingBarTimeout = null;
-            this.hideLoadingBar();
-            onComplete?.();
+            onExpire?.();
+
+            if(this.destroyAfter) 
+                this.destroy();
         }, durationMs);
     }
 
-    private hideLoadingBar(): void {
-        if(!this.loadingBarElement)
-            return;
-
-        this.loadingBarElement.style.transitionProperty = 'opacity';
-        this.loadingBarElement.style.transitionDuration = '250ms';
-        this.loadingBarElement.style.opacity = '0';
-    }
+    public getElement(): HTMLDivElement{ return this.boxElement; }
 
     public nudge(): void {
         this.boxElement.classList.remove('modal-box-nudge');
@@ -110,6 +106,9 @@ export class ModalBoxHandler{
         if(this.loadingBarTimeout)
             clearTimeout(this.loadingBarTimeout);
 
-        this.boxElement.remove();
+        const fadeOutTime = 300;
+        this.boxElement.style.transition = `opacity ${fadeOutTime}ms ease`;
+        this.boxElement.style.opacity = '0';
+        setTimeout(() => { this.boxElement.remove(); }, fadeOutTime);
     }
 }
