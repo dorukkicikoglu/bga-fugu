@@ -183,12 +183,7 @@ class PlayerTurn {
         const shouldBePlacedAt = Math.ceil((cardRank / deckLength) * numberOfCardsInHand);
         const offset = Math.abs(shouldBePlacedAt - handLocation);
         const rankDistanceToEdge = Math.min(shouldBePlacedAt - 1, numberOfCardsInHand - shouldBePlacedAt);
-        console.log('---------');
-        console.log('rankDistanceToEdge', rankDistanceToEdge);
-        console.log('shouldBePlacedAt', shouldBePlacedAt);
-        console.log('offset', offset);
         const maxDistance = (rankDistanceToEdge <= 3) ? 2 : 3;
-        console.log('maxDistance', maxDistance);
         return offset > maxDistance;
     }
     getSwapButton() { return this.swapButton; }
@@ -202,6 +197,7 @@ class HandHandler {
         this.owner = owner;
         this.handData = handData;
         this.isMyHand = false;
+        this.mobileSpacingApplied = false;
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
@@ -225,7 +221,7 @@ class HandHandler {
         this.cardsContainer.innerHTML = ''; // Clear existing cards
         for (let cardData of this.handData)
             this.insertCardToHand(cardData);
-        this.setFacedownCountForMobileStretching();
+        this.updateMobileCardSpacing();
     }
     insertCardToHand(cardData) {
         let aCard = this.game.createCardDiv(cardData);
@@ -265,35 +261,33 @@ class HandHandler {
         cardDiv.classList.add(selectedCardClass);
         this.game.centerHandler.checkBothCardsSelected(cardDiv);
     }
-    setFacedownCountForMobileStretching() {
+    updateMobileCardSpacing() {
         if (!this.game.isMobile())
             return;
-        const newFacedownCount = this.cardsContainer.querySelectorAll('.a-card[data-state-in-hand="facedown"]').length;
-        const countInitialized = this.cardsContainer.hasAttribute('facedown-count-for-mobile-stretching');
-        if (!countInitialized) { //page load
-            this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
+        if (!this.mobileSpacingApplied) { //page load, nothing to animate from
+            this.applyMobileCardSpacing();
+            this.mobileSpacingApplied = true;
             return;
         }
         const lastTakenCard = this.cardsContainer.querySelector('.last-taken-card');
         if (!lastTakenCard)
             return;
+        //the card that was just swapped in occupied this hand slot as a facedown card a moment ago; simulate that to
+        //capture what the layout looked like right before this change, so the margin change below can be animated (FLIP)
         const lastTaken_stateInHand = lastTakenCard.getAttribute('data-state-in-hand');
         lastTakenCard.setAttribute('data-state-in-hand', 'facedown');
-        const cards = Array.from(this.cardsContainer.querySelectorAll('div.a-card'));
-        const initialMargins = [];
-        for (let i = 0; i < cards.length; i++) {
-            const computed = getComputedStyle(cards[i]);
-            initialMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
-        }
-        ;
+        const cards = Array.from(this.cardsContainer.querySelectorAll('.a-card:not(.cloned-card)'));
+        this.applyMobileCardSpacing();
+        const initialMargins = cards.map(card => {
+            const computed = getComputedStyle(card);
+            return { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        });
         lastTakenCard.setAttribute('data-state-in-hand', lastTaken_stateInHand);
-        this.cardsContainer.setAttribute('facedown-count-for-mobile-stretching', newFacedownCount.toString());
-        const afterMargins = [];
-        for (let i = 0; i < cards.length; i++) {
-            const computed = getComputedStyle(cards[i]);
-            afterMargins[i] = { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
-        }
-        ;
+        this.applyMobileCardSpacing();
+        const afterMargins = cards.map(card => {
+            const computed = getComputedStyle(card);
+            return { left: parseFloat(computed.marginLeft), right: parseFloat(computed.marginRight) };
+        });
         for (let i = 0; i < cards.length; i++) {
             cards[i].style.marginLeft = initialMargins[i].left.toString() + 'px';
             cards[i].style.marginRight = initialMargins[i].right.toString() + 'px';
@@ -305,14 +299,38 @@ class HandHandler {
                 cards[i].style.transition = `margin ${slidingTime}ms ease`;
                 cards[i].style.marginLeft = afterMargins[i].left.toString() + 'px';
                 cards[i].style.marginRight = afterMargins[i].right.toString() + 'px';
-                setTimeout(() => {
-                    cards[i].style.marginLeft = null;
-                    cards[i].style.marginRight = null;
-                    cards[i].style.transition = null;
-                }, slidingTime);
             }, 10);
         }
         ;
+        //once the slide finishes, swap the px snapshot back out for freshly computed %-based margins (there's no CSS
+        //fallback to hand off to anymore, and % keeps the spacing correct if the container gets resized later)
+        setTimeout(() => {
+            cards.forEach(card => card.style.transition = null);
+            this.applyMobileCardSpacing();
+        }, 10 + slidingTime);
+    }
+    //computes margin-left/margin-right for every card so the row spans MOBILE_HAND_SPAN_PERCENT of the container width,
+    //split so facedown cards absorb most of the overlap and faceup cards stay more visible (FACEDOWN_TO_FACEUP_OVERLAP_RATIO).
+    //margin-left is always 0% and the last card's margin-right is always 0%, so the visible span runs exactly from the
+    //first card's left edge to the last card's right edge and stays centered no matter which card is first or last
+    applyMobileCardSpacing() {
+        const cards = Array.from(this.cardsContainer.querySelectorAll('.a-card:not(.cloned-card)'));
+        if (cards.length === 0)
+            return;
+        const containerWidth = this.cardsContainer.getBoundingClientRect().width;
+        const cardWidthPercent = (cards[0].getBoundingClientRect().width / containerWidth) * 100;
+        const isFacedown = (card) => card.getAttribute('data-state-in-hand') === 'facedown';
+        const gapCards = cards.slice(0, -1); //every card but the last pulls its next sibling closer via margin-right
+        const facedownGapCount = gapCards.filter(isFacedown).length;
+        const faceupGapCount = gapCards.length - facedownGapCount;
+        const requiredOverlapPercent = HandHandler.MOBILE_HAND_SPAN_PERCENT - cards.length * cardWidthPercent;
+        const spreadDenominator = HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO * facedownGapCount + faceupGapCount;
+        const faceupMarginPercent = spreadDenominator !== 0 ? requiredOverlapPercent / spreadDenominator : 0;
+        const facedownMarginPercent = faceupMarginPercent * HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO;
+        cards.forEach((card, i) => {
+            card.style.marginLeft = '0%';
+            card.style.marginRight = (i === cards.length - 1) ? '0%' : `${(isFacedown(card) ? facedownMarginPercent : faceupMarginPercent).toFixed(3)}%`;
+        });
     }
     setMyHand(isMyHand) {
         this.isMyHand = isMyHand;
@@ -320,6 +338,8 @@ class HandHandler {
     }
     getHandContainer() { return this.handContainer; }
 }
+HandHandler.MOBILE_HAND_SPAN_PERCENT = 99; //cards should span 98%-100% of the container's width
+HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO = 1.8; //facedown cards can overlap more since they don't need to stay readable
 
 class PlayerHandler {
     constructor(game, playerID, playerName, playerColor, playerNo, playerHandData, game_ended, scoringData) {
@@ -442,7 +462,7 @@ class PlayerHandler {
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
-        centerCardClone.classList.add('last-taken-card'); //this class is needed in setFacedownCountForMobileStretching
+        centerCardClone.classList.add('last-taken-card'); //this class is needed in HandHandler.updateMobileCardSpacing
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
         centerContainer.style.zIndex = null;
@@ -1554,7 +1574,7 @@ class Game {
         const swapData = args.swapData;
         const swappingPlayer = this.players[swapData.player_id];
         await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
-        swappingPlayer.getHand().setFacedownCountForMobileStretching();
+        swappingPlayer.getHand().updateMobileCardSpacing();
         if (swapData.newStateInHand === 'anchor')
             this.anchorCardsDisplayHandler.insertCardIcon(swapData.cardInCenter);
         this.tooltipHandler.addTooltipToCards();

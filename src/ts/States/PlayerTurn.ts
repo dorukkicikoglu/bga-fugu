@@ -124,12 +124,7 @@ export class PlayerTurn {
         const offset = Math.abs(shouldBePlacedAt - handLocation);
 
         const rankDistanceToEdge = Math.min(shouldBePlacedAt - 1, numberOfCardsInHand - shouldBePlacedAt);
-        console.log('---------');
-        console.log('rankDistanceToEdge', rankDistanceToEdge);
-        console.log('shouldBePlacedAt', shouldBePlacedAt);
-        console.log('offset', offset);
         const maxDistance = (rankDistanceToEdge <= 3) ? 2 : 3;
-        console.log('maxDistance', maxDistance);
 
         return offset > maxDistance;
     }

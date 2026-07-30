@@ -79,33 +79,7 @@ body.desktop_version{
 }
 
 .mobile_version #player-hands-container .a-hand-container .cards-container{
-    &[facedown-count-for-mobile-stretching="18"]{ --horz-stretch-facedown: -0.345; --horz-stretch-faceup: 0; }
-    &[facedown-count-for-mobile-stretching="17"]{ --horz-stretch-facedown: -0.365; --horz-stretch-faceup: 0.24; }
-    &[facedown-count-for-mobile-stretching="16"]{ --horz-stretch-facedown: -0.37; --horz-stretch-faceup: 0.07; }
-    &[facedown-count-for-mobile-stretching="15"]{ --horz-stretch-facedown: -0.37; --horz-stretch-faceup: -0.1; }
-    &[facedown-count-for-mobile-stretching="14"]{ --horz-stretch-facedown: -0.38; --horz-stretch-faceup: -0.12; }
-    &[facedown-count-for-mobile-stretching="13"]{ --horz-stretch-facedown: -0.385; --horz-stretch-faceup: -0.13; }
-    &[facedown-count-for-mobile-stretching="12"]{ --horz-stretch-facedown: -0.39;  --horz-stretch-faceup: -0.135; }
-    &[facedown-count-for-mobile-stretching="11"]{ --horz-stretch-facedown: -0.393; --horz-stretch-faceup: -0.14; }
-    &[facedown-count-for-mobile-stretching="10"]{ --horz-stretch-facedown: -0.396; --horz-stretch-faceup: -0.173; }
-    &[facedown-count-for-mobile-stretching="9"]{  --horz-stretch-facedown: -0.397; --horz-stretch-faceup: -0.2; }
-    &[facedown-count-for-mobile-stretching="8"]{  --horz-stretch-facedown: -0.398; --horz-stretch-faceup: -0.215; }
-    &[facedown-count-for-mobile-stretching="7"]{  --horz-stretch-facedown: -0.399; --horz-stretch-faceup: -0.23; }
-    &[facedown-count-for-mobile-stretching="6"]{  --horz-stretch-facedown: -0.399; --horz-stretch-faceup: -0.245; }
-    &[facedown-count-for-mobile-stretching="5"]{  --horz-stretch-facedown: -0.395;   --horz-stretch-faceup: -0.26; }
-    &[facedown-count-for-mobile-stretching="4"]{  --horz-stretch-facedown: -0.395;   --horz-stretch-faceup: -0.275; }
-    &[facedown-count-for-mobile-stretching="3"]{  --horz-stretch-facedown: -0.39;   --horz-stretch-faceup: -0.29; }
-    &[facedown-count-for-mobile-stretching="2"]{  --horz-stretch-facedown: -0.385;   --horz-stretch-faceup: -0.305; }
-    &[facedown-count-for-mobile-stretching="1"]{  --horz-stretch-facedown: -0.37;   --horz-stretch-faceup: -0.32; }
-    &[facedown-count-for-mobile-stretching="0"]{  --horz-stretch-facedown: -0.37;      --horz-stretch-faceup: -0.32; }
-
-    &[facedown-count-for-mobile-stretching]{
-        .a-card{ 
-            &[data-state-in-hand="facedown"]{ margin-right: calc(var(--my-card-width) * var(--horz-stretch-facedown)); margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown)); }
-            &:not(&[data-state-in-hand="facedown"]){ margin-right: calc(var(--my-card-width) * var(--horz-stretch-faceup)); margin-left: calc(var(--my-card-width) * var(--horz-stretch-facedown)); }
-        }
-    }
-
+    // horizontal margins for mobile card overlap are computed and applied inline by HandHandler (see updateMobileCardSpacing)
     .a-card:not(.cloned-card):nth-child(even of .a-card:not(.cloned-card)) { margin-top: calc(var(--my-card-width) * 0.4); }
 }
 

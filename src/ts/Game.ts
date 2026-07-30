@@ -314,7 +314,7 @@ export class Game {
         const swappingPlayer: PlayerHandler = this.players[swapData.player_id];
 
         await swappingPlayer.animateCardSwap(swapData.handCardLocation, swapData.cardInCenter, swapData.cardInHand, swapData.newStateInHand);
-        swappingPlayer.getHand().setFacedownCountForMobileStretching();
+        swappingPlayer.getHand().updateMobileCardSpacing();
 
         if(swapData.newStateInHand === 'anchor')
             this.anchorCardsDisplayHandler.insertCardIcon(swapData.cardInCenter);

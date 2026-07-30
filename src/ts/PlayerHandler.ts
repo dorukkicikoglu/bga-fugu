@@ -150,7 +150,7 @@ export class PlayerHandler{
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
-        centerCardClone.classList.add('last-taken-card'); //this class is needed in setFacedownCountForMobileStretching
+        centerCardClone.classList.add('last-taken-card'); //this class is needed in HandHandler.updateMobileCardSpacing
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
 
