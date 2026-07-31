@@ -1088,10 +1088,16 @@ body.mobile_version .log.center-card-replaced-log, body.mobile_version .gamelogr
 
 body.desktop_version .a-game-log .playername[player-color=ffa500] {
   text-shadow: 1px 0 #1e4b39, -1px 0 #1e4b39, 0 1px #1e4b39, 0 -1px #1e4b39, 0.5px 0.5px #1e4b39, -0.5px -0.5px #1e4b39, 0.5px -0.5px #1e4b39, -0.5px 0.5px #1e4b39;
-} /* ffa500 this color doesnt look good on the logs */
+}
+
 body.desktop_version .a-game-log .playername[player-color="008000"] {
   text-shadow: 1px 0 #c7d7d0, -1px 0 #c7d7d0, 0 1px #c7d7d0, 0 -1px #c7d7d0, 0.5px 0.5px #c7d7d0, -0.5px -0.5px #c7d7d0, 0.5px -0.5px #c7d7d0, -0.5px 0.5px #c7d7d0;
-} /* 008000 this color doesnt look good on the logs */
+}
+
+body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
+  text-shadow: 1px 0 rgba(10, 40, 35, 0.7490196078), -1px 0 rgba(10, 40, 35, 0.7490196078), 0 1px rgba(10, 40, 35, 0.7490196078), 0 -1px rgba(10, 40, 35, 0.7490196078), 0.5px 0.5px rgba(10, 40, 35, 0.7490196078), -0.5px -0.5px rgba(10, 40, 35, 0.7490196078), 0.5px -0.5px rgba(10, 40, 35, 0.7490196078), -0.5px 0.5px rgba(10, 40, 35, 0.7490196078);
+}
+
 @keyframes gentle-drift {
   0% {
     background-position: 0% 0%;

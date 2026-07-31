@@ -303,9 +303,9 @@ body.mobile_version{
     .log.swap-cards-log, .gamelogreview.swap-cards-log{ width: 100%; margin-left: 0%; }
     .log.center-card-replaced-log, .gamelogreview.center-card-replaced-log{ margin-left: 20%; margin-bottom: 0px; margin-top: 0px; }
 }
-body.desktop_version .a-game-log .playername[player-color="ffa500"]{ @include text-shade(#1e4b39, 1px); } /* ffa500 this color doesnt look good on the logs */
-body.desktop_version .a-game-log .playername[player-color="008000"]{ @include text-shade(#c7d7d0, 1px); } /* 008000 this color doesnt look good on the logs */
-
+body.desktop_version .a-game-log .playername[player-color="ffa500"]{ @include text-shade(#1e4b39, 1px); }
+body.desktop_version .a-game-log .playername[player-color="008000"]{ @include text-shade(#c7d7d0, 1px); } 
+body.desktop_version .a-game-log .playername[player-color="72c3b1"]{ @include text-shade(#0A2823BF, 1px); }
 //end logs
 
 @keyframes gentle-drift {
