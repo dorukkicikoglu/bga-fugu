@@ -703,6 +703,19 @@ class LogMutationObserver {
             </div>` + ' &nbsp;';
         return this.addLogClassTag(logHTML, 'center-card-replaced-log');
     }
+    createLogPlayerPassed(player_id) {
+        let playerNameHTML = this.game.divColoredPlayer(player_id, { class: 'playername' });
+        //add stop sign to player name div
+        playerNameHTML = playerNameHTML.slice(0, playerNameHTML.indexOf('>') + 1) + '<i class="passed-indicator fa6 fa-ban"></i>&nbsp;' + playerNameHTML.slice(playerNameHTML.indexOf('>') + 1);
+        const passText = player_id === this.game.getMyPlayerID()
+            ? _('${you} pass').replace('${you}', playerNameHTML)
+            : _('${playerName} passes').replace('${playerName}', playerNameHTML);
+        let logHTML = `
+            <div class="player-passed-row">
+                ${passText}
+            </div>` + ' &nbsp;';
+        return this.addLogClassTag(logHTML, 'player-passed-log');
+    }
 }
 
 class EndGameScoringHandler {
@@ -1422,13 +1435,15 @@ class Game {
             if (log && args && !args.processed) {
                 args.processed = true;
                 // list of special keys we want to replace with images
-                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR'];
+                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR', 'PLAYER_PASSED_STR'];
                 for (let key of keys) {
                     if (key in args) {
                         if (key == 'SWAP_NOTIF_STR')
                             log = this.logMutationObserver.createLogSwapCards(args['swapData']).log_html;
                         else if (key == 'CENTER_CARD_REPLACED_STR')
                             log = this.logMutationObserver.createLogCenterCardReplaced(args['soloCenterCardReplacement']).log_html;
+                        else if (key == 'PLAYER_PASSED_STR')
+                            log = this.logMutationObserver.createLogPlayerPassed(args['player_id']).log_html;
                     }
                 }
             }

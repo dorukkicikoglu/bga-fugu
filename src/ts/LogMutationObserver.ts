@@ -124,4 +124,22 @@ export class LogMutationObserver{
 
         return this.addLogClassTag(logHTML, 'center-card-replaced-log');
     }
+
+    public createLogPlayerPassed(player_id: number): LogRowData {
+        let playerNameHTML = this.game.divColoredPlayer(player_id, {class: 'playername'});
+        
+        //add stop sign to player name div
+        playerNameHTML = playerNameHTML.slice(0, playerNameHTML.indexOf('>') + 1) + '<i class="passed-indicator fa6 fa-ban"></i>&nbsp;' + playerNameHTML.slice(playerNameHTML.indexOf('>') + 1);
+
+        const passText = player_id === this.game.getMyPlayerID()
+            ? _('${you} pass').replace('${you}', playerNameHTML)
+            : _('${playerName} passes').replace('${playerName}', playerNameHTML);
+
+        let logHTML = `
+            <div class="player-passed-row">
+                ${passText}
+            </div>` + ' &nbsp;';
+
+        return this.addLogClassTag(logHTML, 'player-passed-log');
+    }
 }

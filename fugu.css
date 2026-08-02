@@ -1088,6 +1088,13 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   width: 24px;
   margin: 0 4px -10px 6px;
 }
+.log.player-passed-log .player-passed-row, .gamelogreview.player-passed-log .player-passed-row {
+  text-align: center;
+  color: #27271c;
+  margin-top: 5px;
+  margin-bottom: -7px;
+  font-size: 15px;
+}
 .log .log-arrow, .gamelogreview .log-arrow {
   color: #240e52;
   text-shadow: 1px 0 #c7d7d0, -1px 0 #c7d7d0, 0 1px #c7d7d0, 0 -1px #c7d7d0, 0.5px 0.5px #c7d7d0, -0.5px -0.5px #c7d7d0, 0.5px -0.5px #c7d7d0, -0.5px 0.5px #c7d7d0;

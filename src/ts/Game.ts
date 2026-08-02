@@ -127,13 +127,15 @@ export class Game {
                 args.processed = true;
 
                 // list of special keys we want to replace with images
-                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR'];
+                const keys = ['SWAP_NOTIF_STR', 'CENTER_CARD_REPLACED_STR', 'PLAYER_PASSED_STR'];
                 for(let key of keys) {
                     if(key in args) {
                         if(key == 'SWAP_NOTIF_STR')
                             log = this.logMutationObserver.createLogSwapCards(args['swapData']).log_html;
                         else if(key == 'CENTER_CARD_REPLACED_STR')
                             log = this.logMutationObserver.createLogCenterCardReplaced(args['soloCenterCardReplacement']).log_html;
+                        else if(key == 'PLAYER_PASSED_STR')
+                            log = this.logMutationObserver.createLogPlayerPassed(args['player_id']).log_html;
                     }
                 }
             }

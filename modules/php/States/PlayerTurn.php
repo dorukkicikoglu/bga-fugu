@@ -199,10 +199,13 @@ class PlayerTurn extends GameState
         $this->game->DbQuery("UPDATE `player` SET `passed` = 'yes', `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
 
         // Notify all players about the choice to pass.
-        $this->notify->all("pass", clienttranslate('${player_name} passes'), [
+        $playerPassedStr = '${player_name} passes';
+        $this->bga->notify->all("pass", '${PLAYER_PASSED_STR}', [
+            'preserve' => ['player_id'],
+            'PLAYER_PASSED_STR' => $playerPassedStr,
             "player_id" => $activePlayerId,
         ]);
-        
+    
         // at the end of the action, move to the next state
         return NextPlayer::class;
     }

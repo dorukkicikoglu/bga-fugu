@@ -308,6 +308,7 @@ body.current_player_is_active:not(.lockedInterface){
     &.swap-cards-log, &.center-card-replaced-log{ 
         .minimised-card-icon{ width: 24px; margin: 0 4px -10px 6px; }
     }
+    &.player-passed-log .player-passed-row{ text-align: center; color: #27271c; margin-top: 5px; margin-bottom: -7px; font-size: 15px; }
     .log-arrow{ color: #240e52; @include text-shade(#c7d7d0, 1px); }
 }
 body.mobile_version{
