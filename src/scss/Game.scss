@@ -127,7 +127,7 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) {
             .my-hand-title-text{ display: inline-block; }
         }
         .cards-container{ opacity: 0.9;
-            .a-card{ transform: rotate(5deg); }
+            .a-card{ transition: transform 0.3s ease; transform: rotate(5deg); }
         }
     }
 }

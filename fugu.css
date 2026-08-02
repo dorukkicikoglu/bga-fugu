@@ -607,6 +607,7 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #p
   opacity: 0.9;
 }
 body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .cards-container .a-card {
+  transition: transform 0.3s ease;
   transform: rotate(5deg);
 }
 
