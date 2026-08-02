@@ -371,6 +371,7 @@ body {
 
 #center-container {
   text-align: center;
+  min-width: max-content;
   min-height: calc(var(--card-width) * 2.6);
 }
 #center-container .a-card {
@@ -385,6 +386,18 @@ body {
   margin-right: calc(var(--card-width) * 0.4);
 }
 
+@media (min-width: 735px) and (max-width: 979.98px) {
+  .mobile_version #center-container .a-card {
+    margin-left: calc(var(--card-width) * 0.2);
+    margin-right: calc(var(--card-width) * 0.2);
+  }
+}
+@media (min-width: 485px) and (max-width: 734.98px) {
+  .mobile_version #center-container .a-card {
+    margin-left: calc(var(--card-width) * 0.1);
+    margin-right: calc(var(--card-width) * 0.1);
+  }
+}
 .container-title {
   position: absolute;
   top: 0px;
