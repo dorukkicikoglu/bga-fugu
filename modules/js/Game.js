@@ -208,7 +208,10 @@ class HandHandler {
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
             // inline HTML for brevity
             this.handContainer.innerHTML = `
-                <div class="my-hand-title">${handTitleText}</div>
+                <div class="my-hand-title">
+                    <i class="passed-indicator fa6 fa-ban"></i>
+                    <div class="my-hand-title-text">${handTitleText}</div>
+                </div>
                 <div class="cards-container"></div>
             `;
             parent.appendChild(this.handContainer);
@@ -231,7 +234,7 @@ class HandHandler {
         this.cardsContainer.appendChild(aCard);
     }
     setHandTitle(title) {
-        const titleElement = this.handContainer.querySelector('.my-hand-title');
+        const titleElement = this.handContainer.querySelector('.my-hand-title-text');
         if (titleElement)
             titleElement.textContent = title;
     }
@@ -420,7 +423,6 @@ class PlayerHandler {
             star.insertAdjacentElement('afterend', this.anchorTextDiv);
             this.anchorTextDiv.insertAdjacentHTML('afterend', '<i class="fa6 fa-anchor"></i>');
         }
-        this.setGameEnded(this.game_ended);
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {
             value: this.scoringData['totalScore'],
@@ -430,11 +432,23 @@ class PlayerHandler {
         this.createCoralCounterContainer();
         this.displayCoralIcons();
         this.hand = new HandHandler(this.game, this, this.playerHandData);
+        this.setGameEnded(this.game_ended);
     }
     setGameEnded(gameEnded) {
         this.game_ended = gameEnded;
-        if (gameEnded) //in solo mode, no need to darken player board
-            this.overallPlayerBoard.classList.add('game-ended-player-board');
+        if (!gameEnded)
+            return;
+        let everyoneEnded = true;
+        for (let player_id in this.game.players) { //if all players have ended the game, no need to darken player controls
+            if (!this.game.players[player_id].game_ended) {
+                everyoneEnded = false;
+                break;
+            }
+        }
+        if (everyoneEnded)
+            return;
+        this.overallPlayerBoard.classList.add('game-ended-player-board');
+        this.hand.getHandContainer().classList.add('game-ended-player-hand');
     }
     updateScoring(updatedScoring) {
         this.scoringData = updatedScoring;

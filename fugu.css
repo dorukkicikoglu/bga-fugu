@@ -431,6 +431,9 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
+#player-hands-container .a-hand-container .my-hand-title .passed-indicator {
+  display: none;
+}
 #player-hands-container .a-hand-container .cards-container .a-card {
   display: inline-block;
   vertical-align: top;
@@ -521,13 +524,6 @@ body {
   background: linear-gradient(148deg, #2e1a3d 59%, #6b2d5c) no-repeat border-box;
 }
 
-body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-content:not(.gamestate_gameEnd) .player-board.game-ended-player-board {
-  background-color: #ba9c79;
-}
-body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-content:not(.gamestate_gameEnd) .player-board.game-ended-player-board .player_score_value {
-  text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
-}
-
 .player-board .anchor-text {
   display: inline-block;
   margin-left: 3px;
@@ -575,6 +571,30 @@ body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-conte
 }
 .player-board .coral-counter-container .coral-counter:nth-child(2) .coral-counter-text {
   margin-left: 2px;
+}
+
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.game-ended-player-board {
+  background-color: #ba9c79;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) .player-board.game-ended-player-board .player_score_value {
+  text-shadow: 1px 0 #f0f0f0, -1px 0 #f0f0f0, 0 1px #f0f0f0, 0 -1px #f0f0f0, 0.5px 0.5px #f0f0f0, -0.5px -0.5px #f0f0f0, 0.5px -0.5px #f0f0f0, -0.5px 0.5px #f0f0f0;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand {
+  opacity: 0.9;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .my-hand-title .passed-indicator {
+  display: inline-block;
+  margin-left: -2px;
+  margin-right: 4px;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .my-hand-title .my-hand-title-text {
+  display: inline-block;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .cards-container {
+  opacity: 0.9;
+}
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .cards-container .a-card {
+  transform: rotate(5deg);
 }
 
 body.current_player_is_active:not(.lockedInterface) #center-container .a-card,

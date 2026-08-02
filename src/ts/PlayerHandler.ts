@@ -20,8 +20,6 @@ export class PlayerHandler{
             this.anchorTextDiv.insertAdjacentHTML('afterend', '<i class="fa6 fa-anchor"></i>');
         }
 
-        this.setGameEnded(this.game_ended);
-
         this.scoreCounter = new ebg.counter();
         this.scoreCounter.create(`player_score_${this.playerID}`, {
             value: this.scoringData['totalScore'],
@@ -33,12 +31,28 @@ export class PlayerHandler{
         this.displayCoralIcons();
 
         this.hand = new HandHandler(this.game, this, this.playerHandData); 
+
+        this.setGameEnded(this.game_ended);
 	}
 
     public setGameEnded(gameEnded){
         this.game_ended = gameEnded;
-        if(gameEnded) //in solo mode, no need to darken player board
-            this.overallPlayerBoard.classList.add('game-ended-player-board');
+        if(!gameEnded)
+            return;
+
+        let everyoneEnded = true;
+        for(let player_id in this.game.players){ //if all players have ended the game, no need to darken player controls
+            if(!this.game.players[player_id].game_ended){
+                everyoneEnded = false;
+                break;
+            }
+        }
+
+        if(everyoneEnded)
+            return;
+
+        this.overallPlayerBoard.classList.add('game-ended-player-board');
+        this.hand.getHandContainer().classList.add('game-ended-player-hand');
     }
 
     public updateScoring(updatedScoring: PlayerScore): void {

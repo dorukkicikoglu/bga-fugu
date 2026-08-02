@@ -47,7 +47,9 @@ body{ background: #221e52; }
 
 #player-hands-container{ 
     .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; margin-top: 50px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
-        .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
+        .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); 
+            .passed-indicator{ display: none; }
+        }
 
         .cards-container .a-card{
             display: inline-block; vertical-align: top; --horz-margin: calc(var(--my-card-width) * -0.13); margin-left: var(--horz-margin); margin-right: var(--horz-margin); transition: margin-top 0.3s ease;
@@ -90,13 +92,6 @@ body.desktop_version{
 //end status bar
 
 //player board
-body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-content:not(.gamestate_gameEnd) {    
-	.player-board{
-		&.game-ended-player-board{ background-color: #ba9c79; 
-			.player_score_value{ @include text-shade(#f0f0f0, 1px); }
-		}
-	}
-}
 .player-board {
     .anchor-text{ display: inline-block; margin-left: 3px; }
     .fa-anchor { display: inline-block; color: #0f4aff; font-size: 13px; margin-left: 3px; vertical-align: 1px; }
@@ -114,6 +109,23 @@ body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-conte
     }
 }
 
+//darken player controls for passed players
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) {    
+	.player-board.game-ended-player-board{ background-color: #ba9c79; 
+		.player_score_value{ @include text-shade(#f0f0f0, 1px); }
+	}
+    #player-hands-container .a-hand-container.game-ended-player-hand{
+        opacity: 0.9;
+        .my-hand-title {
+            .passed-indicator{ display: inline-block; margin-left: -2px; margin-right: 4px; }
+            .my-hand-title-text{ display: inline-block; }
+        }
+        .cards-container{ opacity: 0.9;
+            .a-card{ transform: rotate(5deg); }
+        }
+    }
+}
+ 
 //end player board
 
 body.current_player_is_active:not(.lockedInterface){

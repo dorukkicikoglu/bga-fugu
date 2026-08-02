@@ -22,7 +22,10 @@ export class HandHandler{
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
             // inline HTML for brevity
             this.handContainer.innerHTML = `
-                <div class="my-hand-title">${handTitleText}</div>
+                <div class="my-hand-title">
+                    <i class="passed-indicator fa6 fa-ban"></i>
+                    <div class="my-hand-title-text">${handTitleText}</div>
+                </div>
                 <div class="cards-container"></div>
             `;
 
@@ -56,7 +59,7 @@ export class HandHandler{
     }
 
     public setHandTitle(title: string): void{
-        const titleElement = this.handContainer.querySelector('.my-hand-title');
+        const titleElement = this.handContainer.querySelector('.my-hand-title-text');
         if(titleElement)
             titleElement.textContent = title;
     }
