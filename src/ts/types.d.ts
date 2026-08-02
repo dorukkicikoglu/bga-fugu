@@ -1,3 +1,5 @@
+declare function bga_format(translated: string, replacements: Record<string, string | ((t: string) => string)>): string;
+
 interface FuguPlayer extends Player {
     player_no: number;
     game_ended: boolean;
