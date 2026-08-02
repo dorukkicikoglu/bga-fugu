@@ -433,8 +433,8 @@ class PlayerHandler {
     }
     setGameEnded(gameEnded) {
         this.game_ended = gameEnded;
-        if (gameEnded && !this.game.isSoloMode()) //in solo mode, no need to darken player board
-            this.overallPlayerBoard.classList.add('player-game-ended');
+        if (gameEnded) //in solo mode, no need to darken player board
+            this.overallPlayerBoard.classList.add('game-ended-player-board');
     }
     updateScoring(updatedScoring) {
         this.scoringData = updatedScoring;
@@ -1358,6 +1358,7 @@ class Game {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
         this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
+        document.body.setAttribute('data-player-count', Object.keys(gamedatas.players).length.toString());
         this.backgroundHandler = new BackgroundHandler(this);
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>

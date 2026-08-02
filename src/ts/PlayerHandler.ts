@@ -37,8 +37,8 @@ export class PlayerHandler{
 
     public setGameEnded(gameEnded){
         this.game_ended = gameEnded;
-        if(gameEnded && !this.game.isSoloMode()) //in solo mode, no need to darken player board
-            this.overallPlayerBoard.classList.add('player-game-ended');
+        if(gameEnded) //in solo mode, no need to darken player board
+            this.overallPlayerBoard.classList.add('game-ended-player-board');
     }
 
     public updateScoring(updatedScoring: PlayerScore): void {

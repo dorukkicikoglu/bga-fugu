@@ -90,9 +90,9 @@ body.desktop_version{
 //end status bar
 
 //player board
-body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd){
+body:not(.displaying-end-game-score):not([data-player-count="1"]) #overall-content:not(.gamestate_gameEnd) {    
 	.player-board{
-		&.player-game-ended{ background-color: #ba9c79; 
+		&.game-ended-player-board{ background-color: #ba9c79; 
 			.player_score_value{ @include text-shade(#f0f0f0, 1px); }
 		}
 	}

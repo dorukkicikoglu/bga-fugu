@@ -65,7 +65,8 @@ export class Game {
         this.gamedatas = gamedatas;
 
         this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
-                
+        document.body.setAttribute('data-player-count', Object.keys(gamedatas.players).length.toString());
+
         this.backgroundHandler = new BackgroundHandler(this);
 
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
