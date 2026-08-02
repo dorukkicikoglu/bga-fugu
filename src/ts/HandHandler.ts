@@ -264,7 +264,14 @@ export class HandHandler{
             return;
 
         const containerWidth = this.cardsContainer.getBoundingClientRect().width;
+
+        cards[0].style.transition = 'none'; //temporarily disable any transform in case it's tilted if player has passed
+        cards[0].style.transform = 'unset';
+
         const cardWidthPercent = (cards[0].getBoundingClientRect().width / containerWidth) * 100;
+        cards[0].style.transform = null;
+        cards[0].style.transition = null;
+
         const isFacedown = (card: HTMLDivElement) => card.getAttribute('data-state-in-hand') === 'facedown';
 
         const gapCards = cards.slice(0, -1); //every card but the last pulls its next sibling closer via margin-right
