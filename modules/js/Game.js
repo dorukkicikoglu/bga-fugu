@@ -198,6 +198,7 @@ class HandHandler {
         this.handData = handData;
         this.isMyHand = false;
         this.mobileSpacingApplied = false;
+        this.resizeDebounceTimeout = null;
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
@@ -219,6 +220,20 @@ class HandHandler {
         this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container'));
         this.cardsContainer.addEventListener('click', (event) => { this.cardsContainerClicked(event); });
         this.displayHand();
+    }
+    //called by Game.onScreenWidthChange (BGA's resize hook, covers orientation changes too) since screen dimensions
+    //can change without this hand's contents changing, so spacing needs recomputing on its own trigger too
+    recomputeMobileCardSpacing() {
+        if (!this.game.isMobile()) {
+            for (let card of Array.from(this.cardsContainer.querySelectorAll('.a-card'))) {
+                card.style.marginLeft = null;
+                card.style.marginRight = null;
+            }
+            return;
+        }
+        if (this.resizeDebounceTimeout)
+            clearTimeout(this.resizeDebounceTimeout);
+        this.resizeDebounceTimeout = setTimeout(() => this.applyMobileCardSpacing(), 100);
     }
     displayHand() {
         this.cardsContainer.innerHTML = ''; // Clear existing cards
@@ -1425,6 +1440,7 @@ class Game {
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
         this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
+        this.bga.gameui.onScreenWidthChange = () => this.onScreenWidthChange();
         if (gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
         // Setup game notifications to handle (see "setupNotifications" method below)
@@ -1543,6 +1559,10 @@ class Game {
     getPos(node) {
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node);
         return pos;
+    }
+    onScreenWidthChange() {
+        for (let player_id in this.players)
+            this.players[player_id].getHand().recomputeMobileCardSpacing();
     }
     isDesktop() { return document.body.classList.contains('desktop_version'); }
     isMobile() { return document.body.classList.contains('mobile_version'); }

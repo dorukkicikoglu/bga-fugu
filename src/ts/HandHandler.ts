@@ -10,6 +10,7 @@ export class HandHandler{
     private cardsContainer: HTMLDivElement;
     private isMyHand: boolean = false;
     private mobileSpacingApplied: boolean = false;
+    private resizeDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor(private game: Game, private owner: PlayerHandler, private handData: CardInHand[]) {
         // ensure hand container exists in DOM (vanilla JS)
@@ -37,6 +38,23 @@ export class HandHandler{
         this.cardsContainer.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); });
 
         this.displayHand();
+    }
+
+    //called by Game.onScreenWidthChange (BGA's resize hook, covers orientation changes too) since screen dimensions
+    //can change without this hand's contents changing, so spacing needs recomputing on its own trigger too
+    public recomputeMobileCardSpacing(){
+        if(!this.game.isMobile()){
+            for(let card of Array.from(this.cardsContainer.querySelectorAll('.a-card')) as HTMLDivElement[]){
+                card.style.marginLeft = null;
+                card.style.marginRight = null;
+            }
+            return;
+        }
+
+        if(this.resizeDebounceTimeout)
+            clearTimeout(this.resizeDebounceTimeout);
+
+        this.resizeDebounceTimeout = setTimeout(() => this.applyMobileCardSpacing(), 100);
     }
 
     private displayHand(): void{

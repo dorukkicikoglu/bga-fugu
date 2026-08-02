@@ -101,6 +101,7 @@ export class Game {
         this.soloDiscardDisplayHandler = new SoloDiscardDisplayHandler(this, gamedatas.discardedCards);
         this.anchorCardsDisplayHandler = new AnchorCardsDisplayHandler(this, gamedatas.anchoredCards);
         this.prefHandler = new PrefHandler(this, gamedatas.pref_names);
+        this.bga.gameui.onScreenWidthChange = () => this.onScreenWidthChange();
 
         if(gamedatas.hasOwnProperty('endGameScoring'))
             this.endGameScoringHandler.displayEndGameScore(gamedatas.endGameScoring);
@@ -235,6 +236,10 @@ export class Game {
     public getPos(node: HTMLDivElement): DOMRect { 
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
         return pos;
+    }
+    public onScreenWidthChange(): void { //BGA's resize hook (window resize, including orientation changes); also fires once at load
+        for(let player_id in this.players)
+            this.players[player_id].getHand().recomputeMobileCardSpacing();
     }
     public isDesktop(): boolean { return document.body.classList.contains('desktop_version'); }
     public isMobile(): boolean { return document.body.classList.contains('mobile_version'); }
