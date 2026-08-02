@@ -40,17 +40,6 @@ export class PlayerHandler{
         if(!gameEnded)
             return;
 
-        let everyoneEnded = true;
-        for(let player_id in this.game.players){ //if all players have ended the game, no need to darken player controls
-            if(!this.game.players[player_id].game_ended){
-                everyoneEnded = false;
-                break;
-            }
-        }
-
-        if(everyoneEnded)
-            return;
-
         this.overallPlayerBoard.classList.add('game-ended-player-board');
         this.hand.getHandContainer().classList.add('game-ended-player-hand');
     }

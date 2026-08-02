@@ -313,7 +313,9 @@ export class Game {
     }
     
     // Add the notification handlers
-    public async notif_pass(args: {player_id: number}) {
+    public async notif_pass(args: { player_id: number; everyone_ended: boolean; }) {
+        if(args.everyone_ended) //dont darken player controls if all players have ended the game
+            return;
         this.players[args.player_id].setGameEnded(true);
     }
 
