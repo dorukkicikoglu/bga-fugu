@@ -4,6 +4,7 @@ import { PlayerHandler } from "./PlayerHandler";
 export class HandHandler{
     private static readonly MOBILE_HAND_SPAN_PERCENT = 99; //cards should span 98%-100% of the container's width
     private static readonly FACEDOWN_TO_FACEUP_OVERLAP_RATIO = 1.8; //facedown cards can overlap more since they don't need to stay readable
+    private static readonly MIN_CLICKABLE_CARD_PERCENT = 1; //facedown cards are clickable, so at least this much of one must stay uncovered
 
     private handContainer: HTMLDivElement;
     private cardsContainer: HTMLDivElement;
@@ -254,8 +255,18 @@ export class HandHandler{
 
         const requiredOverlapPercent = HandHandler.MOBILE_HAND_SPAN_PERCENT - cards.length * cardWidthPercent;
         const spreadDenominator = HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO * facedownGapCount + faceupGapCount;
-        const faceupMarginPercent = spreadDenominator !== 0 ? requiredOverlapPercent / spreadDenominator : 0;
-        const facedownMarginPercent = faceupMarginPercent * HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO;
+        let faceupMarginPercent = spreadDenominator !== 0 ? requiredOverlapPercent / spreadDenominator : 0;
+        let facedownMarginPercent = faceupMarginPercent * HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO;
+
+        //never let a facedown card's own overlap cover it entirely (it needs to stay tappable); whatever squeeze it can no
+        //longer absorb gets pushed onto the faceup cards instead, so the row still lands on the same total target width
+        const minFacedownMarginPercent = -(cardWidthPercent - HandHandler.MIN_CLICKABLE_CARD_PERCENT);
+        if(facedownMarginPercent < minFacedownMarginPercent){
+            const shortfallTotal = facedownGapCount * (minFacedownMarginPercent - facedownMarginPercent);
+            facedownMarginPercent = minFacedownMarginPercent;
+            if(faceupGapCount > 0)
+                faceupMarginPercent -= shortfallTotal / faceupGapCount;
+        }
 
         cards.forEach((card, i) => {
             card.style.marginLeft = '0%';
