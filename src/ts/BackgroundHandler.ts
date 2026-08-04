@@ -12,24 +12,65 @@ const BUBBLE_AMOUNT_BY_PREF: Record<number, BubbleSetting> = {
 
 export class BackgroundHandler{
   private static readonly POP_INVULNERABLE_MS = 500;
-  private static readonly PARALLAX_SPEED = 0.15;
+  private static readonly PARALLAX_SPEED_BACK = 0.075;
+  private static readonly PARALLAX_SPEED_FRONT = 0.18;
+  private static readonly PARALLAX_REFERENCE_HEIGHT = 500;
+  private static readonly PUFFERFISH_RISE_SPEED_DESKTOP = 0.65;
+  private static readonly PUFFERFISH_RISE_SPEED_MOBILE = 0.5;
+  private static readonly PUFFERFISH_ROTATION_SPEED_DESKTOP = 0.35;
+  private static readonly PUFFERFISH_ROTATION_SPEED_MOBILE = 0.4;
 
   private backgroundContainer: HTMLDivElement;
+  private backdropParallax: HTMLDivElement;
   private backgroundBackdrop: HTMLDivElement;
+  private slidingPufferfish: HTMLDivElement;
+  private foregroundParallax: HTMLDivElement;
+  private backgroundForeground: HTMLDivElement;
   private bubblesContainer: HTMLDivElement;
   private targetBubbleSetting: BubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
   private bubblesInitialized = false;
   private bodyClickListener: (event: MouseEvent) => void;
   private nextBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  private pufferfishRiseSpeed: number;
+  private pufferfishRotationSpeed: number;
+  private parallaxSpeedBack: number;
+  private parallaxSpeedFront: number;
+  private latestScrollY = 0;
+  private parallaxFramePending = false;
+
   constructor(private game: Game) {
     this.backgroundContainer = document.createElement('div');
     this.backgroundContainer.classList.add('background-container');
     document.body.insertAdjacentElement('afterbegin', this.backgroundContainer);
 
+    //the gentle-drift/gentle-wobble CSS animations already drive this element's own `transform` (a rotate),
+    //and a running animation always wins the cascade over an inline style on the same property - so the
+    //scroll-driven translate is applied to this dedicated wrapper instead, the same way .bubble-swing's
+    //wobble is kept off the separate .bubble-pop-wrapper below
+    this.backdropParallax = document.createElement('div');
+    this.backdropParallax.classList.add('parallax-layer');
+    this.backgroundContainer.appendChild(this.backdropParallax);
+
     this.backgroundBackdrop = document.createElement('div');
     this.backgroundBackdrop.classList.add('background-backdrop');
-    this.backgroundContainer.appendChild(this.backgroundBackdrop);
+    this.backdropParallax.appendChild(this.backgroundBackdrop);
+
+    //appended after backdropParallax and before foregroundParallax, so it starts out visually
+    //covered by the foreground layer and only emerges once it rises above it while scrolling.
+    //no CSS animation targets its transform, so it can be translated/rotated directly, no wrapper needed
+    this.slidingPufferfish = document.createElement('div');
+    this.slidingPufferfish.classList.add('sliding-pufferfish');
+    this.backgroundContainer.appendChild(this.slidingPufferfish);
+
+    //appended after backdropParallax so it renders on top of it, no z-index needed
+    this.foregroundParallax = document.createElement('div');
+    this.foregroundParallax.classList.add('parallax-layer');
+    this.backgroundContainer.appendChild(this.foregroundParallax);
+
+    this.backgroundForeground = document.createElement('div');
+    this.backgroundForeground.classList.add('background-foreground');
+    this.foregroundParallax.appendChild(this.backgroundForeground);
 
     this.bubblesContainer = document.createElement('div');
     this.bubblesContainer.classList.add('bubbles-container');
@@ -46,13 +87,51 @@ export class BackgroundHandler{
   }
 
   private bindBodyScroll(){
-    //resolved to a px value by the browser, so the parallax offset can be added to it without mixing units
-    const baseTop = parseFloat(getComputedStyle(this.backgroundBackdrop).top);
+    this.pufferfishRiseSpeed = this.game.isMobile() ? BackgroundHandler.PUFFERFISH_RISE_SPEED_MOBILE : BackgroundHandler.PUFFERFISH_RISE_SPEED_DESKTOP;
+    this.pufferfishRotationSpeed = this.game.isMobile() ? BackgroundHandler.PUFFERFISH_ROTATION_SPEED_MOBILE : BackgroundHandler.PUFFERFISH_ROTATION_SPEED_DESKTOP;
 
+    //capped at 1 so shorter windows aren't sped up past the tuned base speeds, only taller ones slowed down
+    const heightFactor = Math.min(1, BackgroundHandler.PARALLAX_REFERENCE_HEIGHT / window.innerHeight);
+    this.parallaxSpeedBack = BackgroundHandler.PARALLAX_SPEED_BACK * heightFactor;
+    this.parallaxSpeedFront = BackgroundHandler.PARALLAX_SPEED_FRONT * heightFactor;
+
+    //passive: the listener never calls preventDefault, so it doesn't have to wait for us before it can scroll.
+    //the heavy work itself is deferred to a single rAF-batched update below, so bursts of scroll events
+    //(fired far more often than the display refreshes on mobile) collapse into one style write per frame
     window.addEventListener('scroll', () => {
-      const parallaxOffset = window.scrollY * BackgroundHandler.PARALLAX_SPEED;
-      this.backgroundBackdrop.style.top = `${baseTop - parallaxOffset}px`;
-    });
+      this.latestScrollY = window.scrollY;
+
+      if(this.parallaxFramePending)
+        return;
+
+      this.parallaxFramePending = true;
+      requestAnimationFrame(() => this.updateParallax());
+    }, { passive: true });
+  }
+
+  private updateParallax(){
+    this.parallaxFramePending = false;
+    const scrollY = this.latestScrollY;
+
+    //read phase: all layout-triggering reads happen up front, before any styles below are written, so this
+    //never has to force a synchronous layout (and every write below is transform-only, so it can't cause
+    //the *next* frame's read to force one either)
+    //looked up live rather than cached: it doesn't exist yet when BackgroundHandler is constructed (added later in Game.setup)
+    const playerHandsContainer = document.getElementById('player-hands-container');
+    const playerHandsBottom = playerHandsContainer ? playerHandsContainer.getBoundingClientRect().bottom + scrollY : Infinity;
+
+    //write phase
+    this.backdropParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedBack}px, 0)`;
+    this.foregroundParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedFront}px, 0)`;
+
+    const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
+    if(scrollPastPlayerHands === 0){
+      this.slidingPufferfish.style.display = 'none';
+      return;
+    }
+
+    this.slidingPufferfish.style.display = 'block';
+    this.slidingPufferfish.style.transform = `translate3d(0, ${-scrollPastPlayerHands * this.pufferfishRiseSpeed}px, 0) rotate(${scrollPastPlayerHands * this.pufferfishRotationSpeed}deg)`;
   }
 
   private onBodyClick(event: MouseEvent){

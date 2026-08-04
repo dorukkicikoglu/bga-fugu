@@ -263,11 +263,19 @@ body.current_player_is_active:not(.lockedInterface){
 //end modal box
 
 //background
-.background-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    .background-backdrop { position: absolute; top: -2%; left: -2%; width: 102%; height: 102%; display: block; background-image: url(img/bg_fugu.webp); background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate; }
+.background-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    .parallax-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; will-change: transform; }
+    .background-backdrop { background-image: url(img/backParallax.webp); height: 40vw; }
+    .background-backdrop, .background-foreground{ position: absolute; top: -2%; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate; }
+    .background-foreground { background-image: url(img/frontParallax.webp); height: 102%; }
+    .sliding-pufferfish { display: none; background-image: url(img/victoryPuff.webp); top: 32vw; position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
     .bubbles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1; }
 }
-.mobile_version .background-container .background-backdrop{ background-image: url(img/bg_mobile_fugu.webp); background-size: 136%; margin-top: 5%; }
+.mobile_version .background-container{
+    .background-backdrop, .background-foreground{ width: 400%; background-size: 300vw 220vw; left: -96%; height: 200%; animation: gentle-drift-mobile 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate; }
+    .background-backdrop { height: 160vw; }
+    .sliding-pufferfish{ width: 20vw; height: 20vw; top: 120vw; left: 40%; }
+}
 
 .bubble { position: absolute; bottom: -10%; animation: bubble-rise linear 1;
     .bubble-opacity{ width: 100%; height: 100%;
@@ -330,6 +338,12 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"]{ @include te
 @keyframes gentle-drift {
   0%   { background-position: 0% 0%; }
   50% { background-position: -4% -4%; }
+  100%   { background-position: 0% 0%; }
+}
+
+@keyframes gentle-drift-mobile {
+  0%   { background-position: 0% 0%; }
+  50% { background-position: -1% -1%; }
   100%   { background-position: 0% 0%; }
 }
 
