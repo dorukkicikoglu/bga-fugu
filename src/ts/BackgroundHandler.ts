@@ -44,7 +44,7 @@ export class BackgroundHandler{
     this.backgroundContainer.classList.add('background-container');
     document.body.insertAdjacentElement('afterbegin', this.backgroundContainer);
 
-    //the gentle-drift/gentle-wobble CSS animations already drive this element's own `transform` (a rotate),
+    //the gentle-parallax-* CSS animation already drives this element's own `transform` (translate3d + rotate),
     //and a running animation always wins the cascade over an inline style on the same property - so the
     //scroll-driven translate is applied to this dedicated wrapper instead, the same way .bubble-swing's
     //wobble is kept off the separate .bubble-pop-wrapper below
@@ -75,7 +75,7 @@ export class BackgroundHandler{
     this.bubblesContainer = document.createElement('div');
     this.bubblesContainer.classList.add('bubbles-container');
     //kept as a sibling, not a child, of backgroundBackdrop: backgroundBackdrop is animated with a
-    //CSS transform (gentle-wobble) and is offset/oversized relative to the viewport, and a transformed
+    //CSS transform (gentle-parallax-backdrop) and is offset/oversized relative to the viewport, and a transformed
     //ancestor becomes the containing block for position:fixed descendants - nesting bubblesContainer inside
     //it would offset bubbles away from the viewport-relative click coordinates they're placed at
     this.backgroundContainer.appendChild(this.bubblesContainer);

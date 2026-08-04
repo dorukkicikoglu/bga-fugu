@@ -265,15 +265,21 @@ body.current_player_is_active:not(.lockedInterface){
 //background
 .background-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     .parallax-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; will-change: transform; }
-    .background-backdrop { background-image: url(img/backParallax.webp); height: 40vw; }
-    .background-backdrop, .background-foreground{ position: absolute; top: -2%; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate; }
-    .background-foreground { background-image: url(img/frontParallax.webp); height: 102%; }
+    //ambient drift+wobble is one merged transform-only animation per element (see @keyframes gentle-parallax-*
+    //below): background-position and transform can't both be driven by separate concurrent animations without
+    //one silently overriding the other, so the old background-position drift was folded into the same
+    //translate3d()+rotate() transform as the wobble, with its magnitude solved from the original
+    //background-position formula (offset = (boxSize - backgroundSize) * percentage) so the motion is unchanged
+    .background-backdrop, .background-foreground{ position: absolute; top: -2%; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
+    .background-backdrop { background-image: url(img/backParallax.webp); height: 40vw; animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate; }
+    .background-foreground { background-image: url(img/frontParallax.webp); height: 102%; animation: gentle-parallax-foreground 12s ease-in-out infinite alternate; }
     .sliding-pufferfish { display: none; background-image: url(img/victoryPuff.webp); top: 32vw; position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
     .bubbles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1; }
 }
 .mobile_version .background-container{
-    .background-backdrop, .background-foreground{ width: 400%; background-size: 300vw 220vw; left: -96%; height: 200%; animation: gentle-drift-mobile 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate; }
-    .background-backdrop { height: 160vw; }
+    .background-backdrop, .background-foreground{ width: 400%; background-size: 300vw 220vw; left: -96%; height: 200%; }
+    .background-backdrop { height: 160vw; animation-name: gentle-parallax-backdrop-mobile; }
+    .background-foreground { animation-name: gentle-parallax-foreground-mobile; }
     .sliding-pufferfish{ width: 20vw; height: 20vw; top: 120vw; left: 40%; }
 }
 
@@ -335,22 +341,32 @@ body.desktop_version .a-game-log .playername[player-color="008000"]{ @include te
 body.desktop_version .a-game-log .playername[player-color="72c3b1"]{ @include text-shade(#0A2823BF, 1px); }
 //end logs
 
-@keyframes gentle-drift {
-  0%   { background-position: 0% 0%; }
-  50% { background-position: -4% -4%; }
-  100%   { background-position: 0% 0%; }
+//each pair's translate3d() midpoint is the old background-position drift's offset, solved from
+//offset = (boxSize - backgroundSize) * percentage using the box/background-size values in the rules above;
+//rotate(1deg) is the old gentle-wobble, now folded into the same transform instead of a second animation
+//fighting over the same property
+@keyframes gentle-parallax-backdrop {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(0.24vw, 0.52vw, 0) rotate(1deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
 }
 
-@keyframes gentle-drift-mobile {
-  0%   { background-position: 0% 0%; }
-  50% { background-position: -1% -1%; }
-  100%   { background-position: 0% 0%; }
+@keyframes gentle-parallax-foreground {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(0.24vw, calc(2.12vw - 4.08vh), 0) rotate(1deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
 }
 
-@keyframes gentle-wobble {
-  0%   { transform: rotate(0deg); }
-  50%   { transform: rotate(1deg); }
-  100%   { transform: rotate(0deg); }
+@keyframes gentle-parallax-backdrop-mobile {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(-1vw, 0.6vw, 0) rotate(1deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+@keyframes gentle-parallax-foreground-mobile {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(-1vw, calc(2.2vw - 2vh), 0) rotate(1deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
 }
 
 @keyframes selectable-card-glow-pulse {

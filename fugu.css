@@ -1002,10 +1002,6 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   height: 100%;
   will-change: transform;
 }
-.background-container .background-backdrop {
-  background-image: url(img/backParallax.webp);
-  height: 40vw;
-}
 .background-container .background-backdrop, .background-container .background-foreground {
   position: absolute;
   top: -2%;
@@ -1015,11 +1011,17 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   background-size: 108vw 53vw;
   background-repeat: no-repeat;
   transform-origin: center center;
-  animation: gentle-drift 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.background-container .background-backdrop {
+  background-image: url(img/backParallax.webp);
+  height: 40vw;
+  animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate;
 }
 .background-container .background-foreground {
   background-image: url(img/frontParallax.webp);
   height: 102%;
+  animation: gentle-parallax-foreground 12s ease-in-out infinite alternate;
 }
 .background-container .sliding-pufferfish {
   display: none;
@@ -1050,10 +1052,13 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   background-size: 300vw 220vw;
   left: -96%;
   height: 200%;
-  animation: gentle-drift-mobile 12s ease-in-out infinite alternate, gentle-wobble 12s ease-in-out infinite alternate;
 }
 .mobile_version .background-container .background-backdrop {
   height: 160vw;
+  animation-name: gentle-parallax-backdrop-mobile;
+}
+.mobile_version .background-container .background-foreground {
+  animation-name: gentle-parallax-foreground-mobile;
 }
 .mobile_version .background-container .sliding-pufferfish {
   width: 20vw;
@@ -1177,37 +1182,48 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
   text-shadow: 1px 0 rgba(10, 40, 35, 0.7490196078), -1px 0 rgba(10, 40, 35, 0.7490196078), 0 1px rgba(10, 40, 35, 0.7490196078), 0 -1px rgba(10, 40, 35, 0.7490196078), 0.5px 0.5px rgba(10, 40, 35, 0.7490196078), -0.5px -0.5px rgba(10, 40, 35, 0.7490196078), 0.5px -0.5px rgba(10, 40, 35, 0.7490196078), -0.5px 0.5px rgba(10, 40, 35, 0.7490196078);
 }
 
-@keyframes gentle-drift {
+@keyframes gentle-parallax-backdrop {
   0% {
-    background-position: 0% 0%;
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    background-position: -4% -4%;
+    transform: translate3d(0.24vw, 0.52vw, 0) rotate(1deg);
   }
   100% {
-    background-position: 0% 0%;
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
 }
-@keyframes gentle-drift-mobile {
+@keyframes gentle-parallax-foreground {
   0% {
-    background-position: 0% 0%;
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    background-position: -1% -1%;
+    transform: translate3d(0.24vw, calc(2.12vw - 4.08vh), 0) rotate(1deg);
   }
   100% {
-    background-position: 0% 0%;
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
 }
-@keyframes gentle-wobble {
+@keyframes gentle-parallax-backdrop-mobile {
   0% {
-    transform: rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    transform: rotate(1deg);
+    transform: translate3d(-1vw, 0.6vw, 0) rotate(1deg);
   }
   100% {
-    transform: rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+@keyframes gentle-parallax-foreground-mobile {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-1vw, calc(2.2vw - 2vh), 0) rotate(1deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
 }
 @keyframes selectable-card-glow-pulse {
@@ -1309,5 +1325,3 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
     box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 20px 14px rgba(255, 255, 255, 0);
   }
 }
-
-/*# sourceMappingURL=fugu.css.map */
