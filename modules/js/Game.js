@@ -1021,6 +1021,15 @@ class BackgroundHandler {
         this.backgroundContainer.appendChild(this.bubblesContainer);
         this.bodyClickListener = (event) => this.onBodyClick(event);
         document.body.addEventListener('click', this.bodyClickListener);
+        this.bindBodyScroll();
+    }
+    bindBodyScroll() {
+        //resolved to a px value by the browser, so the parallax offset can be added to it without mixing units
+        const baseTop = parseFloat(getComputedStyle(this.backgroundBackdrop).top);
+        window.addEventListener('scroll', () => {
+            const parallaxOffset = window.scrollY * BackgroundHandler.PARALLAX_SPEED;
+            this.backgroundBackdrop.style.top = `${baseTop - parallaxOffset}px`;
+        });
     }
     onBodyClick(event) {
         if (this.targetBubbleSetting.maxBubbleCount === 0)
@@ -1164,6 +1173,7 @@ class BackgroundHandler {
     }
 }
 BackgroundHandler.POP_INVULNERABLE_MS = 500;
+BackgroundHandler.PARALLAX_SPEED = 0.15;
 
 class PrefHandler {
     constructor(game, prefNameToIndex) {

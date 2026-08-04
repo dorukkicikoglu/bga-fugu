@@ -12,6 +12,7 @@ const BUBBLE_AMOUNT_BY_PREF: Record<number, BubbleSetting> = {
 
 export class BackgroundHandler{
   private static readonly POP_INVULNERABLE_MS = 500;
+  private static readonly PARALLAX_SPEED = 0.15;
 
   private backgroundContainer: HTMLDivElement;
   private backgroundBackdrop: HTMLDivElement;
@@ -40,6 +41,18 @@ export class BackgroundHandler{
 
     this.bodyClickListener = (event: MouseEvent) => this.onBodyClick(event);
     document.body.addEventListener('click', this.bodyClickListener);
+
+    this.bindBodyScroll();
+  }
+
+  private bindBodyScroll(){
+    //resolved to a px value by the browser, so the parallax offset can be added to it without mixing units
+    const baseTop = parseFloat(getComputedStyle(this.backgroundBackdrop).top);
+
+    window.addEventListener('scroll', () => {
+      const parallaxOffset = window.scrollY * BackgroundHandler.PARALLAX_SPEED;
+      this.backgroundBackdrop.style.top = `${baseTop - parallaxOffset}px`;
+    });
   }
 
   private onBodyClick(event: MouseEvent){
