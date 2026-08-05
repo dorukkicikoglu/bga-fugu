@@ -70,9 +70,12 @@ class PlayerTurn extends GameState
         $soloCenterCardReplacement = $this->game->isSoloMode() ? $this->soloReplaceCenterCard((int) $cardInHand['rank'], (int) $centerCardLocation) : [];
 
         $anyFacedownCard = $this->game->getObjectFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'facedown' LIMIT 1");
-        $gameEnded = !$anyFacedownCard;
-        if($gameEnded)
+        $playerGameEnded = !$anyFacedownCard;
+        if($playerGameEnded)
             $this->game->DbQuery("UPDATE `player` SET `game_ended` = 'yes' WHERE `player_id` = $activePlayerId");
+
+        $playerIDToGameEnded = $this->game->getCollectionFromDB("SELECT `player_id`, `game_ended` FROM `player`", true);
+        $everyoneEnded = !in_array('no', $playerIDToGameEnded, true);
 
         $updatedScore = $this->game->updatePlayerScore($activePlayerId);
 
@@ -95,11 +98,12 @@ class PlayerTurn extends GameState
         ];
 
         $this->bga->notify->all("cardsSwapped", '${SWAP_NOTIF_STR}', [
-            'preserve' => ['swapData', 'updatedScore', 'game_ended', 'soloCenterCardReplacement'],
+            'preserve' => ['swapData', 'updatedScore', 'player_game_ended', 'soloCenterCardReplacement'],
             'swapData' => $swapData,
             "updatedScore" => $updatedScore,
             'SWAP_NOTIF_STR' => $swapNotifStr,
-            "game_ended" => $gameEnded,
+            "player_game_ended" => $playerGameEnded,
+            'everyone_ended' => $everyoneEnded
         ]);
         
         if($soloCenterCardReplacement){

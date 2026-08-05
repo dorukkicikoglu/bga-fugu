@@ -2,7 +2,7 @@ declare function bga_format(translated: string, replacements: Record<string, str
 
 interface FuguPlayer extends Player {
     player_no: number;
-    game_ended: boolean;
+    player_game_ended: boolean;
     scoring_data: SoloPlayerScore;
 }
 

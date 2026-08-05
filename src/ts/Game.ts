@@ -80,9 +80,9 @@ export class Game {
 
         // Setting up player boards
         for(let player_id in gamedatas.players) {
-            const {name, color, score, player_no, game_ended, scoring_data} = this.gamedatas.players[player_id];
+            const {name, color, score, player_no, player_game_ended, scoring_data} = this.gamedatas.players[player_id];
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, player_game_ended, scoring_data);
         }
         
         if(this.players.hasOwnProperty(this.myPlayerID)){
@@ -314,12 +314,10 @@ export class Game {
     
     // Add the notification handlers
     public async notif_pass(args: { player_id: number; everyone_ended: boolean; }) {
-        if(args.everyone_ended) //dont darken player controls if all players have ended the game
-            return;
-        this.players[args.player_id].setGameEnded(true);
+        this.players[args.player_id].setGameEnded(true, args.everyone_ended); //dont darken player controls if all players have ended the game
     }
 
-    public async notif_cardsSwapped(args: {swapData: CardSwapData, updatedScore: PlayerScore, game_ended: boolean}) {
+    public async notif_cardsSwapped(args: {swapData: CardSwapData, updatedScore: PlayerScore, player_game_ended: boolean, everyone_ended: boolean;}) {
         const swapData: CardSwapData = args.swapData;
         const swappingPlayer: PlayerHandler = this.players[swapData.player_id];
 
@@ -332,8 +330,8 @@ export class Game {
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);
 
-        if(args.game_ended)
-            swappingPlayer.setGameEnded(true);
+        if(args.player_game_ended)
+            swappingPlayer.setGameEnded(true, args.everyone_ended); //dont darken player controls if all players have ended the game
     }
 
     public async notif_centerCardReplaced(args: {soloCenterCardReplacement: soloCenterCardReplacement}) {

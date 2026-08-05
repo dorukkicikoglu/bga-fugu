@@ -132,7 +132,8 @@ class Game extends \Bga\GameFramework\Table
         $result["players"] = $this->getCollectionFromDb("SELECT `player_id`, `player_no`, `player_score` score, game_ended FROM `player`");
         $allScoringData = $this->getAllPlayersScoring();
         foreach($result["players"] as $player_id => $row){
-            $result["players"][$player_id]['game_ended'] = ($row['game_ended'] == 'yes') ? true : false;
+            $result["players"][$player_id]['player_game_ended'] = ($row['game_ended'] == 'yes') ? true : false;
+            unset($result["players"][$player_id]['game_ended']);
             $result["players"][$player_id]['scoring_data'] = $allScoringData[$player_id];
         }
 

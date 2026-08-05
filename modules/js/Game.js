@@ -434,14 +434,14 @@ HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO = 1.8; //facedown cards can overlap
 HandHandler.MIN_CLICKABLE_CARD_PERCENT = 1; //facedown cards are clickable, so at least this much of one must stay uncovered
 
 class PlayerHandler {
-    constructor(game, playerID, playerName, playerColor, playerNo, playerHandData, game_ended, scoringData) {
+    constructor(game, playerID, playerName, playerColor, playerNo, playerHandData, player_game_ended, scoringData) {
         this.game = game;
         this.playerID = playerID;
         this.playerName = playerName;
         this.playerColor = playerColor;
         this.playerNo = playerNo;
         this.playerHandData = playerHandData;
-        this.game_ended = game_ended;
+        this.player_game_ended = player_game_ended;
         this.scoringData = scoringData;
         this.overallPlayerBoard = this.game.bga.playerPanels.getElement(this.playerID).closest('.player-board');
         const star = this.overallPlayerBoard.querySelector('.fa-star');
@@ -461,11 +461,11 @@ class PlayerHandler {
         this.createCoralCounterContainer();
         this.displayCoralIcons();
         this.hand = new HandHandler(this.game, this, this.playerHandData);
-        this.setGameEnded(this.game_ended);
+        this.setGameEnded(this.player_game_ended, false);
     }
-    setGameEnded(gameEnded) {
-        this.game_ended = gameEnded;
-        if (!gameEnded)
+    setGameEnded(gameEnded, skipDarkening) {
+        this.player_game_ended = gameEnded;
+        if (!gameEnded || skipDarkening)
             return;
         this.overallPlayerBoard.classList.add('game-ended-player-board');
         this.hand.getHandContainer().classList.add('game-ended-player-hand');
@@ -1485,9 +1485,9 @@ class Game {
         this.endGameScoringHandler = new EndGameScoringHandler(this);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
-            const { name, color, score, player_no, game_ended, scoring_data } = this.gamedatas.players[player_id];
+            const { name, color, score, player_no, player_game_ended, scoring_data } = this.gamedatas.players[player_id];
             const playerHandData = gamedatas.cardsInHands[parseInt(player_id)] || [];
-            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, game_ended, scoring_data);
+            this.players[player_id] = new PlayerHandler(this, parseInt(player_id), name, color, player_no, playerHandData, player_game_ended, scoring_data);
         }
         if (this.players.hasOwnProperty(this.myPlayerID)) {
             this.myself = this.players[this.myPlayerID];
@@ -1692,9 +1692,7 @@ class Game {
     }
     // Add the notification handlers
     async notif_pass(args) {
-        if (args.everyone_ended) //dont darken player controls if all players have ended the game
-            return;
-        this.players[args.player_id].setGameEnded(true);
+        this.players[args.player_id].setGameEnded(true, args.everyone_ended); //dont darken player controls if all players have ended the game
     }
     async notif_cardsSwapped(args) {
         const swapData = args.swapData;
@@ -1705,8 +1703,8 @@ class Game {
             this.anchorCardsDisplayHandler.insertCardIcon(swapData.cardInCenter);
         this.tooltipHandler.addTooltipToCards();
         swappingPlayer.updateScoring(args.updatedScore);
-        if (args.game_ended)
-            swappingPlayer.setGameEnded(true);
+        if (args.player_game_ended)
+            swappingPlayer.setGameEnded(true, args.everyone_ended); //dont darken player controls if all players have ended the game
     }
     async notif_centerCardReplaced(args) {
         if (!this.isSoloMode())

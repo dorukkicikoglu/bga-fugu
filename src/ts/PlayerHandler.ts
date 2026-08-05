@@ -8,7 +8,7 @@ export class PlayerHandler{
     private hand: HandHandler;
     private CoralCounterContainer: HTMLDivElement;
     
-	constructor(private game: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private game_ended: boolean, private scoringData: PlayerScore) {
+	constructor(private game: Game, private playerID: number, private playerName: string, private playerColor: string, private playerNo: number, private playerHandData: CardInHand[], private player_game_ended: boolean, private scoringData: PlayerScore) {
         this.overallPlayerBoard = this.game.bga.playerPanels.getElement(this.playerID).closest('.player-board');
 
         const star = this.overallPlayerBoard.querySelector('.fa-star');
@@ -32,12 +32,12 @@ export class PlayerHandler{
 
         this.hand = new HandHandler(this.game, this, this.playerHandData); 
 
-        this.setGameEnded(this.game_ended);
+        this.setGameEnded(this.player_game_ended, false);
 	}
 
-    public setGameEnded(gameEnded){
-        this.game_ended = gameEnded;
-        if(!gameEnded)
+    public setGameEnded(gameEnded: boolean, skipDarkening: boolean): void {
+        this.player_game_ended = gameEnded;
+        if(!gameEnded || skipDarkening)
             return;
 
         this.overallPlayerBoard.classList.add('game-ended-player-board');
