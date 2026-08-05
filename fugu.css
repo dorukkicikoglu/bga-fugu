@@ -1004,7 +1004,6 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 .background-container .background-backdrop, .background-container .background-foreground {
   position: absolute;
-  top: -2%;
   left: -2%;
   width: 102%;
   display: block;
@@ -1014,11 +1013,13 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   will-change: transform;
 }
 .background-container .background-backdrop {
+  top: -2%;
   background-image: url(img/backParallax.webp);
   height: 40vw;
   animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate;
 }
 .background-container .background-foreground {
+  bottom: 0%;
   background-image: url(img/frontParallax.webp);
   height: 102%;
   animation: gentle-parallax-foreground 12s ease-in-out infinite alternate;
@@ -1026,7 +1027,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 .background-container .sliding-pufferfish {
   display: none;
   background-image: url(img/victoryPuff.webp);
-  top: 32vw;
+  bottom: calc(100vh - 42vw);
   position: absolute;
   left: 44%;
   width: 10vw;
@@ -1048,7 +1049,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 
 body.desktop_version .background-container .background-foreground {
-  top: calc(-2% + 10vh);
+  bottom: -10vh;
 }
 
 .mobile_version .background-container .background-backdrop, .mobile_version .background-container .background-foreground {
@@ -1062,12 +1063,13 @@ body.desktop_version .background-container .background-foreground {
   animation-name: gentle-parallax-backdrop-mobile;
 }
 .mobile_version .background-container .background-foreground {
+  bottom: -98%;
   animation-name: gentle-parallax-foreground-mobile;
 }
 .mobile_version .background-container .sliding-pufferfish {
   width: 20vw;
   height: 20vw;
-  top: 120vw;
+  bottom: calc(100vh - 140vw);
   left: 40%;
 }
 

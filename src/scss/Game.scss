@@ -270,20 +270,24 @@ body.current_player_is_active:not(.lockedInterface){
     //one silently overriding the other, so the old background-position drift was folded into the same
     //translate3d()+rotate() transform as the wobble, with its magnitude solved from the original
     //background-position formula (offset = (boxSize - backgroundSize) * percentage) so the motion is unchanged
-    .background-backdrop, .background-foreground{ position: absolute; top: -2%; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
-    .background-backdrop { background-image: url(img/backParallax.webp); height: 40vw; animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate; }
-    .background-foreground { background-image: url(img/frontParallax.webp); height: 102%; animation: gentle-parallax-foreground 12s ease-in-out infinite alternate; }
-    .sliding-pufferfish { display: none; background-image: url(img/victoryPuff.webp); top: 32vw; position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
+    .background-backdrop, .background-foreground{ position: absolute; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
+    .background-backdrop { top: -2%; background-image: url(img/backParallax.webp); height: 40vw; animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate; }
+    //bottom-anchored (not top) so its vertical placement can be tuned as "distance from the bottom edge",
+    //independent of the element's own height (which is what actually differs between breakpoints); the base
+    //value here is solved from the old top:-2% + height:102% so the on-screen position is unchanged
+    .background-foreground { bottom: 0%; background-image: url(img/frontParallax.webp); height: 102%; animation: gentle-parallax-foreground 12s ease-in-out infinite alternate; }
+    //also bottom-anchored, same reasoning as .background-foreground above; base value solved from the old top:32vw + height:10vw
+    .sliding-pufferfish { display: none; background-image: url(img/victoryPuff.webp); bottom: calc(100vh - 42vw); position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
     .bubbles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1; }
 }
 body.desktop_version .background-container{
-    .background-foreground{ top: calc(-2% + 10vh); } //nudged down from the shared -2% so it sits a bit lower than the backdrop
+    .background-foreground{ bottom: -10vh; } //nudged down from the shared 0% so it sits a bit lower than the backdrop
 }
 .mobile_version .background-container{
     .background-backdrop, .background-foreground{ width: 400%; background-size: 300vw 220vw; left: -96%; height: 200%; }
     .background-backdrop { height: 160vw; animation-name: gentle-parallax-backdrop-mobile; }
-    .background-foreground { animation-name: gentle-parallax-foreground-mobile; }
-    .sliding-pufferfish{ width: 20vw; height: 20vw; top: 120vw; left: 40%; }
+    .background-foreground { bottom: -98%; animation-name: gentle-parallax-foreground-mobile; } //re-solved for the 200% mobile height above
+    .sliding-pufferfish{ width: 20vw; height: 20vw; bottom: calc(100vh - 140vw); left: 40%; } //re-solved for the 20vw mobile height above
 }
 
 .bubble { position: absolute; bottom: -10%; animation: bubble-rise linear 1;
