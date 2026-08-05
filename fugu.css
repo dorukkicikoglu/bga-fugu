@@ -1047,6 +1047,10 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   z-index: 1;
 }
 
+body.desktop_version .background-container .background-foreground {
+  top: calc(-2% + 10vh);
+}
+
 .mobile_version .background-container .background-backdrop, .mobile_version .background-container .background-foreground {
   width: 400%;
   background-size: 300vw 220vw;
