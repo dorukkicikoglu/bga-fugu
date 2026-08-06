@@ -200,6 +200,8 @@ class Game extends \Bga\GameFramework\Table
         // $this->tableStats->init('table_teststat1', 0);
         // $this->playerStats->init('player_teststat1', 0);
 
+        $this->tableStats->init('isExpertDifficulty', $this->isSoloExpertDifficulty());
+
         //Setup the initial game situation 
         //create cards Deck object
 

@@ -94,5 +94,7 @@ class NextPlayer extends \Bga\GameFramework\States\GameState
             $totalFacedown += $facedownCount;
         }
         $this->game->tableStats->set('facedownCardPerPlayer', $totalFacedown / $playerCount);
+
+        $this->game->tableStats->set('isExpertDifficulty', $this->game->isSoloExpertDifficulty() ? 1 : 0); //ekmek uncomment
     }
 }

@@ -40,6 +40,11 @@
         "id": 17,
         "name": "Anchor score, average per player",
         "type": "float"
+      },
+      "isExpertDifficulty": {
+        "id": 18,
+        "name": "Expert difficulty (Solo mode)",
+        "type": "bool"
       }
     },
     
