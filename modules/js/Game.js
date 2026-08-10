@@ -742,7 +742,7 @@ class EndGameScoringHandler {
     constructor(game) {
         this.game = game;
         this.bodyClickHandler = null;
-        this.delayAfterFadeIns = 5000;
+        this.delayAfterFadeIns = 10000;
         this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
     }
     async displayEndGameScore(endGameScoring) {

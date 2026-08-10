@@ -12,7 +12,7 @@ export class EndGameScoringHandler{
     private soloScoreFlavorImage: HTMLDivElement;
     private bodyClickHandler = null;
     private winner_ids: number[];
-    private delayAfterFadeIns = 5000;
+    private delayAfterFadeIns = 10000;
     private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
     
 	constructor(private game: Game) { }
