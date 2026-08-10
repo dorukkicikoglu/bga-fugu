@@ -14,7 +14,7 @@ export class EndGameScoringHandler{
     private winner_ids: number[];
     private delayAfterFadeIns = 5000;
     private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
-
+    
 	constructor(private game: Game) { }
 
     public async displayEndGameScore(endGameScoring: EndGameScoreData) {
@@ -102,6 +102,17 @@ export class EndGameScoringHandler{
         }
         this.thead.appendChild(headerRow);
 
+        const scoreTypeTooltips = {
+            bannerfish: _('Bannerfish'),
+            pufferfish: _('Pufferfish'),
+            octopus: _('Octopus'),
+            corals: _('Corals'),
+            anchor: _('Anchor penalty'),
+            soloDifficultyPenalty: _('Point penalty for each face-down card remaining in your row'),
+            soloDifficultyBonus: _('On BGA, you get +5 point bonus for playing in expert difficulty'),
+            totalScore: _('Total Score'),
+        };
+
         // Add score rows
         for(let i = 0; i < this.scoringRowNames.length; i++) {
             const row = document.createElement('tr');
@@ -111,8 +122,8 @@ export class EndGameScoringHandler{
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
-            const isSoloDifficultyBonus = scoreType == 'soloDifficultyBonus';
-            const iconClass = isSoloDifficultyPenalty ? 'score-type-icon a-card' : (isSoloDifficultyBonus ? 'score-type-icon solo-difficulty-bonus-icon' : 'score-type-icon');
+            const iconTooltipClass = `score-type-icon-${scoreType}`;
+            const iconClass = `score-type-icon ${iconTooltipClass}` + (isSoloDifficultyPenalty ? ' a-card' : '');
             const facedownAttr = isSoloDifficultyPenalty ? ' data-state-in-hand="facedown"' : '';
             row.innerHTML = `
                 <td class="score-type-icon-cell">
@@ -128,8 +139,9 @@ export class EndGameScoringHandler{
 
             this.tbody.appendChild(row);
 
-            if(isSoloDifficultyBonus){
-                this.game.bga.gameui.addTooltipToClass('solo-difficulty-bonus-icon', _('On BGA, you get +5 point bonus for playing in expert difficulty'), '', 400);
+            const tooltipText = scoreTypeTooltips[scoreType];
+            if(tooltipText){
+                this.game.bga.gameui.addTooltipToClass(iconTooltipClass, tooltipText, '', 400);
             }
         }
     }
