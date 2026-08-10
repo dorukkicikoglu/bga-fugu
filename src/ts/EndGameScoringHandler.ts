@@ -13,7 +13,7 @@ export class EndGameScoringHandler{
     private bodyClickHandler = null;
     private winner_ids: number[];
     private delayAfterFadeIns = 5000;
-    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
+    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
 
 	constructor(private game: Game) { }
 
@@ -107,11 +107,12 @@ export class EndGameScoringHandler{
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
 
-            if(scoreType == 'soloDifficultyPenalty' && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)){
+            if((scoreType == 'soloDifficultyPenalty' || scoreType == 'soloDifficultyBonus') && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)){
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
-            const iconClass = isSoloDifficultyPenalty ? 'score-type-icon a-card' : 'score-type-icon';
+            const isSoloDifficultyBonus = scoreType == 'soloDifficultyBonus';
+            const iconClass = isSoloDifficultyPenalty ? 'score-type-icon a-card' : (isSoloDifficultyBonus ? 'score-type-icon solo-difficulty-bonus-icon' : 'score-type-icon');
             const facedownAttr = isSoloDifficultyPenalty ? ' data-state-in-hand="facedown"' : '';
             row.innerHTML = `
                 <td class="score-type-icon-cell">
@@ -124,8 +125,12 @@ export class EndGameScoringHandler{
 
                 row.innerHTML += `<td><div class="cell-text cell-${scoreType}" style="opacity: 0;" row-index="${i}" player-id="${player_id}">${cellScore}</div></td>`;
             }
-            
+
             this.tbody.appendChild(row);
+
+            if(isSoloDifficultyBonus){
+                this.game.bga.gameui.addTooltipToClass('solo-difficulty-bonus-icon', _('On BGA, you get +5 point bonus for playing in expert difficulty'), '', 400);
+            }
         }
     }
 

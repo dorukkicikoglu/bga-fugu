@@ -34,6 +34,7 @@ if (!defined('DECK_LENGTH_2_PLAYERS')) { // guard since this included multiple t
     define("SOLO_DIFFICULTY_STANDARD", 1);
     define("SOLO_DIFFICULTY_EXPERT", 2);
     define("SOLO_DIFFICULTY_FACEDOWN_PENALTY", 1); //expert solo: lose 1 point per face-down card remaining in your row
+    define("SOLO_EXPERT_DIFFICULTY_BONUS", 5); //expert solo: gain 5 points for playing the expert mode of solo
     define("SOLO_DIFFICULTY_RANK_THRESHOLD", 20); //solo: revealed rank below this discards the lower-numbered center card, at/above discards the higher-numbered one
 
     define("CARD_NUM_TO_CARD_TYPE", [

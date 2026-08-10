@@ -271,7 +271,7 @@ class Game extends \Bga\GameFramework\Table
      * satisfy, since their suit isn't showing).
      *
      * @param int $playerID
-     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int}
+     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int, soloDifficultyBonus: int}
      */
     public function getPlayerScore($playerID): array
     {
@@ -372,11 +372,12 @@ class Game extends \Bga\GameFramework\Table
         $anchorScoringFn = ANCHOR_SCORING;
         $anchorScore = (int) $anchorScoringFn($anchorCount);
 
-        // --- SOLO DIFFICULTY: expert solo games penalize unplayed (face-down) cards ---
+        // --- SOLO DIFFICULTY: expert solo games penalize unplayed (face-down) cards, but grant a flat bonus for playing on expert ---
         $soloDifficultyPenalty = $this->isSoloExpertDifficulty() ? -1 * $facedownCount * SOLO_DIFFICULTY_FACEDOWN_PENALTY : 0;
+        $soloDifficultyBonus = $this->isSoloExpertDifficulty() ? SOLO_EXPERT_DIFFICULTY_BONUS : 0;
 
-        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore + $soloDifficultyPenalty;
-
+        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore + $soloDifficultyPenalty + $soloDifficultyBonus;
+        
         return [
             'totalScore' => $totalScore,
             'bannerfish' => $bannerfishScore,
@@ -391,6 +392,7 @@ class Game extends \Bga\GameFramework\Table
             'anchor' => $anchorScore,
             'anchorCount' => $anchorCount,
             'soloDifficultyPenalty' => $soloDifficultyPenalty,
+            'soloDifficultyBonus' => $soloDifficultyBonus,
         ];
     }
     private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }

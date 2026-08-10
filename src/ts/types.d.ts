@@ -79,6 +79,7 @@ interface PlayerScore{
 
 interface SoloPlayerScore extends PlayerScore{
     soloDifficultyPenalty: number;
+    soloDifficultyBonus: number;
 }
 
 type CardStateInHand = 'facedown' | 'number' | 'anchor';

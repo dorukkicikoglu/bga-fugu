@@ -166,14 +166,15 @@ body.current_player_is_active:not(.lockedInterface){
                 *[row-index="8"]{ font-size: 18px; }
                 
                 &.score-type-icon-cell{ width: 72px; display: inline-block;
-                    .score-type-icon{ background-image: url("img/score_icons.webp"); background-size: 600% 100%; margin: auto; width: 42px; height: 42px; margin-top: -2px;
+                    .score-type-icon{ background-image: url("img/score_icons.webp"); background-size: 700% 100%; margin: auto; width: 42px; height: 42px; margin-top: -2px;
 						&[data-score-type="bannerfish"]{ background-position: 0% 0%; }
 						&[data-score-type="pufferfish"]{ background-position: -100% 0%; }
 						&[data-score-type="octopus"]{ background-position: -200% 0%; }
 						&[data-score-type="corals"]{ background-position: -300% 0%; }
 						&[data-score-type="anchor"]{ background-position: -400% 0%; }
-						&[data-score-type="totalScore"]{ background-position: -500% 0%; }
                         &[data-score-type="soloDifficultyPenalty"]{ background-image: none; --card-width: 16px; width: var(--card-width); height: calc(var(--card-width) * 2); margin-top: 2px; }
+                        &[data-score-type="soloDifficultyBonus"]{ background-position: -500% 0%; }
+						&[data-score-type="totalScore"]{ background-position: -600% 0%; }
                     }
                 }
                 .cell-total{ font-size: 24px; transition: opacity 0.2s ease; }
