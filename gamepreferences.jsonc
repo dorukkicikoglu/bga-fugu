@@ -28,7 +28,7 @@
     "name": "Bubble amount",
     "values": {
       "0": {
-        "name": "Off"
+        "name": "None"
       },
       "1": {
         "name": "Low"
