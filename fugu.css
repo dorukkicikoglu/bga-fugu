@@ -16,11 +16,11 @@ body {
 }
 
 #game_play_area {
-  padding-bottom: 110vh;
+  padding-bottom: 120vh;
 }
 
 .mobile_version #game_play_area {
-  padding-bottom: 230vh;
+  padding-bottom: 280vh;
 }
 
 .a-card {
@@ -1030,7 +1030,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 .background-container .sliding-pufferfish {
   display: none;
   background-image: url(img/victoryPuff.webp);
-  bottom: calc(100vh - 42vw);
+  bottom: calc(100vh - 48vw);
   position: absolute;
   left: 44%;
   width: 10vw;
@@ -1072,7 +1072,7 @@ body.desktop_version .background-container .background-foreground {
 .mobile_version .background-container .sliding-pufferfish {
   width: 20vw;
   height: 20vw;
-  bottom: calc(100vh - 140vw);
+  bottom: calc(100vh - 160vw);
   left: 40%;
 }
 

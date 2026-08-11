@@ -1021,6 +1021,7 @@ class BackgroundHandler {
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
         this.bubblesInitialized = false;
         this.nextBubbleTimeout = null;
+        this.pufferfishVisible = false;
         this.latestScrollY = 0;
         this.parallaxFramePending = false;
         this.backgroundContainer = document.createElement('div');
@@ -1092,11 +1093,41 @@ class BackgroundHandler {
         this.foregroundParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedFront}px, 0)`;
         const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
         if (scrollPastPlayerHands === 0) {
+            this.pufferfishVisible = false;
             this.slidingPufferfish.style.display = 'none';
             return;
         }
+        if (!this.pufferfishVisible) //recalculate the initial position every time pufferfish becomes visible again
+            this.pufferfishInitialPos = this.slidingPufferfish.getBoundingClientRect().top + scrollY;
+        this.pufferfishVisible = true;
+        //bounces up then back down: rises for the first maxRise of travel, then retraces the same
+        //distance back down to its starting position, at which point it's hidden again below
+        const maxRise = this.pufferfishInitialPos + window.innerHeight * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE);
+        const riseDistance = scrollPastPlayerHands * this.pufferfishRiseSpeed;
+        if (riseDistance >= maxRise * 2) {
+            this.slidingPufferfish.style.display = null;
+            return;
+        }
         this.slidingPufferfish.style.display = 'block';
-        this.slidingPufferfish.style.transform = `translate3d(0, ${-scrollPastPlayerHands * this.pufferfishRiseSpeed}px, 0) rotate(${scrollPastPlayerHands * this.pufferfishRotationSpeed}deg)`;
+        //eased bounce: quad ease-out into the top (decelerating), a short hold there, then quad ease-in
+        //away from it (accelerating) back down - a linear reflection here looked like it hit an invisible
+        //wall at the top instead of turning around
+        const holdFraction = BackgroundHandler.PUFFERFISH_HOLD_FRACTION;
+        const moveFraction = (1 - holdFraction) / 2;
+        const progress = riseDistance / (maxRise * 2);
+        let pufferfishY;
+        if (progress < moveFraction) {
+            const p = progress / moveFraction;
+            pufferfishY = -maxRise * (1 - (1 - p) * (1 - p)); //ease-out: fast start, slows into the top
+        }
+        else if (progress < moveFraction + holdFraction) {
+            pufferfishY = -maxRise; //hold at the top
+        }
+        else {
+            const p = (progress - moveFraction - holdFraction) / moveFraction;
+            pufferfishY = -maxRise * (1 - p * p); //ease-in: slow start, accelerates back to the bottom
+        }
+        this.slidingPufferfish.style.transform = `translate3d(0, ${pufferfishY}px, 0) rotate(${scrollPastPlayerHands * this.pufferfishRotationSpeed}deg)`;
     }
     onBodyClick(event) {
         if (this.targetBubbleSetting.maxBubbleCount === 0)
@@ -1243,10 +1274,13 @@ BackgroundHandler.POP_INVULNERABLE_MS = 500;
 BackgroundHandler.PARALLAX_SPEED_BACK = 0.075;
 BackgroundHandler.PARALLAX_SPEED_FRONT = 0.18;
 BackgroundHandler.PARALLAX_REFERENCE_HEIGHT = 500;
-BackgroundHandler.PUFFERFISH_RISE_SPEED_DESKTOP = 0.65;
-BackgroundHandler.PUFFERFISH_RISE_SPEED_MOBILE = 0.5;
+BackgroundHandler.PUFFERFISH_RISE_SPEED_DESKTOP = 0.75;
+BackgroundHandler.PUFFERFISH_RISE_SPEED_MOBILE = 0.45;
 BackgroundHandler.PUFFERFISH_ROTATION_SPEED_DESKTOP = 0.35;
-BackgroundHandler.PUFFERFISH_ROTATION_SPEED_MOBILE = 0.4;
+BackgroundHandler.PUFFERFISH_ROTATION_SPEED_MOBILE = 0.45;
+BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.2;
+BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.3;
+BackgroundHandler.PUFFERFISH_HOLD_FRACTION = 0.12;
 
 class PrefHandler {
     constructor(game, prefNameToIndex) {
