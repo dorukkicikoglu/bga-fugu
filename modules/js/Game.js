@@ -1021,7 +1021,6 @@ class BackgroundHandler {
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
         this.bubblesInitialized = false;
         this.nextBubbleTimeout = null;
-        this.pufferfishVisible = false;
         this.latestScrollY = 0;
         this.parallaxFramePending = false;
         this.backgroundContainer = document.createElement('div');
@@ -1093,16 +1092,13 @@ class BackgroundHandler {
         this.foregroundParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedFront}px, 0)`;
         const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
         if (scrollPastPlayerHands === 0) {
-            this.pufferfishVisible = false;
-            this.slidingPufferfish.style.display = 'none';
+            // this.pufferfishVisible = false;
+            this.slidingPufferfish.style.display = null;
             return;
         }
-        if (!this.pufferfishVisible) //recalculate the initial position every time pufferfish becomes visible again
-            this.pufferfishInitialPos = this.slidingPufferfish.getBoundingClientRect().top + scrollY;
-        this.pufferfishVisible = true;
         //bounces up then back down: rises for the first maxRise of travel, then retraces the same
         //distance back down to its starting position, at which point it's hidden again below
-        const maxRise = this.pufferfishInitialPos + window.innerHeight * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE);
+        const maxRise = window.innerWidth * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE); //proportional to screen width because that's what determines the distance between ocean surface and the rocks
         const riseDistance = scrollPastPlayerHands * this.pufferfishRiseSpeed;
         if (riseDistance >= maxRise * 2) {
             this.slidingPufferfish.style.display = null;
@@ -1278,8 +1274,8 @@ BackgroundHandler.PUFFERFISH_RISE_SPEED_DESKTOP = 0.75;
 BackgroundHandler.PUFFERFISH_RISE_SPEED_MOBILE = 0.45;
 BackgroundHandler.PUFFERFISH_ROTATION_SPEED_DESKTOP = 0.35;
 BackgroundHandler.PUFFERFISH_ROTATION_SPEED_MOBILE = 0.45;
-BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.2;
-BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.3;
+BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.3;
+BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.8;
 BackgroundHandler.PUFFERFISH_HOLD_FRACTION = 0.12;
 
 class PrefHandler {

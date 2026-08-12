@@ -19,8 +19,8 @@ export class BackgroundHandler{
   private static readonly PUFFERFISH_RISE_SPEED_MOBILE = 0.45;
   private static readonly PUFFERFISH_ROTATION_SPEED_DESKTOP = 0.35;
   private static readonly PUFFERFISH_ROTATION_SPEED_MOBILE = 0.45;
-  private static readonly PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.2;
-  private static readonly PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.3;
+  private static readonly PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.3;
+  private static readonly PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.8;
   private static readonly PUFFERFISH_HOLD_FRACTION = 0.12;
 
   private backgroundContainer: HTMLDivElement;
@@ -37,8 +37,6 @@ export class BackgroundHandler{
 
   private pufferfishRiseSpeed: number;
   private pufferfishRotationSpeed: number;
-  private pufferfishVisible: boolean = false;
-  private pufferfishInitialPos: number;
   private parallaxSpeedBack: number;
   private parallaxSpeedFront: number;
   private latestScrollY = 0;
@@ -131,19 +129,14 @@ export class BackgroundHandler{
 
     const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
     if(scrollPastPlayerHands === 0){
-      this.pufferfishVisible = false;
-      this.slidingPufferfish.style.display = 'none';      
+      // this.pufferfishVisible = false;
+      this.slidingPufferfish.style.display = null;      
       return;
     }
 
-    if(!this.pufferfishVisible) //recalculate the initial position every time pufferfish becomes visible again
-      this.pufferfishInitialPos = this.slidingPufferfish.getBoundingClientRect().top + scrollY;
-
-    this.pufferfishVisible = true;
-
     //bounces up then back down: rises for the first maxRise of travel, then retraces the same
     //distance back down to its starting position, at which point it's hidden again below
-    const maxRise = this.pufferfishInitialPos + window.innerHeight * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE);
+    const maxRise = window.innerWidth * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE); //proportional to screen width because that's what determines the distance between ocean surface and the rocks
     const riseDistance = scrollPastPlayerHands * this.pufferfishRiseSpeed;
     if(riseDistance >= maxRise * 2){
       this.slidingPufferfish.style.display = null;
