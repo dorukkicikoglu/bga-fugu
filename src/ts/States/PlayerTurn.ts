@@ -50,8 +50,17 @@ export class PlayerTurn {
     }
 
     passClicked() {
-        this.bga.dialogs.confirmation(_("Pass and END YOUR GAME?")).then(result => {
-            if(result){ 
+        const confirmationPromise = this.bga.dialogs.confirmation(_("Pass and END YOUR GAME?"));
+
+        const confirmButton = document.getElementById('confirmation-button-yes');
+        if(confirmButton){
+            confirmButton.textContent = _('Yes, end my game');
+            confirmButton.classList.remove('bgabutton_blue');
+            confirmButton.classList.add('bgabutton_red');
+        }
+
+        confirmationPromise.then(result => {
+            if(result){
                 this.bga.actions.performAction("actPass");
             }
         });
