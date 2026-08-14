@@ -13,7 +13,7 @@ export class EndGameScoringHandler{
     private bodyClickHandler = null;
     private winner_ids: number[];
     private delayAfterFadeIns = 10000;
-    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
+    private scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
     
 	constructor(private game: Game) { }
 
@@ -109,7 +109,6 @@ export class EndGameScoringHandler{
             corals: _('Corals'),
             anchor: _('Anchor penalty'),
             soloDifficultyPenalty: _('Point penalty for each face-down card remaining in your row'),
-            soloDifficultyBonus: _('On BGA, you get +5 point bonus for playing in expert difficulty'),
             totalScore: _('Total Score'),
         };
 
@@ -118,7 +117,7 @@ export class EndGameScoringHandler{
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
 
-            if((scoreType == 'soloDifficultyPenalty' || scoreType == 'soloDifficultyBonus') && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)){
+            if(scoreType == 'soloDifficultyPenalty' && !this.game.isSoloMode()){
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';

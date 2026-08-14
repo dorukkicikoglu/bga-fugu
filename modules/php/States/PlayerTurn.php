@@ -174,7 +174,7 @@ class PlayerTurn extends GameState
 
         $otherCenterCards = $this->game->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'center' AND `card_location_arg` <> $centerCardLocation ORDER BY `rank` ASC;");
 
-        if ($handCardRank < SOLO_DIFFICULTY_RANK_THRESHOLD) {
+        if ($handCardRank < SOLO_COMPARE_THRESHOLD) {
             $cardToDiscard = $otherCenterCards[0]['rank'] < $otherCenterCards[1]['rank'] ? $otherCenterCards[0] : $otherCenterCards[1];
         } else {
             $cardToDiscard = $otherCenterCards[0]['rank'] > $otherCenterCards[1]['rank'] ? $otherCenterCards[0] : $otherCenterCards[1];

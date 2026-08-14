@@ -17,7 +17,6 @@ export class Game {
     public players: Record<number, PlayerHandler> = {};
     private myPlayerID: number;
     private localCardIDCounter = 1;
-    public isSoloExpertDifficulty: boolean;
     private autoClickTimeouts: Record<string, ReturnType<typeof setTimeout>[]> = {};
     private autoClickIncrement: number = 1;
     
@@ -64,7 +63,6 @@ export class Game {
         console.log( "Starting game setup" );
         this.gamedatas = gamedatas;
 
-        this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
         document.body.setAttribute('data-player-count', Object.keys(gamedatas.players).length.toString());
 
         this.backgroundHandler = new BackgroundHandler(this);

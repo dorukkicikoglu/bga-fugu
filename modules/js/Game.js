@@ -743,7 +743,7 @@ class EndGameScoringHandler {
         this.game = game;
         this.bodyClickHandler = null;
         this.delayAfterFadeIns = 10000;
-        this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'soloDifficultyBonus', 'totalScore'];
+        this.scoringRowNames = ['bannerfish', 'pufferfish', 'octopus', 'corals', 'anchor', 'soloDifficultyPenalty', 'totalScore'];
     }
     async displayEndGameScore(endGameScoring) {
         this.endGameScoring = endGameScoring;
@@ -819,14 +819,13 @@ class EndGameScoringHandler {
             corals: _('Corals'),
             anchor: _('Anchor penalty'),
             soloDifficultyPenalty: _('Point penalty for each face-down card remaining in your row'),
-            soloDifficultyBonus: _('On BGA, you get +5 point bonus for playing in expert difficulty'),
             totalScore: _('Total Score'),
         };
         // Add score rows
         for (let i = 0; i < this.scoringRowNames.length; i++) {
             const row = document.createElement('tr');
             const scoreType = this.scoringRowNames[i];
-            if ((scoreType == 'soloDifficultyPenalty' || scoreType == 'soloDifficultyBonus') && !(this.game.isSoloMode() && this.game.isSoloExpertDifficulty)) {
+            if (scoreType == 'soloDifficultyPenalty' && !this.game.isSoloMode()) {
                 continue;
             }
             const isSoloDifficultyPenalty = scoreType == 'soloDifficultyPenalty';
@@ -1518,7 +1517,6 @@ class Game {
     setup(gamedatas) {
         console.log("Starting game setup");
         this.gamedatas = gamedatas;
-        this.isSoloExpertDifficulty = gamedatas.isSoloExpertDifficulty;
         document.body.setAttribute('data-player-count', Object.keys(gamedatas.players).length.toString());
         this.backgroundHandler = new BackgroundHandler(this);
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `

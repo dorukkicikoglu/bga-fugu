@@ -21,6 +21,7 @@
   }
   */
 
+  /*
   "100": {
     "name": "Solo Difficulty Mode",
     "displaycondition": [ { "type": "minplayers", "value": [1] } ],
@@ -35,4 +36,5 @@
     },
     "default": 1
   }
+  */
 }

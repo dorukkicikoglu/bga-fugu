@@ -691,7 +691,7 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 .end-game-score-container table tbody td.score-type-icon-cell .score-type-icon {
   background-image: url("img/score_icons.webp");
-  background-size: 700% 100%;
+  background-size: 600% 100%;
   margin: auto;
   width: 42px;
   height: 42px;
@@ -719,11 +719,8 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
   height: calc(var(--card-width) * 2);
   margin-top: 2px;
 }
-.end-game-score-container table tbody td.score-type-icon-cell .score-type-icon[data-score-type=soloDifficultyBonus] {
-  background-position: -500% 0%;
-}
 .end-game-score-container table tbody td.score-type-icon-cell .score-type-icon[data-score-type=totalScore] {
-  background-position: -600% 0%;
+  background-position: -500% 0%;
 }
 .end-game-score-container table tbody td .cell-total {
   font-size: 24px;

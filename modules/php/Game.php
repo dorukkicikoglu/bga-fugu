@@ -143,7 +143,6 @@ class Game extends \Bga\GameFramework\Table
         $result['deckLength'] = DECK_LENGTHS[count($result["players"])]; 
         $result['pref_names'] = $this->userPrefs;
 
-        $result['isSoloExpertDifficulty'] = $this->isSoloExpertDifficulty(); 
         $result['discardedCards'] = $this->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'returned_to_box' ORDER BY `rank` ASC");
         $result['anchoredCards'] = $this->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `state_in_hand` = 'anchor' ORDER BY `rank` ASC");
 
@@ -196,12 +195,6 @@ class Game extends \Bga\GameFramework\Table
         //
         // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
 
-        // Dummy content.
-        // $this->tableStats->init('table_teststat1', 0);
-        // $this->playerStats->init('player_teststat1', 0);
-
-        $this->tableStats->init('isExpertDifficulty', $this->isSoloExpertDifficulty());
-
         //Setup the initial game situation 
         //create cards Deck object
 
@@ -216,8 +209,8 @@ class Game extends \Bga\GameFramework\Table
 
         $this->tableManager->shuffleAndDealCards();
 
-        if($this->isSoloExpertDifficulty())
-            $this->updatePlayerScore(array_keys($players)[0]); //in expert mode, start with soloDifficultyPenalty
+        if($this->isSoloMode())
+            $this->updatePlayerScore(array_keys($players)[0]); //in solo mode, start with soloDifficultyPenalty
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -256,10 +249,6 @@ class Game extends \Bga\GameFramework\Table
 
     public function isSoloMode(): bool{ return $this->getPlayersNumber() === 1; }
 
-    public function isSoloExpertDifficulty(): bool{
-        return $this->isSoloMode() && $this->tableOptions->get(SOLO_DIFFICULTY_OPTION) === SOLO_DIFFICULTY_EXPERT;
-    }
-
     //end utility functions
 
     /**
@@ -271,7 +260,7 @@ class Game extends \Bga\GameFramework\Table
      * satisfy, since their suit isn't showing).
      *
      * @param int $playerID
-     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int, soloDifficultyBonus: int}
+     * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int}
      */
     public function getPlayerScore($playerID): array
     {
@@ -372,11 +361,10 @@ class Game extends \Bga\GameFramework\Table
         $anchorScoringFn = ANCHOR_SCORING;
         $anchorScore = (int) $anchorScoringFn($anchorCount);
 
-        // --- SOLO DIFFICULTY: expert solo games penalize unplayed (face-down) cards, but grant a flat bonus for playing on expert ---
-        $soloDifficultyPenalty = $this->isSoloExpertDifficulty() ? -1 * $facedownCount * SOLO_DIFFICULTY_FACEDOWN_PENALTY : 0;
-        $soloDifficultyBonus = $this->isSoloExpertDifficulty() ? SOLO_EXPERT_DIFFICULTY_BONUS : 0;
+        // --- SOLO DIFFICULTY: solo games penalize unplayed (face-down) cards
+        $soloDifficultyPenalty = $this->isSoloMode() ? -1 * $facedownCount * SOLO_DIFFICULTY_FACEDOWN_PENALTY : 0;
 
-        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore + $soloDifficultyPenalty + $soloDifficultyBonus;
+        $totalScore = $bannerfishScore + $pufferfishScore + $octopusScore + $coralScore + $anchorScore + $soloDifficultyPenalty;
         
         return [
             'totalScore' => $totalScore,
@@ -392,7 +380,6 @@ class Game extends \Bga\GameFramework\Table
             'anchor' => $anchorScore,
             'anchorCount' => $anchorCount,
             'soloDifficultyPenalty' => $soloDifficultyPenalty,
-            'soloDifficultyBonus' => $soloDifficultyBonus,
         ];
     }
     private function scoreBannerfishRun(int $length): int { return ($length <= 0) ? 0 : BANNERFISH_SCORING_TABLE[min($length, count(BANNERFISH_SCORING_TABLE) - 1)]; }

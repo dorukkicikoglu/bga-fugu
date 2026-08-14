@@ -12,7 +12,6 @@ interface FuguGamedatas extends Gamedatas<FuguPlayer> {
     cardsInHands: Record<number, CardInHand[]>;
     endGameScoring: EndGameScoreData;
     deckLength: number;
-    isSoloExpertDifficulty: boolean;
     pref_names: GamePrefs;
     discardedCards: CardInDiscard[];
     anchoredCards: CardInDiscard[];
@@ -79,7 +78,6 @@ interface PlayerScore{
 
 interface SoloPlayerScore extends PlayerScore{
     soloDifficultyPenalty: number;
-    soloDifficultyBonus: number;
 }
 
 type CardStateInHand = 'facedown' | 'number' | 'anchor';
