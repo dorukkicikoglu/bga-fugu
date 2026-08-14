@@ -108,7 +108,7 @@ export class EndGameScoringHandler{
             octopus: _('Octopus'),
             corals: _('Corals'),
             anchor: _('Anchor penalty'),
-            soloDifficultyPenalty: _('Point penalty for each face-down card remaining in your row'),
+            soloDifficultyPenalty: _('Solo Only: -1 penalty for each facedown card left in your reef'),
             totalScore: _('Total Score'),
         };
 
