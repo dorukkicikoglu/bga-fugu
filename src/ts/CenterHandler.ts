@@ -2,14 +2,32 @@ import { Game } from "./Game";
 
 export class CenterHandler{
     private centerContainer: HTMLDivElement;
+    private lastKnownPlaceability: { [card_id: number]: boolean } = {};
 
     constructor(private game: Game, private centerCardsData: CardInCenter[]) {
         this.centerContainer = document.querySelector('#center-container');
 
         for(let cardData of this.centerCardsData)
-            this.centerContainer.appendChild(this.game.createCardDiv(cardData));
+            this.centerContainer.appendChild(this.createCardContainer(cardData));
 
         this.centerContainer.addEventListener('click', (event: Event) => { this.centerContainerClicked(event); });
+    }
+
+    //wraps each center a-card in a persistent, non-clipping container (a-card itself has overflow:hidden for
+    //its sprite background, which would otherwise clip the unplaceable-icon poking out past the card's edge).
+    //the icon element is created once here and kept around for the container's lifetime; updatePlaceability
+    //only toggles a class on it, so this wrapper must survive card swaps/replacements untouched (see those
+    //methods: they only ever replace/mutate the inner .a-card node, never this container).
+    private createCardContainer(cardData: CardInCenter): HTMLDivElement {
+        const container = document.createElement('div');
+        container.className = 'center-card-container';
+        container.appendChild(this.game.createCardDiv(cardData));
+
+        const icon = document.createElement('i');
+        icon.className = 'unplaceable-icon fa6 fa-anchor';
+        container.appendChild(icon);
+
+        return container;
     }
 
     private centerContainerClicked(event: Event){
@@ -101,6 +119,8 @@ export class CenterHandler{
 
     public async animateCardReplace(discardedCardData: CardInCenter, newCenterCardData: CardInCenter){
         const oldCenterCard: HTMLDivElement = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`) as HTMLDivElement;
+        this.fadeOutIcon(oldCenterCard); //the discarded card is about to fly away; its icon shouldn't linger over the empty slot mid-animation
+
         const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
 
         const newCenterCardClone : HTMLDivElement = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
@@ -143,8 +163,32 @@ export class CenterHandler{
         newCenterCardClone.remove();
         oldCenterCardClone.remove();
 
+        this.refreshIcon(oldCenterCard.parentElement as HTMLDivElement); //the replacement card has landed; show its icon if it needs one
+
         if(this.game.isSoloMode())
             this.game.soloDiscardDisplayHandler.insertCardIcon(discardedCardData);
+    }
+
+    //immediately hides a leaving card's icon, ahead of/independent from the next centerCardsPlaceability update,
+    //so it doesn't linger fading over a card that's mid-flight out of its slot
+    public fadeOutIcon(cardDiv: HTMLDivElement): void{
+        cardDiv.parentElement?.classList.remove('anchor-visible');
+    }
+
+    //re-applies the last known placeability to a single container's icon (eg. once a new card has finished
+    //landing in it), using whatever centerCardsPlaceability was most recently received
+    public refreshIcon(container: HTMLDivElement): void{
+        const cardDiv = container?.querySelector('.a-card') as HTMLDivElement;
+        if(!cardDiv)
+            return;
+
+        const cardId = Number(cardDiv.getAttribute('data-card-id'));
+        container.classList.toggle('anchor-visible', this.lastKnownPlaceability[cardId] === false);
+    }
+
+    public updatePlaceability(centerCardsPlaceability: { [card_id: number]: boolean }): void{
+        this.lastKnownPlaceability = centerCardsPlaceability;
+        this.centerContainer.querySelectorAll('.center-card-container').forEach((container: HTMLDivElement) => this.refreshIcon(container));
     }
 
     public getCenterContainer(): HTMLDivElement{ return this.centerContainer; }

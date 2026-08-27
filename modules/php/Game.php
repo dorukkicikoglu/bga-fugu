@@ -249,6 +249,77 @@ class Game extends \Bga\GameFramework\Table
 
     public function isSoloMode(): bool{ return $this->getPlayersNumber() === 1; }
 
+    /**
+     * For each free (face-down) slot in a player's reef, finds the nearest non-anchor ('number')
+     * neighbours on each side (by `location_in_hand` order, skipping anchors since they don't
+     * participate in ascending-order placement) and returns the open rank range between them.
+     * A missing neighbour on either side leaves that side unbounded (null).
+     *
+     * Every slot within the same gap between two 'number' cards (anchors don't count as a gap
+     * boundary) shares the exact same range, so distinct ranges are deduped as they're found:
+     * callers only care whether a value fits in some range, not how many slots offer it.
+     *
+     * @return list<array{lower: ?int, upper: ?int}>
+     */
+    public function getFreeSlotBounds(int $playerID): array
+    {
+        $row = $this->getObjectListFromDB(
+            "SELECT `location_in_hand`, `state_in_hand`, `rank` FROM `cards`
+             WHERE `card_location` = 'player' AND `card_location_arg` = $playerID
+             ORDER BY `location_in_hand` ASC"
+        );
+
+        $lowerBoundByLocation = [];
+
+        $lastNumberRank = null;
+        foreach ($row as $card) {
+            if ($card['state_in_hand'] === 'facedown') {
+                $lowerBoundByLocation[(int) $card['location_in_hand']] = $lastNumberRank;
+            } else if ($card['state_in_hand'] === 'number') {
+                $lastNumberRank = (int) $card['rank'];
+            }
+        }
+
+        $bounds = [];
+        $seenRanges = [];
+
+        $nextNumberRank = null;
+        for ($i = count($row) - 1; $i >= 0; $i--) {
+            $card = $row[$i];
+            if ($card['state_in_hand'] === 'facedown') {
+                $lower = $lowerBoundByLocation[(int) $card['location_in_hand']];
+                $upper = $nextNumberRank;
+
+                $rangeKey = "$lower:$upper";
+                if (!isset($seenRanges[$rangeKey])) {
+                    $seenRanges[$rangeKey] = true;
+                    $bounds[] = ['lower' => $lower, 'upper' => $upper];
+                }
+            } else if ($card['state_in_hand'] === 'number') {
+                $nextNumberRank = (int) $card['rank'];
+            }
+        }
+
+        return $bounds;
+    }
+
+    /**
+     * Whether a card of the given rank could be placed as a 'number' card (ie. without breaking
+     * ascending order) in at least one of the free reef slot ranges from {@see getFreeSlotBounds}.
+     *
+     * @param list<array{lower: ?int, upper: ?int}> $freeSlotBounds
+     */
+    public function isCardPlaceable(array $freeSlotBounds, int $cardRank): bool
+    {
+        foreach ($freeSlotBounds as $bound) {
+            $lowerOk = $bound['lower'] === null || $cardRank > $bound['lower'];
+            $upperOk = $bound['upper'] === null || $cardRank < $bound['upper'];
+            if ($lowerOk && $upperOk)
+                return true;
+        }
+        return false;
+    }
+
     //end utility functions
 
     /**

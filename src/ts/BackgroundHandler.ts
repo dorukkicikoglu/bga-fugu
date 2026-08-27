@@ -129,7 +129,6 @@ export class BackgroundHandler{
 
     const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
     if(scrollPastPlayerHands === 0){
-      // this.pufferfishVisible = false;
       this.slidingPufferfish.style.display = null;      
       return;
     }

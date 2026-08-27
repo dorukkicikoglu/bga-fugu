@@ -97,6 +97,7 @@ interface EndGameScoreData {
  */
 interface PlayerTurnArgs {
     playableCardsIds: number[];
+    centerCardsPlaceability: { [card_id: number]: boolean };
 }
    
 /*

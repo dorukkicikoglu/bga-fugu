@@ -374,26 +374,42 @@ body {
   min-width: max-content;
   min-height: calc(var(--card-width) * 2.6);
 }
-#center-container .a-card {
+#center-container .center-card-container {
+  position: relative;
   display: inline-block;
   margin-top: calc(var(--card-width) * 0.4);
   margin-left: calc(var(--card-width) * 0.6);
   margin-right: calc(var(--card-width) * 0.6);
 }
+#center-container .center-card-container .unplaceable-icon {
+  position: absolute;
+  top: 21%;
+  left: -9px;
+  text-shadow: 2px 0 #f0f0f0, -2px 0 #f0f0f0, 0 2px #f0f0f0, 0 -2px #f0f0f0, 1px 1px #f0f0f0, -1px -1px #f0f0f0, 1px -1px #f0f0f0, -1px 1px #f0f0f0;
+  transform: rotate(-12deg);
+  font-size: 21px;
+  color: #414faf;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+#center-container .center-card-container.anchor-visible .unplaceable-icon {
+  opacity: 1;
+}
 
-.mobile_version #center-container .a-card {
+.mobile_version #center-container .center-card-container {
   margin-left: calc(var(--card-width) * 0.4);
   margin-right: calc(var(--card-width) * 0.4);
 }
 
 @media (min-width: 735px) and (max-width: 979.98px) {
-  .mobile_version #center-container .a-card {
+  .mobile_version #center-container .center-card-container {
     margin-left: calc(var(--card-width) * 0.2);
     margin-right: calc(var(--card-width) * 0.2);
   }
 }
 @media (min-width: 485px) and (max-width: 734.98px) {
-  .mobile_version #center-container .a-card {
+  .mobile_version #center-container .center-card-container {
     margin-left: calc(var(--card-width) * 0.1);
     margin-right: calc(var(--card-width) * 0.1);
   }
@@ -616,8 +632,14 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
   cursor: pointer;
   animation: selectable-card-glow-pulse 3s ease-in-out infinite;
 }
+body.current_player_is_active:not(.lockedInterface) #center-container .center-card-container.anchor-visible .a-card {
+  animation: selectable-anchored-card-glow-pulse 3s ease-in-out infinite;
+}
 body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
   animation: mobile-selectable-card-glow-pulse 3s ease-in-out infinite;
+}
+body.current_player_is_active:not(.lockedInterface).mobile_version #center-container .center-card-container.anchor-visible .a-card {
+  animation: mobile-selectable-anchored-card-glow-pulse 3s ease-in-out infinite;
 }
 
 .end-game-score-container {
@@ -1252,6 +1274,28 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
   }
   100% {
     box-shadow: 0 0 4px 4px #FFD700;
+  }
+}
+@keyframes selectable-anchored-card-glow-pulse {
+  0% {
+    box-shadow: 0 0 5px 5px #202ca9;
+  }
+  50% {
+    box-shadow: 0 0 9px 9px #1d2ab0;
+  }
+  100% {
+    box-shadow: 0 0 5px 5px #202ca9;
+  }
+}
+@keyframes mobile-selectable-anchored-card-glow-pulse {
+  0% {
+    box-shadow: 0 0 4px 4px #202ca9;
+  }
+  50% {
+    box-shadow: 0 0 8px 8px #1d2ab0;
+  }
+  100% {
+    box-shadow: 0 0 4px 4px #202ca9;
   }
 }
 @keyframes solo-score-flavor-image-rock {

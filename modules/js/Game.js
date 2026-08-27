@@ -105,6 +105,7 @@ class PlayerTurn {
         this.bga.statusBar.setTitle(isCurrentPlayerActive ?
             (this.game.isDesktop() ? _('${you} must swap 2 cards or pass') : _('${you} must swap or pass')) :
             _('${actplayer} must play a card or pass'));
+        this.game.centerHandler.updatePlaceability(args.centerCardsPlaceability);
         if (isCurrentPlayerActive) {
             this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), { id: 'swap-button' });
             this.swapButton.style.display = 'none';
@@ -297,6 +298,7 @@ class HandHandler {
         handCardClone.classList.add('cloned-card');
         if (!centerCard || !handCard || !handCardClone)
             return;
+        this.game.centerHandler.fadeOutIcon(centerCard); //this card is about to fly out to the hand; its icon shouldn't linger over the empty slot mid-animation
         const centerCardClone = this.game.cloneCard(centerCard);
         handCard.insertAdjacentElement('afterend', centerCardClone);
         centerCard.insertAdjacentElement('afterend', handCardClone);
@@ -345,6 +347,7 @@ class HandHandler {
         centerContainer.style.zIndex = null;
         centerCard.replaceWith(handCardClone);
         handCard.replaceWith(centerCardClone);
+        this.game.centerHandler.refreshIcon(handCardClone.parentElement); //the swapped-in card has landed; show its icon if it needs one
     }
     updateMobileCardSpacing() {
         if (!this.game.isMobile())
@@ -520,10 +523,25 @@ class CenterHandler {
     constructor(game, centerCardsData) {
         this.game = game;
         this.centerCardsData = centerCardsData;
+        this.lastKnownPlaceability = {};
         this.centerContainer = document.querySelector('#center-container');
         for (let cardData of this.centerCardsData)
-            this.centerContainer.appendChild(this.game.createCardDiv(cardData));
+            this.centerContainer.appendChild(this.createCardContainer(cardData));
         this.centerContainer.addEventListener('click', (event) => { this.centerContainerClicked(event); });
+    }
+    //wraps each center a-card in a persistent, non-clipping container (a-card itself has overflow:hidden for
+    //its sprite background, which would otherwise clip the unplaceable-icon poking out past the card's edge).
+    //the icon element is created once here and kept around for the container's lifetime; updatePlaceability
+    //only toggles a class on it, so this wrapper must survive card swaps/replacements untouched (see those
+    //methods: they only ever replace/mutate the inner .a-card node, never this container).
+    createCardContainer(cardData) {
+        const container = document.createElement('div');
+        container.className = 'center-card-container';
+        container.appendChild(this.game.createCardDiv(cardData));
+        const icon = document.createElement('i');
+        icon.className = 'unplaceable-icon fa6 fa-anchor';
+        container.appendChild(icon);
+        return container;
     }
     centerContainerClicked(event) {
         if (!this.game.bga.players.isCurrentPlayerActive())
@@ -593,6 +611,7 @@ class CenterHandler {
     }
     async animateCardReplace(discardedCardData, newCenterCardData) {
         const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
+        this.fadeOutIcon(oldCenterCard); //the discarded card is about to fly away; its icon shouldn't linger over the empty slot mid-animation
         const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
         const newCenterCardClone = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
         oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
@@ -623,8 +642,27 @@ class CenterHandler {
         oldCenterCard.style.opacity = null;
         newCenterCardClone.remove();
         oldCenterCardClone.remove();
+        this.refreshIcon(oldCenterCard.parentElement); //the replacement card has landed; show its icon if it needs one
         if (this.game.isSoloMode())
             this.game.soloDiscardDisplayHandler.insertCardIcon(discardedCardData);
+    }
+    //immediately hides a leaving card's icon, ahead of/independent from the next centerCardsPlaceability update,
+    //so it doesn't linger fading over a card that's mid-flight out of its slot
+    fadeOutIcon(cardDiv) {
+        cardDiv.parentElement?.classList.remove('anchor-visible');
+    }
+    //re-applies the last known placeability to a single container's icon (eg. once a new card has finished
+    //landing in it), using whatever centerCardsPlaceability was most recently received
+    refreshIcon(container) {
+        const cardDiv = container?.querySelector('.a-card');
+        if (!cardDiv)
+            return;
+        const cardId = Number(cardDiv.getAttribute('data-card-id'));
+        container.classList.toggle('anchor-visible', this.lastKnownPlaceability[cardId] === false);
+    }
+    updatePlaceability(centerCardsPlaceability) {
+        this.lastKnownPlaceability = centerCardsPlaceability;
+        this.centerContainer.querySelectorAll('.center-card-container').forEach((container) => this.refreshIcon(container));
     }
     getCenterContainer() { return this.centerContainer; }
 }
@@ -1098,7 +1136,6 @@ class BackgroundHandler {
         this.foregroundParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedFront}px, 0)`;
         const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
         if (scrollPastPlayerHands === 0) {
-            // this.pufferfishVisible = false;
             this.slidingPufferfish.style.display = null;
             return;
         }

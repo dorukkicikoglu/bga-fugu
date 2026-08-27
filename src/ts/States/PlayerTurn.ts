@@ -19,10 +19,12 @@ export class PlayerTurn {
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
      */
     onEnteringState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
-        this.bga.statusBar.setTitle(isCurrentPlayerActive ? 
+        this.bga.statusBar.setTitle(isCurrentPlayerActive ?
             (this.game.isDesktop() ? _('${you} must swap 2 cards or pass') :  _('${you} must swap or pass')) :
             _('${actplayer} must play a card or pass')
         );
+
+        this.game.centerHandler.updatePlaceability(args.centerCardsPlaceability);
 
         if (isCurrentPlayerActive) {
             this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), {id: 'swap-button'});

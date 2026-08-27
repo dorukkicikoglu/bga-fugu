@@ -29,13 +29,27 @@ class PlayerTurn extends GameState
     public function getArgs(): array
     {
         // Get some values from the current game situation from the database.
-        $handLocationsDB = $this->game->getObjectListFromDB("SELECT location_in_hand FROM `cards` WHERE card_location = 'player' AND card_location_arg = ".$this->game->getActivePlayerId()." AND state_in_hand = 'facedown' ORDER BY location_in_hand ASC", true);
-        $centerCardsDB = $this->game->getObjectListFromDB("SELECT card_id FROM `cards` WHERE card_location = 'center' ORDER BY card_location_arg ASC", true);
+        $activePlayerId = $this->game->getActivePlayerId();
+
+        $handLocationsDB = $this->game->getObjectListFromDB("SELECT location_in_hand FROM `cards` WHERE card_location = 'player' AND card_location_arg = $activePlayerId AND state_in_hand = 'facedown' ORDER BY location_in_hand ASC", true);
+        $centerCardsDB = $this->game->getObjectListFromDB("SELECT card_id, `rank` FROM `cards` WHERE card_location = 'center' ORDER BY card_location_arg ASC");
+
+        $freeSlotBounds = $this->game->getFreeSlotBounds((int) $activePlayerId);
+
+        $possibleCenterCardIDs = [];
+        $centerCardsPlaceability = [];
+        foreach ($centerCardsDB as $centerCard) {
+            $cardId = (int) $centerCard['card_id'];
+            $possibleCenterCardIDs[] = $cardId;
+            $centerCardsPlaceability[$cardId] = $this->game->isCardPlaceable($freeSlotBounds, (int) $centerCard['rank']);
+        }
+
         return [
             'possibleHandLocations' => $handLocationsDB,
-            'possibleCenterCardIDs' => $centerCardsDB
+            'possibleCenterCardIDs' => $possibleCenterCardIDs,
+            'centerCardsPlaceability' => $centerCardsPlaceability,
         ];
-    }    
+    }
 
     /**
      * Player action, example content.

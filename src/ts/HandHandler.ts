@@ -133,6 +133,8 @@ export class HandHandler{
         if(!centerCard || !handCard || !handCardClone)
             return;
 
+        this.game.centerHandler.fadeOutIcon(centerCard); //this card is about to fly out to the hand; its icon shouldn't linger over the empty slot mid-animation
+
         const centerCardClone = this.game.cloneCard(centerCard);
         handCard.insertAdjacentElement('afterend', centerCardClone);
         centerCard.insertAdjacentElement('afterend', handCardClone);
@@ -197,6 +199,8 @@ export class HandHandler{
 
         centerCard.replaceWith(handCardClone);
         handCard.replaceWith(centerCardClone);
+
+        this.game.centerHandler.refreshIcon(handCardClone.parentElement as HTMLDivElement); //the swapped-in card has landed; show its icon if it needs one
     }
 
     public updateMobileCardSpacing(){

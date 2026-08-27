@@ -39,14 +39,18 @@ body{ background: #221e52; }
 }
 
 #center-container{ text-align: center; min-width: max-content; min-height: calc(var(--card-width) * 2.6);
-	.a-card{ display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6); }
+	.center-card-container{ position: relative; display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6);
+		//lives outside .a-card (which clips via overflow:hidden for its sprite background) so it can poke past the card's edge
+		.unplaceable-icon{ position: absolute; top: 21%; left: -9px; @include text-shade(#f0f0f0, 2px); transform: rotate(-12deg); font-size: 21px; color: #414faf; pointer-events: none; opacity: 0; transition: opacity 250ms ease; }
+		&.anchor-visible .unplaceable-icon{ opacity: 1; }
+	}
 }
-.mobile_version #center-container .a-card{ margin-left: calc(var(--card-width) * 0.4); margin-right: calc(var(--card-width) * 0.4); }
+.mobile_version #center-container .center-card-container{ margin-left: calc(var(--card-width) * 0.4); margin-right: calc(var(--card-width) * 0.4); }
 @media (min-width: 735px) and (max-width: 979.98px){
-    .mobile_version #center-container .a-card{ margin-left: calc(var(--card-width) * 0.2); margin-right: calc(var(--card-width) * 0.2); }
-} 
+    .mobile_version #center-container .center-card-container{ margin-left: calc(var(--card-width) * 0.2); margin-right: calc(var(--card-width) * 0.2); }
+}
 @media (min-width: 485px) and (max-width: 734.98px){
-    .mobile_version #center-container .a-card{ margin-left: calc(var(--card-width) * 0.1); margin-right: calc(var(--card-width) * 0.1); }
+    .mobile_version #center-container .center-card-container{ margin-left: calc(var(--card-width) * 0.1); margin-right: calc(var(--card-width) * 0.1); }
 }
 
 .container-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); }
@@ -137,8 +141,10 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) {
 body.current_player_is_active:not(.lockedInterface){
 	#center-container .a-card,
 	.a-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ cursor: pointer; animation: selectable-card-glow-pulse 3s ease-in-out infinite; }
+    #center-container .center-card-container.anchor-visible .a-card{ animation: selectable-anchored-card-glow-pulse 3s ease-in-out infinite; }
     &.mobile_version{
         .a-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ animation: mobile-selectable-card-glow-pulse 3s ease-in-out infinite; }
+        #center-container .center-card-container.anchor-visible .a-card{ animation: mobile-selectable-anchored-card-glow-pulse 3s ease-in-out infinite; }    
     }
 }
 
@@ -377,6 +383,18 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"]{ @include te
   0% { box-shadow: 0 0 4px 4px #FFD700; }
   50% { box-shadow: 0 0 8px 8px #ffd483; }
   100% { box-shadow: 0 0 4px 4px #FFD700; }
+}
+
+@keyframes selectable-anchored-card-glow-pulse {
+  0% { box-shadow: 0 0 5px 5px #202ca9; }
+  50% { box-shadow: 0 0 9px 9px #1d2ab0; }
+  100% { box-shadow: 0 0 5px 5px #202ca9; }
+}
+
+@keyframes mobile-selectable-anchored-card-glow-pulse {
+  0% { box-shadow: 0 0 4px 4px #202ca9; }
+  50% { box-shadow: 0 0 8px 8px #1d2ab0; }
+  100% { box-shadow: 0 0 4px 4px #202ca9; }
 }
 
 @keyframes solo-score-flavor-image-rock {
