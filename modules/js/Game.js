@@ -102,14 +102,23 @@ class PlayerTurn {
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
      */
     onEnteringState(args, isCurrentPlayerActive) {
-        this.bga.statusBar.setTitle(isCurrentPlayerActive ?
-            (this.game.isDesktop() ? _('${you} must swap 2 cards or pass') : _('${you} must swap or pass')) :
-            _('${actplayer} must play a card or pass'));
         this.game.centerHandler.updatePlaceability(args.centerCardsPlaceability);
         if (isCurrentPlayerActive) {
+            //reserve a slot for the pass button inside the title itself; setTitle's args are substituted as raw HTML
+            //(same mechanism used for ${you}/${actplayer}), so an empty span placeholder can be targeted right after
+            this.bga.statusBar.setTitle(this.game.isDesktop() ? _('${you} must swap 2 cards or ${passButton}') : _('${you} must swap or ${passButton}'), { passButton: '<span id="pass-button-slot"></span>' });
             this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), { id: 'swap-button' });
             this.swapButton.style.display = 'none';
-            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { id: 'pass-button', color: 'alert' });
+            //addActionButton still builds the button through the framework (so markup/behavior stays identical to a
+            //normal status bar button); `destination` just relocates it into the title's placeholder span instead
+            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), {
+                id: 'pass-button',
+                color: 'alert',
+                destination: document.getElementById('pass-button-slot'),
+            });
+        }
+        else {
+            this.bga.statusBar.setTitle(_('${actplayer} must play a card or pass'));
         }
     }
     /**
