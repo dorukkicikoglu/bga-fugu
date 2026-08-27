@@ -108,7 +108,7 @@ class PlayerTurn {
         if (isCurrentPlayerActive) {
             this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), { id: 'swap-button' });
             this.swapButton.style.display = 'none';
-            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { color: 'secondary' });
+            this.bga.statusBar.addActionButton(_('Pass'), () => this.passClicked(), { id: 'pass-button', color: 'alert' });
         }
     }
     /**
