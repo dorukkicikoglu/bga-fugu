@@ -40,9 +40,7 @@ body{ background: #221e52; }
 
 #center-container{ text-align: center; min-width: max-content; min-height: calc(var(--card-width) * 2.6);
 	.center-card-container{ position: relative; display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6);
-		//lives outside .a-card (which clips via overflow:hidden for its sprite background) so it can poke past the card's edge
 		.unplaceable-icon{ position: absolute; top: 21%; left: -9px; @include text-shade(#f0f0f0, 2px); transform: rotate(-12deg); font-size: 21px; color: #414faf; pointer-events: none; opacity: 0; transition: opacity 250ms ease; }
-		&.anchor-visible .unplaceable-icon{ opacity: 1; }
 	}
 }
 .mobile_version #center-container .center-card-container{ margin-left: calc(var(--card-width) * 0.4); margin-right: calc(var(--card-width) * 0.4); }
@@ -146,6 +144,8 @@ body.current_player_is_active:not(.lockedInterface){
         .a-hand-container[data-is-myself="true"] .cards-container .a-card[data-state-in-hand="facedown"]{ animation: mobile-selectable-card-glow-pulse 3s ease-in-out infinite; }
         #center-container .center-card-container.anchor-visible .a-card{ animation: mobile-selectable-anchored-card-glow-pulse 3s ease-in-out infinite; }    
     }
+    #center-container .center-card-container.anchor-visible .unplaceable-icon{ opacity: 1; }
+
 }
 
 .end-game-score-container { position: fixed; z-index: 100; transition: top 0.2s ease; top: 122px; padding: 18px 10px 22px 10px; background: linear-gradient(377deg, #4750aa 27%, #7fbce9 110%); left: 16px; outline: 0.5px solid #ffffff; border-radius: 12px; user-select: none; overflow: hidden; box-shadow: 2px 2px 50px #f7f3d6;

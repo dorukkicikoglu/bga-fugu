@@ -393,9 +393,6 @@ body {
   opacity: 0;
   transition: opacity 250ms ease;
 }
-#center-container .center-card-container.anchor-visible .unplaceable-icon {
-  opacity: 1;
-}
 
 .mobile_version #center-container .center-card-container {
   margin-left: calc(var(--card-width) * 0.4);
@@ -640,6 +637,9 @@ body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-conta
 }
 body.current_player_is_active:not(.lockedInterface).mobile_version #center-container .center-card-container.anchor-visible .a-card {
   animation: mobile-selectable-anchored-card-glow-pulse 3s ease-in-out infinite;
+}
+body.current_player_is_active:not(.lockedInterface) #center-container .center-card-container.anchor-visible .unplaceable-icon {
+  opacity: 1;
 }
 
 .end-game-score-container {
