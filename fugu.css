@@ -632,11 +632,19 @@ body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-my
 body.current_player_is_active:not(.lockedInterface) #center-container .center-card-container.anchor-visible .a-card {
   animation: selectable-anchored-card-glow-pulse 3s ease-in-out infinite;
 }
+body.current_player_is_active:not(.lockedInterface) #center-container .a-card.swap-preview-anchor,
+body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown].swap-preview-anchor {
+  animation: swap-preview-anchor-glow-pulse 3s ease-in-out infinite;
+}
 body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
   animation: mobile-selectable-card-glow-pulse 3s ease-in-out infinite;
 }
 body.current_player_is_active:not(.lockedInterface).mobile_version #center-container .center-card-container.anchor-visible .a-card {
   animation: mobile-selectable-anchored-card-glow-pulse 3s ease-in-out infinite;
+}
+body.current_player_is_active:not(.lockedInterface).mobile_version #center-container .a-card.swap-preview-anchor,
+body.current_player_is_active:not(.lockedInterface).mobile_version .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown].swap-preview-anchor {
+  animation: mobile-swap-preview-anchor-glow-pulse 3s ease-in-out infinite;
 }
 body.current_player_is_active:not(.lockedInterface) #center-container .center-card-container.anchor-visible .unplaceable-icon {
   opacity: 1;
@@ -1298,6 +1306,28 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
     box-shadow: 0 0 4px 4px #202ca9;
   }
 }
+@keyframes swap-preview-anchor-glow-pulse {
+  0% {
+    box-shadow: 0 0 5px 5px #202ca9;
+  }
+  50% {
+    box-shadow: 0 0 11px 11px #1d2ab0;
+  }
+  100% {
+    box-shadow: 0 0 5px 5px #202ca9;
+  }
+}
+@keyframes mobile-swap-preview-anchor-glow-pulse {
+  0% {
+    box-shadow: 0 0 4px 4px #202ca9;
+  }
+  50% {
+    box-shadow: 0 0 8px 8px #1d2ab0;
+  }
+  100% {
+    box-shadow: 0 0 4px 4px #202ca9;
+  }
+}
 @keyframes solo-score-flavor-image-rock {
   0% {
     transform: rotate(15deg);
@@ -1375,5 +1405,3 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
     box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 20px 14px rgba(255, 255, 255, 0);
   }
 }
-
-/*# sourceMappingURL=fugu.css.map */

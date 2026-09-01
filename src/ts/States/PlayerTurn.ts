@@ -50,6 +50,7 @@ export class PlayerTurn {
     onLeavingState(args: PlayerTurnArgs, isCurrentPlayerActive: boolean) {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
+        this.game.centerHandler.clearSwapPreviewHighlights();
         this.clearBadHalfWarning();
     }
 

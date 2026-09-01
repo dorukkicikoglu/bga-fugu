@@ -127,6 +127,7 @@ class PlayerTurn {
     onLeavingState(args, isCurrentPlayerActive) {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
+        this.game.centerHandler.clearSwapPreviewHighlights();
         this.clearBadHalfWarning();
     }
     /**
@@ -584,9 +585,17 @@ class CenterHandler {
             this.cardsUnselected();
             return;
         }
+        //both sides are now selected; the single-side swap preview no longer applies
+        this.clearSwapPreviewHighlights();
         const cardRank = Number(selectedCenterCard.getAttribute('data-rank'));
         const handCardLocation = Number(selectedHandCard.getAttribute('data-location-in-hand'));
         const wouldBeAnchor = this.wouldBeAnchorCard(myHandContainer, handCardLocation, cardRank);
+        //both cards are now the ones about to be swapped, not just previewed - glow them blue too if this exact
+        //pairing would force anchor mode
+        if (wouldBeAnchor) {
+            selectedCenterCard.classList.add('swap-preview-anchor');
+            selectedHandCard.classList.add('swap-preview-anchor');
+        }
         const swapButton = this.game.playerTurn.getSwapButton();
         if (wouldBeAnchor) {
             swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Anchor')) + ' <i class="fa6 fa-anchor"></i>';
@@ -601,6 +610,16 @@ class CenterHandler {
         swapButton.style.display = null;
         this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
+    cardsUnselected() {
+        this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.clearBadHalfWarning();
+        //deselecting one side can still leave the other side selected (eg. re-clicking an already-selected center
+        //card only clears that side's class, see centerCardClicked/handCardClicked), so re-derive from the DOM
+        //rather than assuming "nothing selected"
+        this.refreshSwapPreviewHighlights();
+    }
+    //whether placing a card of cardRank at cardLocation in handContainer would force anchor mode, ie. whether any
+    //already-placed 'number' card on the other side of cardLocation breaks ascending order with cardRank
     wouldBeAnchorCard(handContainer, cardLocation, cardRank) {
         const cardsInHand = handContainer.querySelectorAll('[data-state-in-hand="number"]');
         for (let i = 0; i < cardsInHand.length; i++) {
@@ -614,9 +633,53 @@ class CenterHandler {
         }
         return false;
     }
-    cardsUnselected() {
-        this.game.playerTurn.getSwapButton().style.display = 'none';
-        this.game.playerTurn.clearBadHalfWarning();
+    //re-evaluates the swap preview from whatever is currently selected in the DOM: highlights the other side if
+    //exactly one side is selected, otherwise leaves it cleared. Called after any selection change that isn't
+    //itself "both sides selected" (that case is handled directly in checkBothCardsSelected). No active-turn/locked
+    //check needed here: this only ever runs downstream of a click that the container's own click gating already
+    //allowed through, same as the golden "selectable" glow relies on click gating rather than re-checking itself.
+    refreshSwapPreviewHighlights() {
+        this.clearSwapPreviewHighlights();
+        if (!this.game.myself)
+            return;
+        const selectedCenterCard = this.centerContainer.querySelector('.selected-center-card');
+        const myHandContainer = this.game.myself.getHand().getHandContainer();
+        const selectedHandCard = myHandContainer.querySelector('.selected-hand-card');
+        if (selectedCenterCard && !selectedHandCard)
+            this.highlightHandForCenterCard(selectedCenterCard);
+        else if (selectedHandCard && !selectedCenterCard)
+            this.highlightCenterForHandCard(selectedHandCard);
+    }
+    //center card selected first: preview the swap outcome on every facedown (selectable) card in my own hand.
+    //only the anchor-forcing outcome gets a class - a valid swap just keeps the default golden "selectable" glow
+    highlightHandForCenterCard(centerCardDiv) {
+        const cardRank = Number(centerCardDiv.getAttribute('data-rank'));
+        const handContainer = this.game.myself.getHand().getHandContainer();
+        const facedownHandCards = handContainer.querySelectorAll('[data-state-in-hand="facedown"]');
+        facedownHandCards.forEach((handCardDiv) => {
+            const cardLocation = Number(handCardDiv.getAttribute('data-location-in-hand'));
+            if (this.wouldBeAnchorCard(handContainer, cardLocation, cardRank))
+                handCardDiv.classList.add('swap-preview-anchor');
+        });
+    }
+    //hand card selected first: preview the swap outcome on every card currently displayed in the center
+    highlightCenterForHandCard(handCardDiv) {
+        const cardLocation = Number(handCardDiv.getAttribute('data-location-in-hand'));
+        const handContainer = this.game.myself.getHand().getHandContainer();
+        const centerCards = this.centerContainer.querySelectorAll('.a-card');
+        centerCards.forEach((centerCardDiv) => {
+            const cardRank = Number(centerCardDiv.getAttribute('data-rank'));
+            if (this.wouldBeAnchorCard(handContainer, cardLocation, cardRank))
+                centerCardDiv.classList.add('swap-preview-anchor');
+        });
+    }
+    //clears the preview class from every card on both sides (center and my own hand); safe to call unconditionally
+    clearSwapPreviewHighlights() {
+        this.centerContainer.querySelectorAll('.a-card.swap-preview-anchor').forEach((card) => card.classList.remove('swap-preview-anchor'));
+        if (this.game.myself) {
+            const handContainer = this.game.myself.getHand().getHandContainer();
+            handContainer.querySelectorAll('.a-card.swap-preview-anchor').forEach((card) => card.classList.remove('swap-preview-anchor'));
+        }
     }
     async animateCardReplace(discardedCardData, newCenterCardData) {
         const oldCenterCard = this.centerContainer.querySelector(`[data-card-id="${discardedCardData.card_id}"]`);
