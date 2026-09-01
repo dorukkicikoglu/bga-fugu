@@ -90,7 +90,8 @@ export class CenterHandler{
 
         const swapButton = this.game.playerTurn.getSwapButton();
         if(wouldBeAnchor){
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i> ' + (this.game.isDesktop() ? _('Swap as Anchor') : _('Anchor')) + ' <i class="fa6 fa-anchor"></i>';
+            const anchorPenalty: string = (-1 - this.game.myself.getAnchorCount()).toString();
+            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i>&nbsp;' + _('Swap for ${anchorPenalty}').replace('${anchorPenalty}', anchorPenalty) + '&nbsp;<i class="fa6 fa-anchor"></i>'; 
             swapButton.classList.remove('bgabutton_blue');
             swapButton.classList.add('purple-button');
         } else {

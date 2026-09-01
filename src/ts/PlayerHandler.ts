@@ -87,4 +87,5 @@ export class PlayerHandler{
     public getPlayerName(): string { return this.playerName; }
     public getPlayerColor(): string { return this.playerColor; }
     public getHand(): HandHandler { return this.hand; }
+    public getAnchorCount(): number { return this.scoringData.anchorCount; }
 }
