@@ -2,14 +2,16 @@
 
 :root{
 	--player-color: #000000;
-    --card-width: 6vw;
+    //capped so cards (and everything sized off them: center display, reefs) stop growing past a comfortable
+    //size on very large/ultra-wide screens - BGA Studio Guidelines C.4 (Sizing & responsiveness)
+    --card-width: min(6vw, 120px);
 	--image-source-fugu-cards: url(img/fugu_cards.webp);
 	--bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
 	--bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
     --bg-gradient-logs: linear-gradient(260deg, #3a5290, #38c79d, #ffffff55 103%);
 }
 
-.mobile_version{ --card-width: 28.5vw; }
+.mobile_version{ --card-width: min(28.5vw, 150px); }
 
 @mixin text-shade($color, $size) { text-shadow: #{$size} 0 $color, -#{$size} 0 $color, 0 #{$size} $color, 0 -#{$size} $color, #{($size / 2)} #{($size / 2)} $color, -#{($size / 2)} -#{($size / 2)} $color, #{($size / 2)} -#{($size / 2)} $color, -#{($size / 2)} #{($size / 2)} $color; }
 @mixin non-selectable() { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
