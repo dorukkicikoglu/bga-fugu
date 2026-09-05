@@ -623,6 +623,9 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #p
   transition: transform 0.3s ease;
   transform: rotate(5deg);
 }
+body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) #player-hands-container .a-hand-container.game-ended-player-hand .cards-container .a-card[data-state-in-hand=anchor] {
+  transform: rotate(-175deg);
+}
 
 body.current_player_is_active:not(.lockedInterface) #center-container .a-card,
 body.current_player_is_active:not(.lockedInterface) .a-hand-container[data-is-myself=true] .cards-container .a-card[data-state-in-hand=facedown] {
