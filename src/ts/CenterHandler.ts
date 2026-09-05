@@ -88,25 +88,15 @@ export class CenterHandler{
             selectedHandCard.classList.add('swap-preview-anchor');
         }
 
-        const swapButton = this.game.playerTurn.getSwapButton();
-        if(wouldBeAnchor){
-            const anchorPenalty: string = (-1 - this.game.myself.getAnchorCount()).toString();
-            swapButton.innerHTML = '<i class="fa6 fa-anchor"></i>&nbsp;' + _('Swap for ${anchorPenalty}').replace('${anchorPenalty}', anchorPenalty) + '&nbsp;<i class="fa6 fa-anchor"></i>'; 
-            swapButton.classList.remove('bgabutton_blue');
-            swapButton.classList.add('purple-button');
-        } else {
-            swapButton.innerHTML = this.game.isDesktop() ? _('Swap Selected Cards') : _('Swap Cards');
-            swapButton.classList.remove('purple-button');
-            swapButton.classList.add('bgabutton_blue');
-        }
-        
-        swapButton.style.display = null;
+        //anchor placement is always a legal choice; the normal number placement is only offered when it's legal here.
+        //neither button changes its own look - only which of the two is shown changes
+        this.game.playerTurn.showSwapButtons(!wouldBeAnchor, true);
 
         this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
 
     public cardsUnselected(){
-        this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.hideSwapButtons();
         this.game.playerTurn.clearBadHalfWarning();
 
         //deselecting one side can still leave the other side selected (eg. re-clicking an already-selected center

@@ -10,6 +10,7 @@ export class PlayerTurn {
     private static readonly BAD_HALF_LOADING_BAR_MS = 5000;
 
     private swapButton: HTMLButtonElement;
+    private swapAnchorButton: HTMLButtonElement;
     private badHalfWarningBox: ModalBoxHandler | null = null;
 
     constructor(private game: Game, private bga: Bga<FuguPlayer, FuguGamedatas>) {
@@ -29,8 +30,18 @@ export class PlayerTurn {
                 { passButton: '<span id="pass-button-slot"></span>' }
             );
 
-            this.swapButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(), {id: 'swap-button'});
+            //two separate, fixed-appearance buttons: normal number placement (only legal when it wouldn't break
+            //ascending order there) and anchor placement (always legal). CenterHandler.checkBothCardsSelected shows
+            //whichever are applicable for the current selection - neither button ever changes label/color itself.
+            this.swapButton = this.bga.statusBar.addActionButton(this.game.isDesktop() ? _('Swap Selected Cards') : _('Swap'), () => this.swapClicked(false), {id: 'swap-button'});
             this.swapButton.style.display = 'none';
+
+            const anchorPenalty: string = (-1 - this.game.myself.getAnchorCount()).toString();
+            this.swapAnchorButton = this.bga.statusBar.addActionButton(_(''), () => this.swapClicked(true), {id: 'swap-anchor-button'});
+            this.swapAnchorButton.innerHTML = '<i class="fa6 fa-anchor"></i>&nbsp;' + _('Anchor for ${anchorPenalty}').replace('${anchorPenalty}', anchorPenalty) + '&nbsp;<i class="fa6 fa-anchor"></i>';
+            this.swapAnchorButton.classList.remove('bgabutton_blue');
+            this.swapAnchorButton.classList.add('purple-button');
+            this.swapAnchorButton.style.display = 'none';
 
             //addActionButton still builds the button through the framework (so markup/behavior stays identical to a
             //normal status bar button); `destination` just relocates it into the title's placeholder span instead
@@ -79,10 +90,10 @@ export class PlayerTurn {
         });
     }
 
-    swapClicked() {
+    swapClicked(placeAsAnchor: boolean) {
         if(!this.game.myself)
             return;
-        
+
         this.clearBadHalfWarning();
 
         const centerCardDiv = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
@@ -96,15 +107,27 @@ export class PlayerTurn {
 
         this.bga.actions.performAction("actSwapCards", {
             centerCardID: centerCardID,
-            handCardLocation: handCardLocation
+            handCardLocation: handCardLocation,
+            placeAsAnchor: placeAsAnchor
         });
+    }
+
+    //shows/hides each swap button independently: number placement is only offered when it's legal there, while
+    //anchor placement is always a legal choice
+    public showSwapButtons(showSwapButton: boolean, showSwapAnchorButton: boolean): void {
+        this.swapButton.style.display = showSwapButton ? null : 'none';
+        this.swapAnchorButton.style.display = showSwapAnchorButton ? null : 'none';
+    }
+
+    public hideSwapButtons(): void {
+        this.showSwapButtons(false, false);
     }
 
     public updateBadHalfWarning(cardRank: number, handCardLocation: number, lastClickedCardDiv: HTMLDivElement): void {
         this.clearBadHalfWarning();
 
         if(!this.isPlayingFirstTurnOnBadHalf(cardRank, handCardLocation)){
-            this.swapButton.disabled = false;
+            this.setSwapButtonsDisabled(false);
             return;
         }
 
@@ -112,10 +135,10 @@ export class PlayerTurn {
             .replace('{$centerCardRank}', `<b>${cardRank.toString()}</b>`)
             .replace('{$highestCardInDeck}', `<b>${this.game.getDeckLength().toString()}</b>`);
 
-        this.swapButton.disabled = true;
+        this.setSwapButtonsDisabled(true);
 
         this.badHalfWarningBox = new ModalBoxHandler(this.game, lastClickedCardDiv, warningHTML, true, false, false, PlayerTurn.BAD_HALF_LOADING_BAR_MS, () => {
-            this.swapButton.disabled = false;
+            this.setSwapButtonsDisabled(false);
         });
     }
 
@@ -124,6 +147,11 @@ export class PlayerTurn {
             this.badHalfWarningBox.destroy();
             this.badHalfWarningBox = null;
         }
+    }
+
+    private setSwapButtonsDisabled(disabled: boolean): void {
+        this.swapButton.disabled = disabled;
+        this.swapAnchorButton.disabled = disabled;
     }
 
     private isPlayingFirstTurnOnBadHalf(cardRank: number, handLocation: number): boolean{
@@ -150,6 +178,4 @@ export class PlayerTurn {
 
         return offset > maxDistance;
     }
-    
-    public getSwapButton(): HTMLButtonElement{ return this.swapButton };
 }

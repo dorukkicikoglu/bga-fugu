@@ -23,6 +23,10 @@ body {
   padding-bottom: 280vh;
 }
 
+.mobile_version .action-button {
+  margin-left: 5px;
+}
+
 .a-card {
   overflow: hidden;
   position: relative;
@@ -546,7 +550,7 @@ body {
   --horz-margin: calc(var(--my-card-width) * -0.17);
 }
 
-#swap-button.purple-button {
+#swap-anchor-button.purple-button {
   background: linear-gradient(148deg, #2e1a3d 59%, #6b2d5c) no-repeat border-box;
 }
 

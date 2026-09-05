@@ -60,7 +60,7 @@ class PlayerTurn extends GameState
      * @throws UserException
      */
     #[PossibleAction]
-    public function actSwapCards(int $centerCardID, int $handCardLocation, int $activePlayerId, array $args)
+    public function actSwapCards(int $centerCardID, int $handCardLocation, bool $placeAsAnchor, int $activePlayerId, array $args)
     {
         if (!in_array($centerCardID, $args['possibleCenterCardIDs']))
             throw new UserException('Invalid center card choice');
@@ -76,8 +76,13 @@ class PlayerTurn extends GameState
         if(!$cardInHand)
             throw new UserException('Card in hand not found');
 
+        // Anchor placement is always legal, regardless of order (per the rules, an anchor card can replace any
+        // face-down card). Number placement is only legal when it wouldn't break ascending order at this spot.
+        if (!$placeAsAnchor && $this->wouldForceAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']))
+            throw new UserException('This card cannot be placed here in ascending order; it must be placed as an anchor');
+
         $centerCardLocation = $cardInCenter['card_location_arg'];
-        $stateInHand = $this->placeCardAsNumberOrAnchor($activePlayerId, (int) $cardInCenter['rank'], (int) $cardInHand['location_in_hand']);
+        $stateInHand = $placeAsAnchor ? 'anchor' : 'number';
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'player', `card_location_arg` = $activePlayerId, `state_in_hand` = '$stateInHand', `location_in_hand` = ".$cardInHand['location_in_hand']." WHERE `card_id` = $centerCardID");
         $this->game->DbQuery("UPDATE `cards` SET `card_location` = 'center', `card_location_arg` = ".$centerCardLocation.", `state_in_hand` = NULL, `location_in_hand` = NULL WHERE `card_id` = ".$cardInHand['card_id']);
 
@@ -158,7 +163,12 @@ class PlayerTurn extends GameState
         return $randomFacedownCard;
     }
 
-    private function placeCardAsNumberOrAnchor(int $activePlayerId, int $cardRank, int $cardLocation): string{
+    /**
+     * Whether placing cardRank as a 'number' card at cardLocation would break ascending order there, ie. whether
+     * the player would be forced to place it as an anchor instead. Anchor placement is always legal regardless
+     * of this result; it just determines whether plain number placement is also legal.
+     */
+    private function wouldForceAnchor(int $activePlayerId, int $cardRank, int $cardLocation): bool{
         $numberCards = $this->game->getObjectListFromDB("SELECT * FROM `cards` WHERE `card_location` = 'player' AND `card_location_arg` = $activePlayerId AND `state_in_hand` = 'number'");
 
         $lowerCard = null;
@@ -173,13 +183,13 @@ class PlayerTurn extends GameState
         }
 
         if ($lowerCard !== null && $lowerCard['rank'] > $cardRank) {
-            return "anchor";
+            return true;
         }
         if ($higherCard !== null && $higherCard['rank'] < $cardRank) {
-            return "anchor";
+            return true;
         }
 
-        return "number";
+        return false;
     }
 
     private function soloReplaceCenterCard(int $handCardRank, int $centerCardLocation): array{

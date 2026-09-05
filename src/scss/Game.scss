@@ -20,6 +20,7 @@
 body{ background: #221e52; }
 #game_play_area{ padding-bottom: 150vh;}
 .mobile_version #game_play_area{ padding-bottom: 280vh;}
+.mobile_version .action-button{ margin-left: 5px; }
 
 .a-card{ overflow: hidden; position: relative; background-color: #fff8e9; --my-card-width: var(--card-width); width: var(--my-card-width); height: calc(var(--my-card-width) * 2); box-shadow: 2px 2px 4px #000000; border-radius: calc(var(--my-card-width) * 0.1);
 	&:before{ content: ""; background-size: 1000% 800%; display: block; background-image: var(--image-source-fugu-cards); background-color: #fff8e9; width: 104%; height: 102%; margin-left: -1%; margin-top: -2%; }
@@ -98,7 +99,7 @@ body.desktop_version{
 .mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); }
 
 //status bar
-#swap-button.purple-button{ background: linear-gradient(148deg, #2e1a3d 59%, #6b2d5c) no-repeat border-box; }
+#swap-anchor-button.purple-button{ background: linear-gradient(148deg, #2e1a3d 59%, #6b2d5c) no-repeat border-box; }
 //end status bar
 
 //player board
