@@ -1146,10 +1146,6 @@ body.desktop_version .background-container .background-foreground {
 .log.gamelogreview, .gamelogreview.gamelogreview {
   background: var(--bg-gradient-logs);
 }
-.log.swap-cards-log, .gamelogreview.swap-cards-log {
-  width: 90%;
-  margin-left: 10%;
-}
 .log.swap-cards-log .swap-cards-row, .gamelogreview.swap-cards-log .swap-cards-row {
   margin-bottom: -9px;
 }
@@ -1158,8 +1154,8 @@ body.desktop_version .background-container .background-foreground {
 }
 .log.center-card-replaced-log, .gamelogreview.center-card-replaced-log {
   margin-bottom: -3px;
-  width: 60%;
-  margin-left: 40%;
+  width: 70%;
+  margin-left: 30%;
 }
 .log.center-card-replaced-log .center-card-replaced-row, .gamelogreview.center-card-replaced-log .center-card-replaced-row {
   text-align: center;
@@ -1204,7 +1200,7 @@ body.mobile_version .log.swap-cards-log, body.mobile_version .gamelogreview.swap
   margin-left: 0%;
 }
 body.mobile_version .log.center-card-replaced-log, body.mobile_version .gamelogreview.center-card-replaced-log {
-  margin-left: 20%;
+  margin-left: 15%;
   margin-bottom: 0px;
   margin-top: 0px;
 }

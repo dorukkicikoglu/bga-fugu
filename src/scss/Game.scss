@@ -329,12 +329,12 @@ body.desktop_version .background-container{
     }
     &.gamelogreview{ background: var(--bg-gradient-logs); }
 
-    &.swap-cards-log{ width: 90%; margin-left: 10%;
+    &.swap-cards-log{
         .swap-cards-row{ margin-bottom: -9px;
             .log-arrow-exchange{ margin: 11px 0px 7px 2px; }
         }
     }
-    &.center-card-replaced-log{ margin-bottom: -3px; width: 60%; margin-left: 40%;
+    &.center-card-replaced-log{ margin-bottom: -3px; width: 70%; margin-left: 30%;
         .center-card-replaced-row{ text-align: center; margin-bottom: -9px;
             .log-arrow{ z-index: 1; position: relative; font-size: 26px; margin-top: 4px; }
             .log-arrow-right-1{ margin-right: -12px; }
@@ -351,7 +351,7 @@ body.desktop_version .background-container{
 body.mobile_version{
     .log .playername.swapper-name{ max-width: 100px; }
     .log.swap-cards-log, .gamelogreview.swap-cards-log{ width: 100%; margin-left: 0%; }
-    .log.center-card-replaced-log, .gamelogreview.center-card-replaced-log{ margin-left: 20%; margin-bottom: 0px; margin-top: 0px; }
+    .log.center-card-replaced-log, .gamelogreview.center-card-replaced-log{ margin-left: 15%; margin-bottom: 0px; margin-top: 0px; }
 }
 body.desktop_version .a-game-log .playername[player-color="ffa500"]{ @include text-shade(#1e4b39, 1px); }
 body.desktop_version .a-game-log .playername[player-color="008000"]{ @include text-shade(#c7d7d0, 1px); } 
