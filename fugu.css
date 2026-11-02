@@ -1058,7 +1058,8 @@ body.current_player_is_active:not(.lockedInterface) #center-container .center-ca
   animation: gentle-parallax-foreground 12s ease-in-out infinite alternate;
 }
 .background-container .sliding-pufferfish, .background-container .sliding-bannerfish {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
   top: 36vw;
   position: absolute;
   left: 44%;
@@ -1068,6 +1069,9 @@ body.current_player_is_active:not(.lockedInterface) #center-container .center-ca
   background-repeat: no-repeat;
   transform-origin: center center;
   will-change: transform;
+}
+.background-container .sliding-pufferfish.visible, .background-container .sliding-bannerfish.visible {
+  opacity: 1;
 }
 .background-container .sliding-pufferfish {
   background-image: url(img/victoryPuff.webp);

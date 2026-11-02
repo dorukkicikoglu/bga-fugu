@@ -190,7 +190,7 @@ export class BackgroundHandler{
     //then kept for the whole jump so it never swaps mid-air
     if(!this.activeFish)
       this.activeFish = Math.random() < 0.5 ? this.slidingBannerfish : this.slidingPufferfish;
-    this.activeFish.style.display = 'block';
+    this.activeFish.classList.add('visible');
 
     //direction of travel along the jump: scrolling down runs progress 0 -> 1, scrolling up runs it 1 -> 0.
     //the anchor is the furthest progress reached in the current direction; the direction only flips once progress
@@ -232,7 +232,7 @@ export class BackgroundHandler{
 
   private hideFish(){
     if(this.activeFish)
-      this.activeFish.style.display = '';
+      this.activeFish.classList.remove('visible');
     this.activeFish = null;
     this.bannerfishDirectionAnchor = null;
   }
