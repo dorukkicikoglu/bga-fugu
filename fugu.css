@@ -1057,9 +1057,8 @@ body.current_player_is_active:not(.lockedInterface) #center-container .center-ca
   height: 102%;
   animation: gentle-parallax-foreground 12s ease-in-out infinite alternate;
 }
-.background-container .sliding-pufferfish {
+.background-container .sliding-pufferfish, .background-container .sliding-bannerfish {
   display: none;
-  background-image: url(img/victoryPuff.webp);
   top: 36vw;
   position: absolute;
   left: 44%;
@@ -1069,6 +1068,18 @@ body.current_player_is_active:not(.lockedInterface) #center-container .center-ca
   background-repeat: no-repeat;
   transform-origin: center center;
   will-change: transform;
+}
+.background-container .sliding-pufferfish {
+  background-image: url(img/victoryPuff.webp);
+}
+.background-container .sliding-bannerfish {
+  background-image: url(img/jumpingBannerfish.webp);
+  width: 7.5vw;
+  height: 11.25vw;
+  top: 35.375vw;
+  left: calc(44% + 1.25vw);
+  background-size: contain;
+  background-position: center;
 }
 .background-container .bubbles-container {
   position: fixed;
@@ -1099,11 +1110,17 @@ body.desktop_version .background-container .background-foreground {
   bottom: -98%;
   animation-name: gentle-parallax-foreground-mobile;
 }
-.mobile_version .background-container .sliding-pufferfish {
+.mobile_version .background-container .sliding-pufferfish, .mobile_version .background-container .sliding-bannerfish {
   width: 20vw;
   height: 20vw;
   top: 126vw;
   left: 40%;
+}
+.mobile_version .background-container .sliding-bannerfish {
+  width: 15vw;
+  height: 22.5vw;
+  top: 124.75vw;
+  left: calc(40% + 2.5vw);
 }
 
 .bubble {
@@ -1404,5 +1421,3 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"] {
     box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 20px 14px rgba(255, 255, 255, 0);
   }
 }
-
-/*# sourceMappingURL=fugu.css.map */

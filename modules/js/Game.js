@@ -1136,6 +1136,9 @@ const BUBBLE_AMOUNT_BY_PREF = {
 class BackgroundHandler {
     constructor(game) {
         this.game = game;
+        this.activeFish = null;
+        this.bannerfishDirectionAnchor = null;
+        this.bannerfishProgressIncreasing = true;
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
         this.bubblesInitialized = false;
         this.nextBubbleTimeout = null;
@@ -1160,6 +1163,10 @@ class BackgroundHandler {
         this.slidingPufferfish = document.createElement('div');
         this.slidingPufferfish.classList.add('sliding-pufferfish');
         this.backgroundContainer.appendChild(this.slidingPufferfish);
+        //same layering as slidingPufferfish; only one of the two is shown per jump
+        this.slidingBannerfish = document.createElement('div');
+        this.slidingBannerfish.classList.add('sliding-bannerfish');
+        this.backgroundContainer.appendChild(this.slidingBannerfish);
         //appended after backdropParallax so it renders on top of it, no z-index needed
         this.foregroundParallax = document.createElement('div');
         this.foregroundParallax.classList.add('parallax-layer');
@@ -1210,7 +1217,7 @@ class BackgroundHandler {
         this.foregroundParallax.style.transform = `translate3d(0, ${-scrollY * this.parallaxSpeedFront}px, 0)`;
         const scrollPastPlayerHands = Math.max(0, scrollY - (playerHandsBottom - window.innerHeight * 0.6));
         if (scrollPastPlayerHands === 0) {
-            this.slidingPufferfish.style.display = null;
+            this.hideFish();
             return;
         }
         //bounces up then back down: rises for the first maxRise of travel, then retraces the same
@@ -1218,29 +1225,90 @@ class BackgroundHandler {
         const maxRise = window.innerWidth * (this.game.isDesktop() ? BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP : BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE); //proportional to screen width because that's what determines the distance between ocean surface and the rocks
         const riseDistance = scrollPastPlayerHands * this.pufferfishRiseSpeed;
         if (riseDistance >= maxRise * 2) {
-            this.slidingPufferfish.style.display = null;
+            this.hideFish();
             return;
         }
-        this.slidingPufferfish.style.display = 'block';
+        const progress = riseDistance / (maxRise * 2);
         //eased bounce: quad ease-out into the top (decelerating), a short hold there, then quad ease-in
         //away from it (accelerating) back down - a linear reflection here looked like it hit an invisible
         //wall at the top instead of turning around
         const holdFraction = BackgroundHandler.PUFFERFISH_HOLD_FRACTION;
         const moveFraction = (1 - holdFraction) / 2;
-        const progress = riseDistance / (maxRise * 2);
-        let pufferfishY;
+        let fishY;
         if (progress < moveFraction) {
             const p = progress / moveFraction;
-            pufferfishY = -maxRise * (1 - (1 - p) * (1 - p)); //ease-out: fast start, slows into the top
+            fishY = -maxRise * (1 - (1 - p) * (1 - p)); //ease-out: fast start, slows into the top
         }
         else if (progress < moveFraction + holdFraction) {
-            pufferfishY = -maxRise; //hold at the top
+            fishY = -maxRise; //hold at the top
         }
         else {
             const p = (progress - moveFraction - holdFraction) / moveFraction;
-            pufferfishY = -maxRise * (1 - p * p); //ease-in: slow start, accelerates back to the bottom
+            fishY = -maxRise * (1 - p * p); //ease-in: slow start, accelerates back to the bottom
         }
-        this.slidingPufferfish.style.transform = `translate3d(0, ${pufferfishY}px, 0) rotate(${scrollPastPlayerHands * this.pufferfishRotationSpeed}deg)`;
+        //the jump ends as soon as the fish is back behind the rocks, not only at riseDistance >= maxRise * 2 -
+        //a short page may never scroll far enough to reach that end point, so the fish would never reset
+        if (-fishY < maxRise * BackgroundHandler.FISH_HIDDEN_BELOW_FRACTION) {
+            this.hideFish();
+            return;
+        }
+        //picked fresh each time a fish rises out from behind the rocks, from either scroll direction,
+        //then kept for the whole jump so it never swaps mid-air
+        if (!this.activeFish)
+            this.activeFish = Math.random() < 0.5 ? this.slidingBannerfish : this.slidingPufferfish;
+        this.activeFish.style.display = 'block';
+        //direction of travel along the jump: scrolling down runs progress 0 -> 1, scrolling up runs it 1 -> 0.
+        //the anchor is the furthest progress reached in the current direction; the direction only flips once progress
+        //moves back past it by more than the threshold, so a single jittery frame can't turn the fish around.
+        //with no anchor yet, a fish appearing near the start must be scrolling down into it, and near the end scrolling up
+        const flipThreshold = BackgroundHandler.BANNERFISH_DIRECTION_FLIP_THRESHOLD;
+        if (this.bannerfishDirectionAnchor === null) {
+            this.bannerfishProgressIncreasing = progress < 0.5;
+            this.bannerfishDirectionAnchor = progress;
+        }
+        else {
+            //keep pushing the anchor along while moving the current way, flip once it's reversed far enough
+            const movedForward = this.bannerfishProgressIncreasing ? progress > this.bannerfishDirectionAnchor : progress < this.bannerfishDirectionAnchor;
+            const reversedPastThreshold = Math.abs(progress - this.bannerfishDirectionAnchor) > flipThreshold && !movedForward;
+            if (movedForward) {
+                this.bannerfishDirectionAnchor = progress;
+            }
+            else if (reversedPastThreshold) {
+                //TEMP DEBUG: remove once the bannerfish facing is confirmed
+                console.log('[fish] direction flip', 'scrollY', scrollY, 'progress', progress, 'anchor', this.bannerfishDirectionAnchor, 'increasing', !this.bannerfishProgressIncreasing);
+                this.bannerfishProgressIncreasing = !this.bannerfishProgressIncreasing;
+                this.bannerfishDirectionAnchor = progress;
+            }
+        }
+        //pufferfish spins freely, bannerfish points along its path and only turns around during the hold.
+        //getBannerfishRotation assumes progress runs forwards (north while rising, south while falling), so when it's
+        //running backwards it's mirrored - the rise/fall path is symmetric around 0.5, so 1 - progress is the same jump seen forwards
+        const isBannerfish = this.activeFish === this.slidingBannerfish;
+        const bannerfishProgress = this.bannerfishProgressIncreasing ? progress : 1 - progress;
+        const rotation = isBannerfish
+            ? this.getBannerfishRotation(bannerfishProgress, moveFraction, holdFraction)
+            : scrollPastPlayerHands * this.pufferfishRotationSpeed;
+        //applied after the hidden check above, so both fish still hide and reset at the same point
+        const activeFishY = isBannerfish ? fishY * BackgroundHandler.BANNERFISH_JUMP_HEIGHT_FACTOR : fishY;
+        this.activeFish.style.transform = `translate3d(0, ${activeFishY}px, 0) rotate(${rotation}deg)`;
+    }
+    hideFish() {
+        if (this.activeFish)
+            this.activeFish.style.display = '';
+        this.activeFish = null;
+        this.bannerfishDirectionAnchor = null;
+    }
+    //faces north while rising, south while falling, and turns between the two during the hold at the top.
+    //driven by scroll progress rather than time, so the turn reverses if the user scrolls back up.
+    //UP -> DOWN passes through 0, the image's natural upright pose, rather than flipping belly-up
+    getBannerfishRotation(progress, moveFraction, holdFraction) {
+        if (progress < moveFraction)
+            return BackgroundHandler.BANNERFISH_ANGLE_UP;
+        if (progress >= moveFraction + holdFraction)
+            return BackgroundHandler.BANNERFISH_ANGLE_DOWN;
+        const t = (progress - moveFraction) / holdFraction;
+        const eased = t * t * (3 - 2 * t); //smoothstep: eases into and out of the turn
+        return BackgroundHandler.BANNERFISH_ANGLE_UP + (BackgroundHandler.BANNERFISH_ANGLE_DOWN - BackgroundHandler.BANNERFISH_ANGLE_UP) * eased;
     }
     onBodyClick(event) {
         if (this.targetBubbleSetting.maxBubbleCount === 0)
@@ -1394,6 +1462,15 @@ BackgroundHandler.PUFFERFISH_ROTATION_SPEED_MOBILE = 0.45;
 BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_DESKTOP = 0.3;
 BackgroundHandler.PUFFERFISH_JUMP_DISTANCE_MOBILE = 0.8;
 BackgroundHandler.PUFFERFISH_HOLD_FRACTION = 0.12;
+//the fish counts as hidden behind the rocks while its rise above the start position is less than this
+//fraction of maxRise - tune it so the fish is fully covered by the foreground at that point
+BackgroundHandler.FISH_HIDDEN_BELOW_FRACTION = 0.15;
+//the image faces left, so +90 (clockwise) points it north and -90 points it south.
+//nudge these if the image looks off-vertical
+BackgroundHandler.BANNERFISH_ANGLE_UP = 90;
+BackgroundHandler.BANNERFISH_ANGLE_DOWN = -90;
+BackgroundHandler.BANNERFISH_JUMP_HEIGHT_FACTOR = 0.95; //bannerfish peaks slightly lower than the pufferfish
+BackgroundHandler.BANNERFISH_DIRECTION_FLIP_THRESHOLD = 0.01; //how far progress must reverse past the anchor before the direction flips, absorbs scroll jitter
 
 class PrefHandler {
     constructor(game, prefNameToIndex) {

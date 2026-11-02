@@ -287,7 +287,9 @@ body.current_player_is_active:not(.lockedInterface){
     .background-backdrop, .background-foreground{ position: absolute; left: -2%; width: 102%; display: block; background-size: 108vw 53vw; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
     .background-backdrop { top: -2%; background-image: url(img/backParallax.webp); height: 40vw; animation: gentle-parallax-backdrop 12s ease-in-out infinite alternate; }
     .background-foreground { bottom: 0%; background-image: url(img/frontParallax.webp); height: 102%; animation: gentle-parallax-foreground 12s ease-in-out infinite alternate; }
-    .sliding-pufferfish { display: none; background-image: url(img/victoryPuff.webp); top: 36vw; position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
+    .sliding-pufferfish, .sliding-bannerfish { display: none; top: 36vw; position: absolute; left: 44%; width: 10vw; height: 10vw; background-size: 100%; background-repeat: no-repeat; transform-origin: center center; will-change: transform; }
+    .sliding-pufferfish { background-image: url(img/victoryPuff.webp); }
+    .sliding-bannerfish { background-image: url(img/jumpingBannerfish.webp); width: 7.5vw; height: 11.25vw; top: 35.375vw; left: calc(44% + 1.25vw); background-size: contain; background-position: center; } //matches the 400x607 image; top/left offset by half the size difference so it shares the pufferfish's center
     .bubbles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1; }
 }
 body.desktop_version .background-container{
@@ -297,7 +299,8 @@ body.desktop_version .background-container{
     .background-backdrop, .background-foreground{ width: 400%; background-size: 300vw 220vw; left: -96%; height: 200%; }
     .background-backdrop { height: 160vw; animation-name: gentle-parallax-backdrop-mobile; }
     .background-foreground { bottom: -98%; animation-name: gentle-parallax-foreground-mobile; } //re-solved for the 200% mobile height above
-    .sliding-pufferfish{ width: 20vw; height: 20vw; top: 126vw; left: 40%; } //re-solved for the 20vw mobile height above
+    .sliding-pufferfish, .sliding-bannerfish{ width: 20vw; height: 20vw; top: 126vw; left: 40%; } //re-solved for the 20vw mobile height above
+    .sliding-bannerfish{ width: 15vw; height: 22.5vw; top: 124.75vw; left: calc(40% + 2.5vw); }
 }
 
 .bubble { position: absolute; bottom: -10%; animation: bubble-rise linear 1;
