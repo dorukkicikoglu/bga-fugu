@@ -201,15 +201,19 @@ export class CenterHandler{
 
         const newCenterCardClone : HTMLDivElement = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
 
-        oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
-        oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
+        //flown inside the shared animation layer (above every row) rather than inside this card's own container;
+        //appended in this order so the old card still renders over the incoming one, as before
+        const animationLayer = this.game.getCardAnimationLayer();
+        animationLayer.appendChild(newCenterCardClone);
+        animationLayer.appendChild(oldCenterCardClone);
 
         this.game.placeOnObject(oldCenterCardClone, oldCenterCard);
         this.game.placeOnObject(newCenterCardClone, oldCenterCard);
-        
+
         const newCenterCardOriginalTop = newCenterCardClone.style.top;
         const newCenterCardOriginalLeft = newCenterCardClone.style.left;
-        newCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        const offscreenTop = `calc(var(--card-width) * -3 + ${parseFloat(newCenterCardOriginalTop || '0')}px)`; //relative to the slot, since the layer's origin isn't the slot's
+        newCenterCardClone.style.top = offscreenTop;
         newCenterCardClone.style.left = `calc(var(--card-width) * ` + (-1 * (3 + Math.random() * 2)) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
         oldCenterCard.style.opacity = '0';
 
@@ -222,7 +226,7 @@ export class CenterHandler{
         const flyAwayAnimTime = 400;
         oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
 
-        oldCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        oldCenterCardClone.style.top = offscreenTop;
         oldCenterCardClone.style.left = `calc(var(--card-width) * ` + (3 + Math.random() * 2) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
         const flyInAnimTime = 400;
         newCenterCardClone.style.transition = `top ${flyInAnimTime}ms ease-in, left ${flyInAnimTime}ms ease-in`;

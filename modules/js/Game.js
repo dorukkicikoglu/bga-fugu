@@ -309,35 +309,48 @@ class HandHandler {
         if (!centerCard || !handCard || !handCardClone)
             return;
         this.game.centerHandler.fadeOutIcon(centerCard); //this card is about to fly out to the hand; its icon shouldn't linger over the empty slot mid-animation
+        //both clones fly inside the shared animation layer rather than inside a row, so they stay above every reef
+        //and the center row they cross; they only get placed into their final row once they've landed (see below)
         const centerCardClone = this.game.cloneCard(centerCard);
-        handCard.insertAdjacentElement('afterend', centerCardClone);
-        centerCard.insertAdjacentElement('afterend', handCardClone);
+        const animationLayer = this.game.getCardAnimationLayer();
+        animationLayer.appendChild(centerCardClone);
+        animationLayer.appendChild(handCardClone);
+        //the cards that rest on top of this slot (higher z-index in the same reef) are lifted just above the layer for the
+        //whole swap, so the incoming card slides in under them, and the outgoing one lifts off from under them, exactly as
+        //they stack at rest - otherwise the card would pop beneath its right-hand neighbours the moment it lands
+        const layerZIndex = parseInt(getComputedStyle(animationLayer).zIndex);
+        const liftedCards = Array.from(cardsContainer.querySelectorAll('.a-card:not(.cloned-card)'))
+            .filter(card => parseInt(card.style.zIndex) > parseInt(handCard.style.zIndex))
+            .map(card => ({ card, restingZIndex: card.style.zIndex }));
+        liftedCards.forEach(({ card, restingZIndex }) => card.style.zIndex = (layerZIndex + 1 + parseInt(restingZIndex)).toString());
         centerCardClone.style.margin = '0';
         handCardClone.style.margin = '0';
+        //measure each clone's destination up front, while no transition is set yet, so placeOnObject's reset to 0,0
+        //can't kick off a stray transition and the start position below is applied instantly, without a jump
+        this.game.placeOnObject(centerCardClone, handCard);
+        this.game.placeOnObject(handCardClone, centerCard);
+        const centerCardCloneTarget = { top: centerCardClone.style.top, left: centerCardClone.style.left };
+        const handCardCloneTarget = { top: handCardClone.style.top, left: handCardClone.style.left };
         this.game.placeOnObject(centerCardClone, centerCard);
         this.game.placeOnObject(handCardClone, handCard);
         centerCard.style.opacity = '0';
         handCard.style.opacity = '0';
-        centerCardClone.style.zIndex = handCard.style.zIndex;
         const pullUpAnimTime = 200;
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
         centerCardClone.style.top = `${parseFloat(centerCardClone.style.top || '0') - 20}px`;
         await this.game.bga.gameui.wait(pullUpAnimTime + 50);
-        cardsContainer.style.zIndex = '100';
-        centerContainer.style.zIndex = '300';
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
-        centerCardClone.style.top = handCard.offsetTop + 'px';
-        centerCardClone.style.left = handCard.offsetLeft + 'px';
-        handCardClone.style.top = centerCard.offsetTop + 'px';
-        handCardClone.style.left = centerCard.offsetLeft + 'px';
+        centerCardClone.style.top = centerCardCloneTarget.top;
+        centerCardClone.style.left = centerCardCloneTarget.left;
+        handCardClone.style.top = handCardCloneTarget.top;
+        handCardClone.style.left = handCardCloneTarget.left;
         if (newStateInHand == 'anchor') {
             centerCardClone.style.boxShadow = 'none';
             centerCardClone.style.transform = 'rotate(180deg)';
         }
         await this.game.bga.gameui.wait(cardMoveAnimTime);
-        cardsContainer.style.zIndex = null;
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
         handCardClone.style.top = null;
@@ -351,12 +364,15 @@ class HandHandler {
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
+        centerCardClone.style.zIndex = handCard.style.zIndex; //resting reef stacking order (location_in_hand), only meaningful once it's back in the reef
         centerCardClone.classList.add('last-taken-card'); //this class is needed in HandHandler.updateMobileCardSpacing
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
-        centerContainer.style.zIndex = null;
+        //replaceWith moves each clone out of the animation layer into its final row, in the same task as the style
+        //cleanup above, so no frame is ever painted with a half-cleaned card in either place
         centerCard.replaceWith(handCardClone);
         handCard.replaceWith(centerCardClone);
+        liftedCards.forEach(({ card, restingZIndex }) => card.style.zIndex = restingZIndex); //the layer is empty now, so this changes nothing visible
         this.game.centerHandler.refreshIcon(handCardClone.parentElement); //the swapped-in card has landed; show its icon if it needs one
     }
     updateMobileCardSpacing() {
@@ -688,13 +704,17 @@ class CenterHandler {
         this.fadeOutIcon(oldCenterCard); //the discarded card is about to fly away; its icon shouldn't linger over the empty slot mid-animation
         const oldCenterCardClone = this.game.cloneCard(oldCenterCard);
         const newCenterCardClone = this.game.cloneCard(this.game.createCardDiv(newCenterCardData));
-        oldCenterCard.insertAdjacentElement('afterend', oldCenterCardClone);
-        oldCenterCard.insertAdjacentElement('afterend', newCenterCardClone);
+        //flown inside the shared animation layer (above every row) rather than inside this card's own container;
+        //appended in this order so the old card still renders over the incoming one, as before
+        const animationLayer = this.game.getCardAnimationLayer();
+        animationLayer.appendChild(newCenterCardClone);
+        animationLayer.appendChild(oldCenterCardClone);
         this.game.placeOnObject(oldCenterCardClone, oldCenterCard);
         this.game.placeOnObject(newCenterCardClone, oldCenterCard);
         const newCenterCardOriginalTop = newCenterCardClone.style.top;
         const newCenterCardOriginalLeft = newCenterCardClone.style.left;
-        newCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        const offscreenTop = `calc(var(--card-width) * -3 + ${parseFloat(newCenterCardOriginalTop || '0')}px)`; //relative to the slot, since the layer's origin isn't the slot's
+        newCenterCardClone.style.top = offscreenTop;
         newCenterCardClone.style.left = `calc(var(--card-width) * ` + (-1 * (3 + Math.random() * 2)) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
         oldCenterCard.style.opacity = '0';
         const pullUpAnimTime = 200;
@@ -703,7 +723,7 @@ class CenterHandler {
         await this.game.bga.gameui.wait(pullUpAnimTime + 50);
         const flyAwayAnimTime = 400;
         oldCenterCardClone.style.transition = `top ${flyAwayAnimTime}ms ease-out, left ${flyAwayAnimTime}ms ease-out`;
-        oldCenterCardClone.style.top = 'calc(var(--card-width) * -3)';
+        oldCenterCardClone.style.top = offscreenTop;
         oldCenterCardClone.style.left = `calc(var(--card-width) * ` + (3 + Math.random() * 2) + ` + ${parseFloat(oldCenterCardClone.style.left || '0')}px)`;
         const flyInAnimTime = 400;
         newCenterCardClone.style.transition = `top ${flyInAnimTime}ms ease-in, left ${flyInAnimTime}ms ease-in`;
@@ -1717,6 +1737,7 @@ class Game {
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
             <div id="player-hands-container"></div>
+            <div id="card-animation-layer"></div>
         `);
         this.myPlayerID = this.bga.players.getCurrentPlayerId();
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
@@ -1909,6 +1930,7 @@ class Game {
     }
     isSoloMode() { return this.bga.gameui.is_solo; }
     getDeckLength() { return this.gamedatas.deckLength; }
+    getCardAnimationLayer() { return document.getElementById('card-animation-layer'); }
     getMyPlayerID() { return this.myPlayerID; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications

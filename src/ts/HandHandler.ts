@@ -135,19 +135,37 @@ export class HandHandler{
 
         this.game.centerHandler.fadeOutIcon(centerCard); //this card is about to fly out to the hand; its icon shouldn't linger over the empty slot mid-animation
 
+        //both clones fly inside the shared animation layer rather than inside a row, so they stay above every reef
+        //and the center row they cross; they only get placed into their final row once they've landed (see below)
         const centerCardClone = this.game.cloneCard(centerCard);
-        handCard.insertAdjacentElement('afterend', centerCardClone);
-        centerCard.insertAdjacentElement('afterend', handCardClone);
+        const animationLayer = this.game.getCardAnimationLayer();
+        animationLayer.appendChild(centerCardClone);
+        animationLayer.appendChild(handCardClone);
+
+        //the cards that rest on top of this slot (higher z-index in the same reef) are lifted just above the layer for the
+        //whole swap, so the incoming card slides in under them, and the outgoing one lifts off from under them, exactly as
+        //they stack at rest - otherwise the card would pop beneath its right-hand neighbours the moment it lands
+        const layerZIndex = parseInt(getComputedStyle(animationLayer).zIndex);
+        const liftedCards = (Array.from(cardsContainer.querySelectorAll('.a-card:not(.cloned-card)')) as HTMLDivElement[])
+            .filter(card => parseInt(card.style.zIndex) > parseInt(handCard.style.zIndex))
+            .map(card => ({ card, restingZIndex: card.style.zIndex }));
+        liftedCards.forEach(({ card, restingZIndex }) => card.style.zIndex = (layerZIndex + 1 + parseInt(restingZIndex)).toString());
 
         centerCardClone.style.margin = '0';
         handCardClone.style.margin = '0';
+
+        //measure each clone's destination up front, while no transition is set yet, so placeOnObject's reset to 0,0
+        //can't kick off a stray transition and the start position below is applied instantly, without a jump
+        this.game.placeOnObject(centerCardClone, handCard);
+        this.game.placeOnObject(handCardClone, centerCard);
+        const centerCardCloneTarget = { top: centerCardClone.style.top, left: centerCardClone.style.left };
+        const handCardCloneTarget = { top: handCardClone.style.top, left: handCardClone.style.left };
 
 	    this.game.placeOnObject(centerCardClone, centerCard);
 	    this.game.placeOnObject(handCardClone, handCard);
 
         centerCard.style.opacity = '0';
         handCard.style.opacity = '0';
-        centerCardClone.style.zIndex = handCard.style.zIndex
 
         const pullUpAnimTime = 200;
         centerCardClone.style.transition = `top ${pullUpAnimTime}ms ease`;
@@ -155,27 +173,22 @@ export class HandHandler{
 
         await this.game.bga.gameui.wait(pullUpAnimTime + 50);
 
-        cardsContainer.style.zIndex = '100';
-        centerContainer.style.zIndex = '300';
-
         const cardMoveAnimTime = 700;
         centerCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease, transform ${cardMoveAnimTime}ms ease`;
         handCardClone.style.transition = `inset ${cardMoveAnimTime}ms ease`;
 
-        centerCardClone.style.top = handCard.offsetTop + 'px';
-        centerCardClone.style.left = handCard.offsetLeft + 'px';
-        handCardClone.style.top = centerCard.offsetTop + 'px';
-        handCardClone.style.left = centerCard.offsetLeft + 'px';
+        centerCardClone.style.top = centerCardCloneTarget.top;
+        centerCardClone.style.left = centerCardCloneTarget.left;
+        handCardClone.style.top = handCardCloneTarget.top;
+        handCardClone.style.left = handCardCloneTarget.left;
 
         if(newStateInHand == 'anchor'){
             centerCardClone.style.boxShadow = 'none';
             centerCardClone.style.transform = 'rotate(180deg)';
         }
-        
+
         await this.game.bga.gameui.wait(cardMoveAnimTime);
 
-        cardsContainer.style.zIndex = null;
-        
         handCardClone.classList.remove('cloned-card');
         handCardClone.style.margin = null;
         handCardClone.style.top = null;
@@ -191,14 +204,16 @@ export class HandHandler{
         centerCardClone.style.transition = null;
         centerCardClone.style.boxShadow = null;
         centerCardClone.style.transform = null;
+        centerCardClone.style.zIndex = handCard.style.zIndex; //resting reef stacking order (location_in_hand), only meaningful once it's back in the reef
         centerCardClone.classList.add('last-taken-card'); //this class is needed in HandHandler.updateMobileCardSpacing
         centerCardClone.setAttribute('data-state-in-hand', newStateInHand);
         centerCardClone.setAttribute('data-location-in-hand', cardInHand.location_in_hand.toString());
 
-        centerContainer.style.zIndex = null;
-
+        //replaceWith moves each clone out of the animation layer into its final row, in the same task as the style
+        //cleanup above, so no frame is ever painted with a half-cleaned card in either place
         centerCard.replaceWith(handCardClone);
         handCard.replaceWith(centerCardClone);
+        liftedCards.forEach(({ card, restingZIndex }) => card.style.zIndex = restingZIndex); //the layer is empty now, so this changes nothing visible
 
         this.game.centerHandler.refreshIcon(handCardClone.parentElement as HTMLDivElement); //the swapped-in card has landed; show its icon if it needs one
     }

@@ -40,6 +40,13 @@ body{ background: #221e52; }
 	&.cloned-card{ position: absolute; z-index: 100; pointer-events: none; }
 }
 
+//every card in flight is reparented in here for the duration of its animation. the rows can't host it themselves:
+//neither #center-container nor .cards-container is positioned, so a z-index set on them is ignored, and resting reef
+//cards carry z-index = location_in_hand in the shared stacking context - a flying card left inside a row ends up
+//competing with (and sliding under) higher-indexed cards of any reef it crosses. this layer is its own stacking
+//context above all rows, so z-indices inside it never fight the rows'
+#card-animation-layer{ position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 1000; pointer-events: none; }
+
 #center-container{ text-align: center; min-width: max-content; min-height: calc(var(--card-width) * 2.6);
 	.center-card-container{ position: relative; display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6);
 		.unplaceable-icon{ position: absolute; top: 21%; left: -9px; @include text-shade(#f0f0f0, 2px); transform: rotate(-12deg); font-size: 21px; color: #414faf; pointer-events: none; opacity: 0; transition: opacity 250ms ease; }

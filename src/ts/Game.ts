@@ -70,6 +70,7 @@ export class Game {
         this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
             <div id="center-container"></div>
             <div id="player-hands-container"></div>
+            <div id="card-animation-layer"></div>
         `);
 
         this.myPlayerID = this.bga.players.getCurrentPlayerId();
@@ -288,6 +289,7 @@ export class Game {
 
     public isSoloMode(): boolean{ return this.bga.gameui.is_solo; }
     public getDeckLength(): number{ return this.gamedatas.deckLength; }
+    public getCardAnimationLayer(): HTMLDivElement{ return document.getElementById('card-animation-layer') as HTMLDivElement; }
     public getMyPlayerID(): number{ return this.myPlayerID; }
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
