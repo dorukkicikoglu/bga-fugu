@@ -5,6 +5,8 @@ const SWAP_LINE_DASH_LENGTH = 12; //px
 const SWAP_LINE_GAP_LENGTH = 8; //px
 const SWAP_LINE_SPEED = 8; //px per second
 const SWAP_LINE_OPACITY = 0.5; //0 to 1
+const SWAP_LINE_MOBILE_INSET_X = 8; //px, distance from the reef card's left edge
+const SWAP_LINE_MOBILE_INSET_Y = 0; //px, distance down from the reef card's top edge
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
@@ -58,10 +60,15 @@ export class SwapLineHandler{
         const centerCardEdgeY = centerCardIsUpper ? centerCardRect.top + centerCardRect.height : centerCardRect.top;
         const handCardEdgeY = centerCardIsUpper ? handCardRect.top : handCardRect.top + handCardRect.height;
 
+        //mobile reef cards overlap so that only their left part shows, so the line aims for the top-left corner instead of the top centre
+        const aimForMobileCorner = this.game.isMobile() && centerCardIsUpper;
+        const handCardX = aimForMobileCorner ? handCardRect.left + SWAP_LINE_MOBILE_INSET_X : handCardRect.left + handCardRect.width / 2;
+        const handCardY = aimForMobileCorner ? handCardEdgeY + SWAP_LINE_MOBILE_INSET_Y : handCardEdgeY;
+
         this.line.setAttribute('x1', (centerCardRect.left + centerCardRect.width / 2 - overlayRect.left).toString());
         this.line.setAttribute('y1', (centerCardEdgeY - overlayRect.top).toString());
-        this.line.setAttribute('x2', (handCardRect.left + handCardRect.width / 2 - overlayRect.left).toString());
-        this.line.setAttribute('y2', (handCardEdgeY - overlayRect.top).toString());
+        this.line.setAttribute('x2', (handCardX - overlayRect.left).toString());
+        this.line.setAttribute('y2', (handCardY - overlayRect.top).toString());
     }
 
     //safe to call unconditionally
