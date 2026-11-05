@@ -88,6 +88,8 @@ export class CenterHandler{
             selectedHandCard.classList.add('swap-preview-anchor');
         }
 
+        this.game.swapLineHandler.refresh(); //after the anchor class above, since the line's colour reads it
+
         const swapButton = this.game.playerTurn.getSwapButton();
         if(wouldBeAnchor){
             const anchorPenalty: string = (-1 - this.game.myself.getAnchorCount()).toString();
@@ -106,6 +108,7 @@ export class CenterHandler{
     }
 
     public cardsUnselected(){
+        this.game.swapLineHandler.hide();
         this.game.playerTurn.getSwapButton().style.display = 'none';
         this.game.playerTurn.clearBadHalfWarning();
 

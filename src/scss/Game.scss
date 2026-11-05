@@ -2,6 +2,9 @@
 
 :root{
 	--player-color: #000000;
+    //card glows (see the *-glow-pulse keyframes) and the swap line both read these, so they stay in sync
+    --glow-gold: #FFD700;
+    --glow-anchor: #202ca9;
     //capped so cards (and everything sized off them: center display, reefs) stop growing past a comfortable
     //size on very large/ultra-wide screens - BGA Studio Guidelines C.4 (Sizing & responsiveness)
     --card-width: min(6vw, 120px);
@@ -35,7 +38,7 @@ body{ background: #221e52; }
     }   
 
 	&.selected-hand-card,
-	&.selected-center-card{ outline: 3px solid red; }
+	&.selected-center-card{ outline: 3px solid var(--swap-color); }
 	&.reference-card:before{ background-position-x: -500%; background-position-y: -700%; }
 	&.cloned-card{ position: absolute; z-index: 100; pointer-events: none; }
 }
@@ -46,6 +49,15 @@ body{ background: #221e52; }
 //competing with (and sliding under) higher-indexed cards of any reef it crosses. this layer is its own stacking
 //context above all rows, so z-indices inside it never fight the rows'
 #card-animation-layer{ position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 1000; pointer-events: none; }
+
+//line between the two cards selected for a swap (SwapLineHandler, which also holds the tweakable sizes and speed).
+//z-index: above resting cards (at most location_in_hand, ie. 18), well below flying cards, modal boxes, dialogs and tooltips
+#swap-line-overlay{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; z-index: 50; pointer-events: none;
+    &.anchor-placement line{ stroke: var(--glow-anchor); }
+    line{ stroke: var(--glow-gold); stroke-opacity: var(--swap-line-opacity); stroke-width: var(--swap-line-thickness); stroke-dasharray: var(--swap-line-dash-length) var(--swap-line-gap-length); animation: swap-line-march var(--swap-line-duration) linear infinite;
+        @media (prefers-reduced-motion: reduce){ animation: none; }
+    }
+}
 
 #center-container{ text-align: center; min-width: max-content; min-height: calc(var(--card-width) * 2.6);
 	.center-card-container{ position: relative; display: inline-block; margin-top: calc(var(--card-width) * 0.4); margin-left: calc(var(--card-width) * 0.6); margin-right: calc(var(--card-width) * 0.6);
@@ -400,40 +412,45 @@ body.desktop_version .a-game-log .playername[player-color="72c3b1"]{ @include te
   100% { transform: translate3d(0, 0, 0) rotate(0deg); }
 }
 
+@keyframes swap-line-march {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: var(--swap-line-end-offset); }
+}
+
 @keyframes selectable-card-glow-pulse {
-  0% { box-shadow: 0 0 5px 5px #FFD700; }
+  0% { box-shadow: 0 0 5px 5px var(--glow-gold); }
   50% { box-shadow: 0 0 11px 11px #ffd483; }
-  100% { box-shadow: 0 0 5px 5px #FFD700; }
+  100% { box-shadow: 0 0 5px 5px var(--glow-gold); }
 }
 
 @keyframes mobile-selectable-card-glow-pulse {
-  0% { box-shadow: 0 0 4px 4px #FFD700; }
+  0% { box-shadow: 0 0 4px 4px var(--glow-gold); }
   50% { box-shadow: 0 0 8px 8px #ffd483; }
-  100% { box-shadow: 0 0 4px 4px #FFD700; }
+  100% { box-shadow: 0 0 4px 4px var(--glow-gold); }
 }
 
 @keyframes selectable-anchored-card-glow-pulse {
-  0% { box-shadow: 0 0 5px 5px #202ca9; }
+  0% { box-shadow: 0 0 5px 5px var(--glow-anchor); }
   50% { box-shadow: 0 0 9px 9px #1d2ab0; }
-  100% { box-shadow: 0 0 5px 5px #202ca9; }
+  100% { box-shadow: 0 0 5px 5px var(--glow-anchor); }
 }
 
 @keyframes mobile-selectable-anchored-card-glow-pulse {
-  0% { box-shadow: 0 0 4px 4px #202ca9; }
+  0% { box-shadow: 0 0 4px 4px var(--glow-anchor); }
   50% { box-shadow: 0 0 8px 8px #1d2ab0; }
-  100% { box-shadow: 0 0 4px 4px #202ca9; }
+  100% { box-shadow: 0 0 4px 4px var(--glow-anchor); }
 }
 
 @keyframes swap-preview-anchor-glow-pulse {
-  0% { box-shadow: 0 0 5px 5px #202ca9; }
+  0% { box-shadow: 0 0 5px 5px var(--glow-anchor); }
   50% { box-shadow: 0 0 11px 11px #1d2ab0; }
-  100% { box-shadow: 0 0 5px 5px #202ca9; }
+  100% { box-shadow: 0 0 5px 5px var(--glow-anchor); }
 }
 
 @keyframes mobile-swap-preview-anchor-glow-pulse {
-  0% { box-shadow: 0 0 4px 4px #202ca9; }
+  0% { box-shadow: 0 0 4px 4px var(--glow-anchor); }
   50% { box-shadow: 0 0 8px 8px #1d2ab0; }
-  100% { box-shadow: 0 0 4px 4px #202ca9; }
+  100% { box-shadow: 0 0 4px 4px var(--glow-anchor); }
 }
 
 @keyframes solo-score-flavor-image-rock {

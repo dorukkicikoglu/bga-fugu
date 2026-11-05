@@ -128,6 +128,7 @@ class PlayerTurn {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
         this.game.centerHandler.clearSwapPreviewHighlights();
+        this.game.swapLineHandler.hide();
         this.clearBadHalfWarning();
     }
     /**
@@ -138,6 +139,7 @@ class PlayerTurn {
     onPlayerActivationChange(args, isCurrentPlayerActive) {
     }
     passClicked() {
+        this.game.swapLineHandler.hide();
         const confirmationPromise = this.bga.dialogs.confirmation(_("Pass and END YOUR GAME?"));
         const confirmButton = document.getElementById('confirmation-button-yes');
         if (confirmButton) {
@@ -147,7 +149,10 @@ class PlayerTurn {
         }
         confirmationPromise.then(result => {
             if (result) {
-                this.bga.actions.performAction("actPass");
+                this.restoreSwapLineIfActionFails(this.bga.actions.performAction("actPass"));
+            }
+            else {
+                this.game.swapLineHandler.refresh(); //pass was cancelled, so the cards are still selected
             }
         });
     }
@@ -161,10 +166,20 @@ class PlayerTurn {
             return;
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
-        this.bga.actions.performAction("actSwapCards", {
+        this.game.swapLineHandler.hide();
+        this.restoreSwapLineIfActionFails(this.bga.actions.performAction("actSwapCards", {
             centerCardID: centerCardID,
             handCardLocation: handCardLocation
-        });
+        }));
+    }
+    //performAction gives undefined if checkAction prevented the call, and rejects if the server refused it. either way
+    //the cards are still selected, so the line that was hidden on click has to come back
+    restoreSwapLineIfActionFails(actionRequest) {
+        if (!actionRequest) {
+            this.game.swapLineHandler.refresh();
+            return;
+        }
+        actionRequest.catch(() => this.game.swapLineHandler.refresh());
     }
     updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv) {
         this.clearBadHalfWarning();
@@ -613,6 +628,7 @@ class CenterHandler {
             selectedCenterCard.classList.add('swap-preview-anchor');
             selectedHandCard.classList.add('swap-preview-anchor');
         }
+        this.game.swapLineHandler.refresh(); //after the anchor class above, since the line's colour reads it
         const swapButton = this.game.playerTurn.getSwapButton();
         if (wouldBeAnchor) {
             const anchorPenalty = (-1 - this.game.myself.getAnchorCount()).toString();
@@ -629,6 +645,7 @@ class CenterHandler {
         this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
     cardsUnselected() {
+        this.game.swapLineHandler.hide();
         this.game.playerTurn.getSwapButton().style.display = 'none';
         this.game.playerTurn.clearBadHalfWarning();
         //deselecting one side can still leave the other side selected (eg. re-clicking an already-selected center
@@ -1700,6 +1717,104 @@ class AnchorCardsDisplayHandler extends CardIconDisplayHandler {
     }
 }
 
+const SWAP_LINE_THICKNESS = 3; //px
+const SWAP_LINE_DASH_LENGTH = 12; //px
+const SWAP_LINE_GAP_LENGTH = 8; //px
+const SWAP_LINE_SPEED = 8; //px per second
+const SWAP_LINE_OPACITY = 0.5; //0 to 1
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+//draws the marching dashed line between the two cards selected for a swap. Display only: the selection itself lives in
+//the DOM (the selected-center-card/selected-hand-card classes), and refresh() re-derives everything from there, so the
+//overlay and its listeners only exist while both cards are selected
+class SwapLineHandler {
+    constructor(game) {
+        this.game = game;
+        this.overlay = null;
+        this.line = null;
+        this.resizeObserver = null;
+        this.mutationObserver = null;
+        this.pendingFrame = null;
+        //a single frame can bring several triggers at once (eg. a resize also fires the observers), so they're coalesced
+        this.scheduleRefresh = () => {
+            if (this.pendingFrame !== null)
+                return;
+            this.pendingFrame = requestAnimationFrame(() => {
+                this.pendingFrame = null;
+                this.refresh();
+            });
+        };
+    }
+    //draws or moves the line if both cards are selected, otherwise removes it
+    refresh() {
+        const centerCard = this.game.centerHandler.getCenterContainer().querySelector('.selected-center-card');
+        const handCard = this.game.myself?.getHand().getHandContainer().querySelector('.selected-hand-card');
+        if (!centerCard || !handCard) {
+            this.hide();
+            return;
+        }
+        if (!this.overlay)
+            this.create();
+        //CenterHandler puts this class on both selected cards when the pairing would force anchor mode, which is what turns their glow blue
+        this.overlay.classList.toggle('anchor-placement', centerCard.classList.contains('swap-preview-anchor'));
+        const overlayRect = this.game.getPos(this.overlay);
+        const centerCardRect = this.game.getPos(centerCard);
+        const handCardRect = this.game.getPos(handCard);
+        //runs from the upper card's bottom edge to the lower card's top edge, going by where the cards actually are
+        //rather than by which container they're in, so it holds up if the layout changes
+        const centerCardIsUpper = centerCardRect.top + centerCardRect.height / 2 <= handCardRect.top + handCardRect.height / 2;
+        const centerCardEdgeY = centerCardIsUpper ? centerCardRect.top + centerCardRect.height : centerCardRect.top;
+        const handCardEdgeY = centerCardIsUpper ? handCardRect.top : handCardRect.top + handCardRect.height;
+        this.line.setAttribute('x1', (centerCardRect.left + centerCardRect.width / 2 - overlayRect.left).toString());
+        this.line.setAttribute('y1', (centerCardEdgeY - overlayRect.top).toString());
+        this.line.setAttribute('x2', (handCardRect.left + handCardRect.width / 2 - overlayRect.left).toString());
+        this.line.setAttribute('y2', (handCardEdgeY - overlayRect.top).toString());
+    }
+    //safe to call unconditionally
+    hide() {
+        if (!this.overlay)
+            return;
+        if (this.pendingFrame !== null)
+            cancelAnimationFrame(this.pendingFrame);
+        this.pendingFrame = null;
+        this.resizeObserver.disconnect();
+        this.mutationObserver.disconnect();
+        window.removeEventListener('resize', this.scheduleRefresh);
+        window.removeEventListener('scroll', this.scheduleRefresh, { capture: true });
+        this.overlay.remove();
+        this.overlay = null;
+        this.line = null;
+    }
+    create() {
+        const patternLength = SWAP_LINE_DASH_LENGTH + SWAP_LINE_GAP_LENGTH;
+        this.overlay = document.createElementNS(SVG_NAMESPACE, 'svg');
+        this.overlay.id = 'swap-line-overlay';
+        this.overlay.setAttribute('aria-hidden', 'true');
+        this.overlay.style.setProperty('--swap-line-thickness', `${SWAP_LINE_THICKNESS}px`);
+        this.overlay.style.setProperty('--swap-line-opacity', `${SWAP_LINE_OPACITY}`);
+        this.overlay.style.setProperty('--swap-line-dash-length', `${SWAP_LINE_DASH_LENGTH}px`);
+        this.overlay.style.setProperty('--swap-line-gap-length', `${SWAP_LINE_GAP_LENGTH}px`);
+        //one loop moves the dashes by exactly one pattern length, so it stays seamless at any speed
+        this.overlay.style.setProperty('--swap-line-end-offset', `${-patternLength}px`);
+        this.overlay.style.setProperty('--swap-line-duration', `${patternLength / SWAP_LINE_SPEED}s`);
+        this.line = document.createElementNS(SVG_NAMESPACE, 'line');
+        this.overlay.appendChild(this.line);
+        const gameArea = this.game.bga.gameArea.getElement();
+        const centerContainer = this.game.centerHandler.getCenterContainer();
+        const cardsContainer = this.game.myself.getHand().getHandContainer().querySelector('.cards-container');
+        gameArea.appendChild(this.overlay);
+        window.addEventListener('resize', this.scheduleRefresh);
+        window.addEventListener('scroll', this.scheduleRefresh, { capture: true, passive: true }); //capture: scroll events don't bubble, and this also catches inner scrollable ancestors
+        //the game area also covers anything above the reef changing height and pushing it down
+        this.resizeObserver = new ResizeObserver(this.scheduleRefresh);
+        [gameArea, centerContainer, cardsContainer].forEach((element) => this.resizeObserver.observe(element));
+        //cards can move without any container resizing: HandHandler spaces mobile reefs through inline margins, and a
+        //card being replaced changes nothing about the row's size. class is watched too, in case a selection gets
+        //cleared by something other than a click, eg. a swap arriving as a notification (animateCardSwap)
+        this.mutationObserver = new MutationObserver(this.scheduleRefresh);
+        [centerContainer, cardsContainer].forEach((element) => this.mutationObserver.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] }));
+    }
+}
+
 class Game {
     constructor(bga) {
         this.players = {};
@@ -1741,6 +1856,7 @@ class Game {
         `);
         this.myPlayerID = this.bga.players.getCurrentPlayerId();
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
+        this.swapLineHandler = new SwapLineHandler(this);
         this.endGameScoringHandler = new EndGameScoringHandler(this);
         // Setting up player boards
         for (let player_id in gamedatas.players) {
@@ -1752,6 +1868,7 @@ class Game {
             this.myself = this.players[this.myPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
             this.myself.getHand().setMyHand(true);
+            this.bga.gameArea.getElement().style.setProperty('--swap-color', '#' + this.gamedatas.players[this.myPlayerID].color);
             for (let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
                 nextHandContainer.parentElement.append(nextHandContainer);

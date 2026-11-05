@@ -8,6 +8,7 @@ import { BackgroundHandler } from "./BackgroundHandler";
 import { PrefHandler } from "./PrefHandler";
 import { SoloDiscardDisplayHandler } from "./SoloDiscardDisplayHandler";
 import { AnchorCardsDisplayHandler } from "./AnchorCardsDisplayHandler";
+import { SwapLineHandler } from "./SwapLineHandler";
 
 export class Game {
     public bga: Bga<FuguPlayer, FuguGamedatas>;
@@ -22,6 +23,7 @@ export class Game {
     
     public myself: PlayerHandler;
     public centerHandler: CenterHandler;
+    public swapLineHandler: SwapLineHandler;
     public logMutationObserver: LogMutationObserver;
     private endGameScoringHandler: EndGameScoringHandler;
     private tooltipHandler: TooltipHandler;
@@ -75,6 +77,7 @@ export class Game {
 
         this.myPlayerID = this.bga.players.getCurrentPlayerId();
         this.centerHandler = new CenterHandler(this, gamedatas.cardsInCenter);
+        this.swapLineHandler = new SwapLineHandler(this);
         this.endGameScoringHandler = new EndGameScoringHandler(this);
 
         // Setting up player boards
@@ -88,6 +91,7 @@ export class Game {
             this.myself = this.players[this.myPlayerID];
             this.myself.getHand().setHandTitle(_('Your Reef'));
             this.myself.getHand().setMyHand(true);
+            this.bga.gameArea.getElement().style.setProperty('--swap-color', '#' + this.gamedatas.players[this.myPlayerID].color);
 
             for(let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
@@ -232,7 +236,7 @@ export class Game {
             })
             .join(''); // Combine into a single string
     }
-    public getPos(node: HTMLDivElement): DOMRect { 
+    public getPos(node: Element): DOMRect {
         let pos = this.bga.gameui.getBoundingClientRectIgnoreZoom(node); 
         return pos;
     }

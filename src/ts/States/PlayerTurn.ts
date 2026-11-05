@@ -51,6 +51,7 @@ export class PlayerTurn {
         document.querySelectorAll('.a-card.selected-center-card').forEach(card => card.classList.remove('selected-center-card'));
         document.querySelectorAll('.a-card.selected-hand-card').forEach(card => card.classList.remove('selected-hand-card'));
         this.game.centerHandler.clearSwapPreviewHighlights();
+        this.game.swapLineHandler.hide();
         this.clearBadHalfWarning();
     }
 
@@ -63,6 +64,8 @@ export class PlayerTurn {
     }
 
     passClicked() {
+        this.game.swapLineHandler.hide();
+
         const confirmationPromise = this.bga.dialogs.confirmation(_("Pass and END YOUR GAME?"));
 
         const confirmButton = document.getElementById('confirmation-button-yes');
@@ -74,7 +77,9 @@ export class PlayerTurn {
 
         confirmationPromise.then(result => {
             if(result){
-                this.bga.actions.performAction("actPass");
+                this.restoreSwapLineIfActionFails(this.bga.actions.performAction("actPass"));
+            } else {
+                this.game.swapLineHandler.refresh(); //pass was cancelled, so the cards are still selected
             }
         });
     }
@@ -94,10 +99,23 @@ export class PlayerTurn {
         const centerCardID = centerCardDiv.getAttribute('data-card-id');
         const handCardLocation = parseInt(handCardDiv.getAttribute('data-location-in-hand'));
 
-        this.bga.actions.performAction("actSwapCards", {
+        this.game.swapLineHandler.hide();
+
+        this.restoreSwapLineIfActionFails(this.bga.actions.performAction("actSwapCards", {
             centerCardID: centerCardID,
             handCardLocation: handCardLocation
-        });
+        }));
+    }
+
+    //performAction gives undefined if checkAction prevented the call, and rejects if the server refused it. either way
+    //the cards are still selected, so the line that was hidden on click has to come back
+    private restoreSwapLineIfActionFails(actionRequest: Promise<any> | undefined): void {
+        if(!actionRequest){
+            this.game.swapLineHandler.refresh();
+            return;
+        }
+
+        actionRequest.catch(() => this.game.swapLineHandler.refresh());
     }
 
     public updateBadHalfWarning(cardRank: number, handCardLocation: number, lastClickedCardDiv: HTMLDivElement): void {
