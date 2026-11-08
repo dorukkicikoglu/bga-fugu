@@ -38,6 +38,8 @@ export class BackgroundHandler{
   private slidingPufferfish: HTMLDivElement;
   private slidingBannerfish: HTMLDivElement;
   private activeFish: HTMLDivElement | null = null;
+  private pufferfishJumpCount = 0;
+  private bannerfishJumpCount = 0;
   private bannerfishDirectionAnchor: number | null = null;
   private bannerfishProgressIncreasing = true;
   private foregroundParallax: HTMLDivElement;
@@ -189,7 +191,7 @@ export class BackgroundHandler{
     //picked fresh each time a fish rises out from behind the rocks, from either scroll direction,
     //then kept for the whole jump so it never swaps mid-air
     if(!this.activeFish)
-      this.activeFish = Math.random() < 0.5 ? this.slidingBannerfish : this.slidingPufferfish;
+      this.activeFish = this.pickNextFish();
     this.activeFish.classList.add('visible');
 
     //direction of travel along the jump: scrolling down runs progress 0 -> 1, scrolling up runs it 1 -> 0.
@@ -228,6 +230,22 @@ export class BackgroundHandler{
     const activeFishY = isBannerfish ? fishY * BackgroundHandler.BANNERFISH_JUMP_HEIGHT_FACTOR : fishY;
 
     this.activeFish.style.transform = `translate3d(0, ${activeFishY}px, 0) rotate(${rotation}deg)`;
+  }
+
+  //balanced random pick: the fish that has jumped less gets a higher chance, growing with the gap between the counts
+  private pickNextFish(): HTMLDivElement {
+    const lessJumpedFishChanceByDiff = [0.5, 0.6, 0.75, 0.9, 0.95, 0.99]; //index = absolute count difference, last entry covers 4 or more
+    const diff = this.pufferfishJumpCount - this.bannerfishJumpCount;
+    const isSecondJump = this.pufferfishJumpCount + this.bannerfishJumpCount === 1; //the second jump is always the fish that hasn't jumped yet
+    const lessJumpedFishChance = isSecondJump ? 1 : lessJumpedFishChanceByDiff[Math.min(Math.abs(diff), lessJumpedFishChanceByDiff.length - 1)];
+    const pufferfishChance = diff > 0 ? 1 - lessJumpedFishChance : lessJumpedFishChance;
+
+    if(Math.random() < pufferfishChance){
+      this.pufferfishJumpCount++;
+      return this.slidingPufferfish;
+    }
+    this.bannerfishJumpCount++;
+    return this.slidingBannerfish;
   }
 
   private hideFish(){

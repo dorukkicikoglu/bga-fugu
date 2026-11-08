@@ -1174,6 +1174,8 @@ class BackgroundHandler {
     constructor(game) {
         this.game = game;
         this.activeFish = null;
+        this.pufferfishJumpCount = 0;
+        this.bannerfishJumpCount = 0;
         this.bannerfishDirectionAnchor = null;
         this.bannerfishProgressIncreasing = true;
         this.targetBubbleSetting = BUBBLE_AMOUNT_BY_PREF[1];
@@ -1292,7 +1294,7 @@ class BackgroundHandler {
         //picked fresh each time a fish rises out from behind the rocks, from either scroll direction,
         //then kept for the whole jump so it never swaps mid-air
         if (!this.activeFish)
-            this.activeFish = Math.random() < 0.5 ? this.slidingBannerfish : this.slidingPufferfish;
+            this.activeFish = this.pickNextFish();
         this.activeFish.classList.add('visible');
         //direction of travel along the jump: scrolling down runs progress 0 -> 1, scrolling up runs it 1 -> 0.
         //the anchor is the furthest progress reached in the current direction; the direction only flips once progress
@@ -1328,6 +1330,20 @@ class BackgroundHandler {
         //applied after the hidden check above, so both fish still hide and reset at the same point
         const activeFishY = isBannerfish ? fishY * BackgroundHandler.BANNERFISH_JUMP_HEIGHT_FACTOR : fishY;
         this.activeFish.style.transform = `translate3d(0, ${activeFishY}px, 0) rotate(${rotation}deg)`;
+    }
+    //balanced random pick: the fish that has jumped less gets a higher chance, growing with the gap between the counts
+    pickNextFish() {
+        const lessJumpedFishChanceByDiff = [0.5, 0.6, 0.75, 0.9, 0.95, 0.99]; //index = absolute count difference, last entry covers 4 or more
+        const diff = this.pufferfishJumpCount - this.bannerfishJumpCount;
+        const isSecondJump = this.pufferfishJumpCount + this.bannerfishJumpCount === 1; //the second jump is always the fish that hasn't jumped yet
+        const lessJumpedFishChance = isSecondJump ? 1 : lessJumpedFishChanceByDiff[Math.min(Math.abs(diff), lessJumpedFishChanceByDiff.length - 1)];
+        const pufferfishChance = diff > 0 ? 1 - lessJumpedFishChance : lessJumpedFishChance;
+        if (Math.random() < pufferfishChance) {
+            this.pufferfishJumpCount++;
+            return this.slidingPufferfish;
+        }
+        this.bannerfishJumpCount++;
+        return this.slidingBannerfish;
     }
     hideFish() {
         if (this.activeFish)
