@@ -84,6 +84,7 @@ export class SwapLineHandler{
         this.mutationObserver.disconnect();
         window.removeEventListener('resize', this.scheduleRefresh);
         window.removeEventListener('scroll', this.scheduleRefresh, { capture: true });
+        this.game.bga.gameArea.getElement().removeEventListener('transitionend', this.scheduleRefresh);
 
         this.overlay.remove();
         this.overlay = null;
@@ -114,6 +115,8 @@ export class SwapLineHandler{
 
         window.addEventListener('resize', this.scheduleRefresh);
         window.addEventListener('scroll', this.scheduleRefresh, { capture: true, passive: true }); //capture: scroll events don't bubble, and this also catches inner scrollable ancestors
+        //a card can slide (eg. a reef's margin-top shift) without anything being resized, so settle on its final position once it lands
+        gameArea.addEventListener('transitionend', this.scheduleRefresh);
 
         //the game area also covers anything above the reef changing height and pushing it down
         this.resizeObserver = new ResizeObserver(this.scheduleRefresh);

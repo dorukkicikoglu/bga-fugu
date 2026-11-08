@@ -5,12 +5,16 @@ export class HandHandler{
     private static readonly MOBILE_HAND_SPAN_PERCENT = 99; //cards should span 98%-100% of the container's width
     private static readonly FACEDOWN_TO_FACEUP_OVERLAP_RATIO = 1.8; //facedown cards can overlap more since they don't need to stay readable
     private static readonly MIN_CLICKABLE_CARD_PERCENT = 1; //facedown cards are clickable, so at least this much of one must stay uncovered
+    private static readonly CONTRACTED_VISIBLE_CARD_PERCENT = 10; //my reef counts as too contracted once any card shows less than this much of its own width
+    private static readonly CONTRACTED_SHIFT_CARD_PERCENT = 10; //...and then its facedown cards move this much of the card height further from the other row, see .reef-contracted in Game.scss
 
     private handContainer: HTMLDivElement;
     private cardsContainer: HTMLDivElement;
     private isMyHand: boolean = false;
     private mobileSpacingApplied: boolean = false;
     private resizeDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+    private isContracted: boolean = false;
+    private gameEnded: boolean = false;
 
     constructor(private game: Game, private owner: PlayerHandler, private handData: CardInHand[]) {
         // ensure hand container exists in DOM (vanilla JS)
@@ -35,6 +39,7 @@ export class HandHandler{
         }
 
         this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container')) as HTMLDivElement;
+        this.cardsContainer.style.setProperty('--reef-contracted-shift', (HandHandler.CONTRACTED_SHIFT_CARD_PERCENT / 100).toString());
         this.cardsContainer.addEventListener('click', (event: Event) => { this.cardsContainerClicked(event); });
 
         this.displayHand();
@@ -48,6 +53,7 @@ export class HandHandler{
                 card.style.marginLeft = null;
                 card.style.marginRight = null;
             }
+            this.refreshContractedShift();
             return;
         }
 
@@ -316,11 +322,47 @@ export class HandHandler{
             card.style.marginLeft = '0%';
             card.style.marginRight = (i === cards.length - 1) ? '0%' : `${(isFacedown(card) ? facedownMarginPercent : faceupMarginPercent).toFixed(3)}%`;
         });
+
+        //judged on the margins just computed rather than on rendered positions, so a slide in progress (updateMobileCardSpacing) can't skew it.
+        //the shift only moves cards vertically, so it never changes this result, and the class can't flip back and forth on its own
+        const marginRightPercents = cards.map((card, i) => (i === cards.length - 1) ? 0 : (isFacedown(card) ? facedownMarginPercent : faceupMarginPercent));
+        this.isContracted = this.hasBarelyVisibleCard(cardWidthPercent, marginRightPercents);
+        this.refreshContractedShift();
+    }
+
+    //each card is covered from the left edge of the leftmost card after it, since later cards sit on top (z-index = location_in_hand)
+    private hasBarelyVisibleCard(cardWidthPercent: number, marginRightPercents: number[]): boolean{
+        const lefts = [0];
+        for(let i = 0; i < marginRightPercents.length - 1; i++)
+            lefts.push(lefts[i] + cardWidthPercent + marginRightPercents[i]);
+
+        const minVisiblePercent = cardWidthPercent * HandHandler.CONTRACTED_VISIBLE_CARD_PERCENT / 100;
+        let coveredFrom = Infinity;
+        for(let i = lefts.length - 1; i >= 0; i--){
+            const visiblePercent = Math.min(Math.max(coveredFrom - lefts[i], 0), cardWidthPercent);
+            if(visiblePercent < minVisiblePercent)
+                return true;
+            coveredFrom = Math.min(coveredFrom, lefts[i]);
+        }
+        return false;
+    }
+
+    //only my own reef has tap targets, so other reefs keep their layout; desktop never shifts. every path that could
+    //apply the shift (spacing, resize, layout switch, setMyHand) comes through here, so the gameEnded check keeps it off for good
+    private refreshContractedShift(): void{
+        this.cardsContainer.classList.toggle('reef-contracted', this.isMyHand && !this.gameEnded && this.game.isMobile() && this.isContracted);
+    }
+
+    //nothing in the reef is clickable once this player's game is over, so the extra room for tapping goes away
+    public setGameEnded(gameEnded: boolean): void{
+        this.gameEnded = gameEnded;
+        this.refreshContractedShift();
     }
 
     public setMyHand(isMyHand: boolean): void{
         this.isMyHand = isMyHand;
         this.handContainer.setAttribute('data-is-myself', isMyHand ? 'true' : 'false');
+        this.refreshContractedShift(); //spacing was first computed before the hand knew it was mine
     }
     public getHandContainer(): HTMLDivElement{ return this.handContainer;}
 }

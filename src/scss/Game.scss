@@ -112,6 +112,16 @@ body.desktop_version{
 .mobile_version #player-hands-container .a-hand-container .cards-container{
     // horizontal margins for mobile card overlap are computed and applied inline by HandHandler (see updateMobileCardSpacing)
     .a-card:not(.cloned-card):nth-child(even of .a-card:not(.cloned-card)) { margin-top: calc(var(--my-card-width) * 0.4); }
+    //my reef got too contracted (HandHandler.applyMobileCardSpacing): every facedown card moves one shift further from the other row than its
+    //faceup neighbours, exposing more of itself and of the cards it overlaps. upper-row cards can't go up without covering the reef title, so
+    //instead the whole row drops one shift and upper-row facedown cards stay put. all of it is margin-top (not a transform), so the reef box
+    //grows to hold the cards and the existing margin-top transition animates every card, and with them the reef height, both ways.
+    //--reef-contracted-shift is a fraction of the card height (height = 2 * width)
+    &.reef-contracted{
+        .a-card:not(.cloned-card):nth-child(odd of .a-card:not(.cloned-card)):not([data-state-in-hand="facedown"]){ margin-top: calc(var(--my-card-width) * 2 * var(--reef-contracted-shift)); }
+        .a-card:not(.cloned-card):nth-child(even of .a-card:not(.cloned-card)){ margin-top: calc(var(--my-card-width) * 0.4 + var(--my-card-width) * 2 * var(--reef-contracted-shift)); }
+        .a-card:not(.cloned-card):nth-child(even of .a-card:not(.cloned-card))[data-state-in-hand="facedown"]{ margin-top: calc(var(--my-card-width) * 0.4 + var(--my-card-width) * 4 * var(--reef-contracted-shift)); }
+    }
 }
 
 .mobile_version .a-hand-container .cards-container .a-card{ --horz-margin: calc(var(--my-card-width) * -0.17); }
@@ -150,7 +160,7 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) {
             .my-hand-title-text{ display: inline-block; }
         }
         .cards-container{ opacity: 0.9;
-            .a-card{ transition: transform 0.3s ease; transform: rotate(5deg); 
+            .a-card{ transition: transform 0.3s ease, margin-top 0.3s ease; transform: rotate(5deg); //margin-top kept so the reef-contracted shift still animates away when this player ends 
                 &[data-state-in-hand="anchor"]{ transform: rotate(-175deg); }
             }
         }

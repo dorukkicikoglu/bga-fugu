@@ -37,6 +37,7 @@ export class PlayerHandler{
 
     public setGameEnded(gameEnded: boolean, skipDarkening: boolean): void {
         this.player_game_ended = gameEnded;
+        this.hand.setGameEnded(gameEnded); //before the early return: everyone having ended skips the darkening, not this
         if(!gameEnded || skipDarkening)
             return;
 

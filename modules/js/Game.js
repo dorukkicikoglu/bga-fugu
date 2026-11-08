@@ -232,6 +232,8 @@ class HandHandler {
         this.isMyHand = false;
         this.mobileSpacingApplied = false;
         this.resizeDebounceTimeout = null;
+        this.isContracted = false;
+        this.gameEnded = false;
         // ensure hand container exists in DOM (vanilla JS)
         const parent = document.querySelector('#player-hands-container');
         if (parent) {
@@ -251,6 +253,7 @@ class HandHandler {
             parent.appendChild(this.handContainer);
         }
         this.cardsContainer = (this.handContainer && this.handContainer.querySelector('.cards-container'));
+        this.cardsContainer.style.setProperty('--reef-contracted-shift', (HandHandler.CONTRACTED_SHIFT_CARD_PERCENT / 100).toString());
         this.cardsContainer.addEventListener('click', (event) => { this.cardsContainerClicked(event); });
         this.displayHand();
     }
@@ -262,6 +265,7 @@ class HandHandler {
                 card.style.marginLeft = null;
                 card.style.marginRight = null;
             }
+            this.refreshContractedShift();
             return;
         }
         if (this.resizeDebounceTimeout)
@@ -473,16 +477,49 @@ class HandHandler {
             card.style.marginLeft = '0%';
             card.style.marginRight = (i === cards.length - 1) ? '0%' : `${(isFacedown(card) ? facedownMarginPercent : faceupMarginPercent).toFixed(3)}%`;
         });
+        //judged on the margins just computed rather than on rendered positions, so a slide in progress (updateMobileCardSpacing) can't skew it.
+        //the shift only moves cards vertically, so it never changes this result, and the class can't flip back and forth on its own
+        const marginRightPercents = cards.map((card, i) => (i === cards.length - 1) ? 0 : (isFacedown(card) ? facedownMarginPercent : faceupMarginPercent));
+        this.isContracted = this.hasBarelyVisibleCard(cardWidthPercent, marginRightPercents);
+        this.refreshContractedShift();
+    }
+    //each card is covered from the left edge of the leftmost card after it, since later cards sit on top (z-index = location_in_hand)
+    hasBarelyVisibleCard(cardWidthPercent, marginRightPercents) {
+        const lefts = [0];
+        for (let i = 0; i < marginRightPercents.length - 1; i++)
+            lefts.push(lefts[i] + cardWidthPercent + marginRightPercents[i]);
+        const minVisiblePercent = cardWidthPercent * HandHandler.CONTRACTED_VISIBLE_CARD_PERCENT / 100;
+        let coveredFrom = Infinity;
+        for (let i = lefts.length - 1; i >= 0; i--) {
+            const visiblePercent = Math.min(Math.max(coveredFrom - lefts[i], 0), cardWidthPercent);
+            if (visiblePercent < minVisiblePercent)
+                return true;
+            coveredFrom = Math.min(coveredFrom, lefts[i]);
+        }
+        return false;
+    }
+    //only my own reef has tap targets, so other reefs keep their layout; desktop never shifts. every path that could
+    //apply the shift (spacing, resize, layout switch, setMyHand) comes through here, so the gameEnded check keeps it off for good
+    refreshContractedShift() {
+        this.cardsContainer.classList.toggle('reef-contracted', this.isMyHand && !this.gameEnded && this.game.isMobile() && this.isContracted);
+    }
+    //nothing in the reef is clickable once this player's game is over, so the extra room for tapping goes away
+    setGameEnded(gameEnded) {
+        this.gameEnded = gameEnded;
+        this.refreshContractedShift();
     }
     setMyHand(isMyHand) {
         this.isMyHand = isMyHand;
         this.handContainer.setAttribute('data-is-myself', isMyHand ? 'true' : 'false');
+        this.refreshContractedShift(); //spacing was first computed before the hand knew it was mine
     }
     getHandContainer() { return this.handContainer; }
 }
 HandHandler.MOBILE_HAND_SPAN_PERCENT = 99; //cards should span 98%-100% of the container's width
 HandHandler.FACEDOWN_TO_FACEUP_OVERLAP_RATIO = 1.8; //facedown cards can overlap more since they don't need to stay readable
 HandHandler.MIN_CLICKABLE_CARD_PERCENT = 1; //facedown cards are clickable, so at least this much of one must stay uncovered
+HandHandler.CONTRACTED_VISIBLE_CARD_PERCENT = 10; //my reef counts as too contracted once any card shows less than this much of its own width
+HandHandler.CONTRACTED_SHIFT_CARD_PERCENT = 10; //...and then its facedown cards move this much of the card height further from the other row, see .reef-contracted in Game.scss
 
 class PlayerHandler {
     constructor(game, playerID, playerName, playerColor, playerNo, playerHandData, player_game_ended, scoringData) {
@@ -516,6 +553,7 @@ class PlayerHandler {
     }
     setGameEnded(gameEnded, skipDarkening) {
         this.player_game_ended = gameEnded;
+        this.hand.setGameEnded(gameEnded); //before the early return: everyone having ended skips the darkening, not this
         if (!gameEnded || skipDarkening)
             return;
         this.overallPlayerBoard.classList.add('game-ended-player-board');
@@ -1802,6 +1840,7 @@ class SwapLineHandler {
         this.mutationObserver.disconnect();
         window.removeEventListener('resize', this.scheduleRefresh);
         window.removeEventListener('scroll', this.scheduleRefresh, { capture: true });
+        this.game.bga.gameArea.getElement().removeEventListener('transitionend', this.scheduleRefresh);
         this.overlay.remove();
         this.overlay = null;
         this.line = null;
@@ -1826,6 +1865,8 @@ class SwapLineHandler {
         gameArea.appendChild(this.overlay);
         window.addEventListener('resize', this.scheduleRefresh);
         window.addEventListener('scroll', this.scheduleRefresh, { capture: true, passive: true }); //capture: scroll events don't bubble, and this also catches inner scrollable ancestors
+        //a card can slide (eg. a reef's margin-top shift) without anything being resized, so settle on its final position once it lands
+        gameArea.addEventListener('transitionend', this.scheduleRefresh);
         //the game area also covers anything above the reef changing height and pushing it down
         this.resizeObserver = new ResizeObserver(this.scheduleRefresh);
         [gameArea, centerContainer, cardsContainer].forEach((element) => this.resizeObserver.observe(element));
@@ -1891,6 +1932,8 @@ class Game {
             this.myself.getHand().setHandTitle(_('Your Reef'));
             this.myself.getHand().setMyHand(true);
             this.bga.gameArea.getElement().style.setProperty('--swap-color', '#' + this.gamedatas.players[this.myPlayerID].color);
+            if (this.getGameStateName() === 'gameEnd') //a finished table, even one that ended without every player's game_ended being set
+                this.myself.getHand().setGameEnded(true);
             for (let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
                 nextHandContainer.parentElement.append(nextHandContainer);

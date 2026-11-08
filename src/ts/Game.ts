@@ -92,6 +92,8 @@ export class Game {
             this.myself.getHand().setHandTitle(_('Your Reef'));
             this.myself.getHand().setMyHand(true);
             this.bga.gameArea.getElement().style.setProperty('--swap-color', '#' + this.gamedatas.players[this.myPlayerID].color);
+            if(this.getGameStateName() === 'gameEnd') //a finished table, even one that ended without every player's game_ended being set
+                this.myself.getHand().setGameEnded(true);
 
             for(let next_player_id of gamedatas.playerorder) {
                 const nextHandContainer = this.players[next_player_id].getHand().getHandContainer();
