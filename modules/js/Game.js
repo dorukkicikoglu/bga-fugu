@@ -97,6 +97,7 @@ class PlayerTurn {
         this.game = game;
         this.bga = bga;
         this.badHalfWarningBox = null;
+        this.maxIndicatorTooltipAdded = false;
     }
     /**
      * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
@@ -116,6 +117,7 @@ class PlayerTurn {
                 color: 'alert',
                 destination: document.getElementById('pass-button-slot'),
             });
+            this.addMaxIndicator();
         }
         else {
             this.bga.statusBar.setTitle(_('${actplayer} must play a card or pass'));
@@ -130,6 +132,7 @@ class PlayerTurn {
         this.game.centerHandler.clearSwapPreviewHighlights();
         this.game.swapLineHandler.hide();
         this.clearBadHalfWarning();
+        this.removeMaxIndicator();
     }
     /**
      * This method is called each time the current player becomes active or inactive in a MULTIPLE_ACTIVE_PLAYER state. You can use this method to perform some user interface changes at this moment.
@@ -219,10 +222,46 @@ class PlayerTurn {
         const maxDistance = (rankDistanceToEdge <= 3) ? 2 : 3;
         return offset > maxDistance;
     }
+    //"max: [highest card] (i)" hint at the end of the status bar actions. the highest card is the deck length, which
+    //only depends on player count, so the card icon carries no suit (card art is picked by data-rank alone)
+    addMaxIndicator() {
+        this.removeMaxIndicator(); //no duplicates if the state is re-entered before the status bar gets cleared
+        const generalActions = document.getElementById('generalactions');
+        if (!generalActions)
+            return;
+        const deckLength = this.game.getDeckLength();
+        generalActions.insertAdjacentHTML('beforeend', `
+            <span id="${PlayerTurn.MAX_INDICATOR_ID}" class="status-max">
+                <span class="status-max-label">${_('max:')}</span>
+                <div class="minimised-card-icon"><div class="a-card" id="status-max-card" data-rank="${deckLength}"></div></div>
+                <i class="status-max-info fa6 fa-circle-info"></i>
+            </span>
+        `);
+        const playerCount = Object.keys(this.bga.gameui.gamedatas.players).length;
+        const tooltipText = (this.game.isSoloMode() ? _('Cards in a solo game are numbered from 1 to ${max}') : _('Cards in a ${playerCount}-player game are numbered from 1 to ${max}'))
+            .replace('${playerCount}', playerCount.toString())
+            .replace('${max}', deckLength.toString());
+        //.tooltip-wrapper gives it the same gradient background (and arrow) as the cards' tooltip
+        this.bga.gameui.addTooltipHtml(PlayerTurn.MAX_INDICATOR_ID, `<div class="tooltip-wrapper"><div class="status-max-tooltip-text">${tooltipText}</div></div>`);
+        this.maxIndicatorTooltipAdded = true;
+    }
+    removeMaxIndicator() {
+        if (this.maxIndicatorTooltipAdded) { //tracked separately: the framework may already have emptied #generalactions
+            this.bga.gameui.removeTooltip(PlayerTurn.MAX_INDICATOR_ID);
+            this.maxIndicatorTooltipAdded = false;
+        }
+        document.getElementById(PlayerTurn.MAX_INDICATOR_ID)?.remove();
+    }
+    //the swap button only toggles an inline display style, so CSS can't tell it's showing; mirror it as a class
+    //(hiding itself is mobile-only, see .status-max.swap-button-visible in Game.scss)
+    setMaxIndicatorSwapButtonVisible(visible) {
+        document.getElementById(PlayerTurn.MAX_INDICATOR_ID)?.classList.toggle('swap-button-visible', visible);
+    }
     getSwapButton() { return this.swapButton; }
     ;
 }
 PlayerTurn.BAD_HALF_LOADING_BAR_MS = 5000;
+PlayerTurn.MAX_INDICATOR_ID = 'status-max';
 
 class HandHandler {
     constructor(game, owner, handData) {
@@ -680,11 +719,13 @@ class CenterHandler {
             swapButton.classList.add('bgabutton_blue');
         }
         swapButton.style.display = null;
+        this.game.playerTurn.setMaxIndicatorSwapButtonVisible(true);
         this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
     cardsUnselected() {
         this.game.swapLineHandler.hide();
         this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.setMaxIndicatorSwapButtonVisible(false);
         this.game.playerTurn.clearBadHalfWarning();
         //deselecting one side can still leave the other side selected (eg. re-clicking an already-selected center
         //card only clears that side's class, see centerCardClicked/handCardClicked), so re-derive from the DOM

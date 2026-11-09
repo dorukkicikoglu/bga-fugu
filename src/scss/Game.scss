@@ -101,6 +101,12 @@ body.desktop_version{
     .a-card{ margin-top: -17%; margin-left: -12%; width: 350%; height: 540%; }
 }
 
+//"max: [card] (i)" hint after the Pass button in the PlayerTurn status bar (PlayerTurn.addMaxIndicator)
+.status-max{ display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; vertical-align: middle; font-size: 0.9em; line-height: 1; opacity: 0.75; cursor: help;
+    .minimised-card-icon{ width: 18px; border-radius: 3px; } //~26px tall: stays within the Pass button's height so the title bar doesn't grow
+}
+.status-max.swap-button-visible{ display: none; } //no room next to the Swap Cards button on mobile
+
 .card-icons-display{ position: relative; transition: opacity 500ms; opacity: 0; width: 100%; text-align: center; border: 1px solid var(--player-color); border-radius: 10px; margin-top: 32px; padding: 30px 0px 10px 0px;
     .discarded-cards-title, .anchored-cards-title, .hide-cards-link{ color: #1a1b52; }
     .discarded-card-icon, .anchored-card-icon{ margin: -17px 4px 5px 4px; }
@@ -251,6 +257,7 @@ body.current_player_is_active:not(.lockedInterface){
 	&:has(.tooltip-wrapper){ background: none; }
 }
 .tooltip-wrapper { outline: 0.5px solid #ffffff; min-width: 230px; background: var(--bg-gradient-tooltip); padding: 10px; margin: -6px -6px -6px -6px;
+	.status-max-tooltip-text{ font-size: 16px; color: #121635; text-align: center; } //PlayerTurn's max indicator
 	.deck-length-text { font-size: 22px; color: #121635; text-indent: 6px; text-align: center; @include text-shade(#b1b2b9, 0.5px); }
 	.a-card.reference-card{ margin: auto; margin-top: 11px; margin-bottom: 10px; --my-card-width: calc(var(--card-width) * 2.1); 
 		&::before{ margin-top: -3% !important; margin-left: -3% !important; width: 106%; height: 102%; }

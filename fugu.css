@@ -539,6 +539,27 @@ body {
   height: 540%;
 }
 
+.status-max {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-size: 0.9em;
+  line-height: 1;
+  opacity: 0.75;
+  cursor: help;
+}
+.status-max .minimised-card-icon {
+  width: 18px;
+  border-radius: 3px;
+}
+
+.status-max.swap-button-visible {
+  display: none;
+}
+
 .card-icons-display {
   position: relative;
   transition: opacity 500ms;
@@ -887,6 +908,11 @@ body.current_player_is_active:not(.lockedInterface) #center-container .center-ca
   background: var(--bg-gradient-tooltip);
   padding: 10px;
   margin: -6px -6px -6px -6px;
+}
+.tooltip-wrapper .status-max-tooltip-text {
+  font-size: 16px;
+  color: #121635;
+  text-align: center;
 }
 .tooltip-wrapper .deck-length-text {
   font-size: 22px;

@@ -8,9 +8,11 @@ import { ModalBoxHandler } from "../ModalBoxHandler";
  */
 export class PlayerTurn {
     private static readonly BAD_HALF_LOADING_BAR_MS = 5000;
+    private static readonly MAX_INDICATOR_ID = 'status-max';
 
     private swapButton: HTMLButtonElement;
     private badHalfWarningBox: ModalBoxHandler | null = null;
+    private maxIndicatorTooltipAdded = false;
 
     constructor(private game: Game, private bga: Bga<FuguPlayer, FuguGamedatas>) {
     }
@@ -39,6 +41,8 @@ export class PlayerTurn {
                 color: 'alert',
                 destination: document.getElementById('pass-button-slot'),
             });
+
+            this.addMaxIndicator();
         } else {
             this.bga.statusBar.setTitle(_('${actplayer} must play a card or pass'));
         }
@@ -53,6 +57,7 @@ export class PlayerTurn {
         this.game.centerHandler.clearSwapPreviewHighlights();
         this.game.swapLineHandler.hide();
         this.clearBadHalfWarning();
+        this.removeMaxIndicator();
     }
 
     /**
@@ -169,5 +174,47 @@ export class PlayerTurn {
         return offset > maxDistance;
     }
     
+    //"max: [highest card] (i)" hint at the end of the status bar actions. the highest card is the deck length, which
+    //only depends on player count, so the card icon carries no suit (card art is picked by data-rank alone)
+    private addMaxIndicator(): void {
+        this.removeMaxIndicator(); //no duplicates if the state is re-entered before the status bar gets cleared
+
+        const generalActions = document.getElementById('generalactions');
+        if(!generalActions)
+            return;
+
+        const deckLength = this.game.getDeckLength();
+        generalActions.insertAdjacentHTML('beforeend', `
+            <span id="${PlayerTurn.MAX_INDICATOR_ID}" class="status-max">
+                <span class="status-max-label">${_('max:')}</span>
+                <div class="minimised-card-icon"><div class="a-card" id="status-max-card" data-rank="${deckLength}"></div></div>
+                <i class="status-max-info fa6 fa-circle-info"></i>
+            </span>
+        `);
+
+        const playerCount = Object.keys(this.bga.gameui.gamedatas.players).length;
+        const tooltipText = (this.game.isSoloMode() ? _('Cards in a solo game are numbered from 1 to ${max}') : _('Cards in a ${playerCount}-player game are numbered from 1 to ${max}'))
+            .replace('${playerCount}', playerCount.toString())
+            .replace('${max}', deckLength.toString());
+        //.tooltip-wrapper gives it the same gradient background (and arrow) as the cards' tooltip
+        this.bga.gameui.addTooltipHtml(PlayerTurn.MAX_INDICATOR_ID, `<div class="tooltip-wrapper"><div class="status-max-tooltip-text">${tooltipText}</div></div>`);
+        this.maxIndicatorTooltipAdded = true;
+    }
+
+    private removeMaxIndicator(): void {
+        if(this.maxIndicatorTooltipAdded){ //tracked separately: the framework may already have emptied #generalactions
+            this.bga.gameui.removeTooltip(PlayerTurn.MAX_INDICATOR_ID);
+            this.maxIndicatorTooltipAdded = false;
+        }
+
+        document.getElementById(PlayerTurn.MAX_INDICATOR_ID)?.remove();
+    }
+
+    //the swap button only toggles an inline display style, so CSS can't tell it's showing; mirror it as a class
+    //(hiding itself is mobile-only, see .status-max.swap-button-visible in Game.scss)
+    public setMaxIndicatorSwapButtonVisible(visible: boolean): void {
+        document.getElementById(PlayerTurn.MAX_INDICATOR_ID)?.classList.toggle('swap-button-visible', visible);
+    }
+
     public getSwapButton(): HTMLButtonElement{ return this.swapButton };
 }

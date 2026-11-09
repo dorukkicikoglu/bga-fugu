@@ -103,6 +103,7 @@ export class CenterHandler{
         }
         
         swapButton.style.display = null;
+        this.game.playerTurn.setMaxIndicatorSwapButtonVisible(true);
 
         this.game.playerTurn.updateBadHalfWarning(cardRank, handCardLocation, lastClickedCardDiv);
     }
@@ -110,6 +111,7 @@ export class CenterHandler{
     public cardsUnselected(){
         this.game.swapLineHandler.hide();
         this.game.playerTurn.getSwapButton().style.display = 'none';
+        this.game.playerTurn.setMaxIndicatorSwapButtonVisible(false);
         this.game.playerTurn.clearBadHalfWarning();
 
         //deselecting one side can still leave the other side selected (eg. re-clicking an already-selected center
