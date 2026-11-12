@@ -3,7 +3,16 @@ import { Game } from "./Game";
 export class TooltipHandler{
     constructor(private game: Game) { 
         this.addTooltipToCards();
+        this.addTooltipToReefPlayers();
 	}
+
+    //the Reef title's avatar or name: the full title ("<name>'s Reef" or "Your Reef"), since the avatar has none
+    private addTooltipToReefPlayers(){
+        for(const player_id in this.game.players){
+            const titleText = document.querySelector(`#reef-player-${player_id} .my-hand-title-text`)?.textContent || this.game.players[player_id].getPlayerName();
+            this.game.bga.gameui.addTooltip('reef-player-' + player_id, titleText, '', 400);
+        }
+    }
 
 	public addTooltipToCards(){
         if(document.body.classList.contains('safari-browser') && this.game.isMobile()) {

@@ -8,13 +8,14 @@
     //capped so cards (and everything sized off them: center display, reefs) stop growing past a comfortable
     //size on very large/ultra-wide screens - BGA Studio Guidelines C.4 (Sizing & responsiveness)
     --card-width: min(6vw, 120px);
+    --reef-avatar-size: 37px; //a Reef title's avatar circle ("Show players as" Profile picture)
 	--image-source-fugu-cards: url(img/fugu_cards.webp);
 	--bg-gradient-tooltip: linear-gradient(120deg, #de96f5, #38c79d);
 	--bg-gradient-tooltip-connector: linear-gradient(-120deg, #de96f5, #f5fbfa);
     --bg-gradient-logs: linear-gradient(260deg, #3a5290, #38c79d, #ffffff55 103%);
 }
 
-.mobile_version{ --card-width: min(28.5vw, 150px); }
+.mobile_version{ --card-width: min(28.5vw, 150px); --reef-avatar-size: 47px; }
 
 @mixin text-shade($color, $size) { text-shadow: #{$size} 0 $color, -#{$size} 0 $color, 0 #{$size} $color, 0 -#{$size} $color, #{($size / 2)} #{($size / 2)} $color, -#{($size / 2)} -#{($size / 2)} $color, #{($size / 2)} -#{($size / 2)} $color, -#{($size / 2)} #{($size / 2)} $color; }
 @mixin non-selectable() { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
@@ -76,8 +77,17 @@ body{ background: #221e52; }
 
 #player-hands-container{ 
     .a-hand-container{ position: relative; width: 100%; text-align: center; border: 1px solid var(--hand-owner-color); border-radius: 10px; margin-top: 18px; padding: 30px 0px 10px 0px; margin-top: 50px; min-height: calc(var(--card-width) * 2); --selected-card-margin-top: -30px;
-        .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); 
+        .my-hand-title{ position: absolute; top: 0px; left: 27px; transform: translateY(-50%); display: flex; align-items: center; font-family: "Roboto", sans-serif; border-radius: 6px; color: var(--hand-owner-color); font-size: 20px; @include text-shade(#f0f0f0, 2px); @include non-selectable(); 
             .passed-indicator{ display: none; }
+            //the avatar or the title (the "Show players as" preference): one button, a click switches every Reef's title.
+            //Its click area is 20% bigger than what shows, both ways (an invisible layer 10% past each edge, percentages of the
+            //button's own width and height), so nothing moves
+            .reef-player{ position: relative; display: flex; align-items: center; min-width: 0; cursor: pointer; border-radius: 999px; -webkit-tap-highlight-color: transparent;
+                &::before{ content: ""; position: absolute; inset: -10%; }
+                &:focus{ outline: none; }
+                &:focus-visible{ outline: 2px solid var(--glow-gold); outline-offset: 2px; }
+                .reef-player-avatar{ display: none; }
+            }
         }
 
         .cards-container .a-card{
@@ -86,6 +96,26 @@ body{ background: #221e52; }
         }
 
         &[data-is-myself="true"]{ margin-top: 50px; }
+    }
+
+    //"Show players as" Profile picture (PrefHandler): the title gives way to the owner's avatar, a circle ringed in their color and
+    //centered on the Reef's top border (the title is translateY(-50%) on it). The avatar fits the Reef's usual top padding, so
+    //switching moves nothing else
+    &[data-players-display="avatar"]{
+        .a-hand-container{
+            .my-hand-title{
+                .reef-player{
+                    .my-hand-title-text{ display: none; }
+                    .reef-player-avatar{ display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: var(--reef-avatar-size); height: var(--reef-avatar-size); border-radius: 50%; overflow: hidden; background-color: #ffffff; box-shadow: 0 0 0 3px var(--hand-owner-color), 1px 2px 5px rgba(0, 0, 0, 0.6); transition: box-shadow 0.15s ease;
+                        .reef-player-avatar-image{ display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+                        //no avatar on the board: the name's initial on the owner's color
+                        &.reef-player-avatar-initial{ background-color: var(--hand-owner-color); color: #ffffff; font-size: calc(var(--reef-avatar-size) * 0.5); font-weight: bold; line-height: 1; text-shadow: none; }
+                    }
+                    &:hover .reef-player-avatar{ box-shadow: 0 0 0 3px var(--hand-owner-color), 0 0 10px 2px var(--hand-owner-color); }
+                }
+            }
+            &[data-light-owner-color="true"] .reef-player-avatar-initial{ color: #1d1d1d; }
+        }
     }
 }
 body.desktop_version{
@@ -163,7 +193,6 @@ body:not(.displaying-end-game-score) #overall-content:not(.gamestate_gameEnd) {
         opacity: 0.9;
         .my-hand-title {
             .passed-indicator{ display: inline-block; margin-left: -2px; margin-right: 4px; }
-            .my-hand-title-text{ display: inline-block; }
         }
         .cards-container{ opacity: 0.9;
             .a-card{ transition: transform 0.3s ease, margin-top 0.3s ease; transform: rotate(5deg); //margin-top kept so the reef-contracted shift still animates away when this player ends 

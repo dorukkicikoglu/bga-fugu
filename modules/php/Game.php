@@ -29,6 +29,7 @@ class Game extends \Bga\GameFramework\Table
     public array $userPrefs = array(
         'bubble_amount' => 101,
         'show_anchored_cards' => 102,
+        'players_display' => 103,
     );
 
     /**

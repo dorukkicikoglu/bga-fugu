@@ -63,6 +63,7 @@ interface CoralCounts{
 interface GamePrefs{
     bubble_amount: number;
     show_anchored_cards: number;
+    players_display: number;
 }
 
 interface PlayerScore{

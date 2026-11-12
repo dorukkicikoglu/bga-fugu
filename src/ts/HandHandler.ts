@@ -7,6 +7,8 @@ export class HandHandler{
     private static readonly MIN_CLICKABLE_CARD_PERCENT = 1; //facedown cards are clickable, so at least this much of one must stay uncovered
     private static readonly CONTRACTED_VISIBLE_CARD_PERCENT = 10; //my reef counts as too contracted once any card shows less than this much of its own width
     private static readonly CONTRACTED_SHIFT_CARD_PERCENT = 10; //...and then its facedown cards move this much of the card height further from the other row, see .reef-contracted in Game.scss
+    private static readonly AVATAR_SIZE = 184; //BGA serves avatars at 32, 50, 92 and 184 px: the board's 32 would blur in the Reef title circle
+    private static readonly LIGHT_COLOR_LUMINANCE = 0.3; //relative luminance above which white text on the color falls under a 3:1 contrast: the avatar initial gets dark text instead
 
     private handContainer: HTMLDivElement;
     private cardsContainer: HTMLDivElement;
@@ -24,16 +26,31 @@ export class HandHandler{
             this.handContainer.className = 'a-hand-container';
             this.handContainer.setAttribute('data-owner-id', `${this.owner.getPlayerID()}`);
             this.handContainer.style.setProperty('--hand-owner-color', '#' + this.owner.getPlayerColor());
+            this.handContainer.setAttribute('data-light-owner-color', HandHandler.isLightColor(this.owner.getPlayerColor()) ? 'true' : 'false');
 
             const handTitleText = _('{$playerName}\'s Reef').replace('{$playerName}', this.owner.getPlayerName());
-            // inline HTML for brevity
+            //the avatar or the title, whichever the "Show players as" preference picks (PrefHandler, an attribute on
+            //#player-hands-container), is one button: a click switches every Reef's title
             this.handContainer.innerHTML = `
                 <div class="my-hand-title">
                     <i class="passed-indicator fa6 fa-ban"></i>
-                    <div class="my-hand-title-text">${handTitleText}</div>
+                    <span class="reef-player" id="reef-player-${this.owner.getPlayerID()}" role="button" tabindex="0">
+                        <span class="reef-player-avatar"></span>
+                        <div class="my-hand-title-text">${handTitleText}</div>
+                    </span>
                 </div>
                 <div class="cards-container"></div>
             `;
+            this.fillAvatar(this.handContainer.querySelector('.reef-player-avatar') as HTMLSpanElement);
+
+            const playerButton = this.handContainer.querySelector('.reef-player') as HTMLSpanElement;
+            playerButton.addEventListener('click', () => this.game.prefHandler?.togglePlayersDisplay());
+            playerButton.addEventListener('keydown', (event: KeyboardEvent) => {
+                if(event.key !== 'Enter' && event.key !== ' ')
+                    return;
+                event.preventDefault(); //no page scroll on Space
+                this.game.prefHandler?.togglePlayersDisplay();
+            });
 
             parent.appendChild(this.handContainer);
         }
@@ -81,6 +98,66 @@ export class HandHandler{
         aCard.style.zIndex = cardData.location_in_hand.toString();
 
         this.cardsContainer.appendChild(aCard);
+    }
+
+    //the owner's avatar at a bigger size than the player board's, so it stays sharp in the title circle: BGA's own
+    //bga.players.getPlayerAvatarUrl() when the framework provides it, then the board avatar (#avatar_<id>, there on setup for
+    //players, spectators and replays alike) with its size suffix swapped, then the board's own src. With no avatar at all,
+    //the name's initial on the owner's color, so every Reef can still show a circle
+    private fillAvatar(avatarContainer: HTMLSpanElement): void{
+        const boardAvatar = document.getElementById('avatar_' + this.owner.getPlayerID());
+        const boardSource = boardAvatar instanceof HTMLImageElement ? boardAvatar.getAttribute('src') : null;
+        const sources = [
+            this.getOfficialAvatarUrl(),
+            boardSource ? boardSource.replace(/_(32|50|92)(\.\w+)(?=$|\?)/, '_' + HandHandler.AVATAR_SIZE + '$2') : null,
+            boardSource,
+        ].filter((source, index, all) => source && all.indexOf(source) === index);
+
+        if(sources.length === 0){
+            this.showAvatarInitial(avatarContainer);
+            return;
+        }
+
+        const image = document.createElement('img');
+        image.className = 'reef-player-avatar-image';
+        image.alt = this.owner.getPlayerName();
+        image.draggable = false;
+        let sourceIndex = 0;
+        image.addEventListener('error', () => {
+            sourceIndex++;
+            if(sourceIndex < sources.length)
+                image.setAttribute('src', sources[sourceIndex]);
+            else{
+                image.remove();
+                this.showAvatarInitial(avatarContainer);
+            }
+        });
+        image.setAttribute('src', sources[0]);
+        avatarContainer.appendChild(image);
+    }
+
+    private getOfficialAvatarUrl(): string | null{
+        const bgaPlayers = this.game.bga.players;
+        if(!bgaPlayers || typeof bgaPlayers.getPlayerAvatarUrl !== 'function')
+            return null;
+
+        try {
+            return bgaPlayers.getPlayerAvatarUrl(this.owner.getPlayerID(), HandHandler.AVATAR_SIZE) || null;
+        } catch (e) {
+            console.warn('bga.players.getPlayerAvatarUrl failed, using the player board avatar', e);
+            return null;
+        }
+    }
+
+    private showAvatarInitial(avatarContainer: HTMLSpanElement): void{
+        avatarContainer.classList.add('reef-player-avatar-initial');
+        avatarContainer.textContent = Array.from(this.owner.getPlayerName())[0]?.toUpperCase() ?? '';
+    }
+
+    private static isLightColor(hexColor: string): boolean{
+        const channels = [0, 2, 4].map(offset => parseInt(hexColor.substring(offset, offset + 2), 16) / 255);
+        const [red, green, blue] = channels.map(channel => channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4));
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue > HandHandler.LIGHT_COLOR_LUMINANCE;
     }
 
     public setHandTitle(title: string): void{
