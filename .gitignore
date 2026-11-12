@@ -2,3 +2,4 @@
 **/*.css.map
 /.history
 **/sftp.json
+.claude/settings.local.json

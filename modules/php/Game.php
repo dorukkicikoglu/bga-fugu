@@ -327,9 +327,9 @@ class Game extends \Bga\GameFramework\Table
      * Compute a player's full score breakdown from the current state of their row.
      *
      * The row is read in play order (`location_in_hand` ASC) and includes face-down
-     * cards and anchor-flipped cards: both are needed to correctly detect Bannerfish
-     * groups (which they break) and Pufferfish/Octopus neighbours (which they don't
-     * satisfy, since their suit isn't showing).
+     * cards: they're needed to correctly detect Bannerfish groups (which they break)
+     * and Pufferfish/Octopus neighbours (which they don't satisfy, since their suit
+     * isn't showing). Anchor cards still count for their suit, like 'number' cards.
      *
      * @param int $playerID
      * @return array{total: int, bannerfish: int, pufferfish: int, octopus: int, corals: int, coralCounts: array{pinkCount: int, greenCount: int, yellowCount: int}, anchor: int, soloDifficultyPenalty: int}
@@ -345,9 +345,10 @@ class Game extends \Bga\GameFramework\Table
         );
         $rowSize = count($row);
 
-        // A card only reveals its suit when it's played face-up as a "number" card.
-        // Face-down cards (unplayed) and anchor-flipped cards hide their suit, so for
-        // scoring purposes they're treated as if no Bannerfish/Pufferfish/Coral is there.
+        // A card counts for its suit once it's played, as a "number" card or on its anchor
+        // side alike (an anchor still scores for its suit, on top of the anchor penalty).
+        // Face-down cards (unplayed) hide their suit, so for scoring purposes they're
+        // treated as if no Bannerfish/Pufferfish/Coral is there.
         $isVisibleSuit = fn(array $card): bool => ($card['state_in_hand'] === 'number' || $card['state_in_hand'] === 'anchor');
 
         $bannerfishScore = 0;
@@ -359,8 +360,8 @@ class Game extends \Bga\GameFramework\Table
 
         // --- BANNERFISH -----------------------------------------------------
         // Walk the row tracking the length of the current run of consecutive,
-        // visible Bannerfish cards. Any other card (face-down, anchor, or a
-        // different suit) ends the run, so we score it and start counting again.
+        // visible Bannerfish cards (anchors included). Any other card (face-down,
+        // or a different suit) ends the run, so we score it and start counting again.
         $currentRunLength = 0;
         foreach ($row as $card) {
             $isBannerfish = $isVisibleSuit($card) && $card['suit'] === 'bannerfish';
@@ -388,7 +389,7 @@ class Game extends \Bga\GameFramework\Table
             }
 
             if (!$isVisibleSuit($card)) {
-                continue; // face-down/anchor cards don't themselves score as Pufferfish/Octopus/Coral
+                continue; // face-down cards don't themselves score as Pufferfish/Octopus/Coral
             }
 
             if (in_array($card['suit'], ['coral_pink', 'coral_green', 'coral_yellow'], true)) {

@@ -209,9 +209,6 @@ export class BackgroundHandler{
       if(movedForward){
         this.bannerfishDirectionAnchor = progress;
       } else if(reversedPastThreshold){
-        //TEMP DEBUG: remove once the bannerfish facing is confirmed
-        console.log('[fish] direction flip', 'scrollY', scrollY, 'progress', progress, 'anchor', this.bannerfishDirectionAnchor, 'increasing', !this.bannerfishProgressIncreasing);
-
         this.bannerfishProgressIncreasing = !this.bannerfishProgressIncreasing;
         this.bannerfishDirectionAnchor = progress;
       }
@@ -234,7 +231,7 @@ export class BackgroundHandler{
 
   //balanced random pick: the fish that has jumped less gets a higher chance, growing with the gap between the counts
   private pickNextFish(): HTMLDivElement {
-    const lessJumpedFishChanceByDiff = [0.5, 0.6, 0.75, 0.9, 0.95, 0.99]; //index = absolute count difference, last entry covers 4 or more
+    const lessJumpedFishChanceByDiff = [0.5, 0.6, 0.75, 0.9, 0.95, 0.99]; //index = absolute count difference, last entry covers that difference or more
     const diff = this.pufferfishJumpCount - this.bannerfishJumpCount;
     const isSecondJump = this.pufferfishJumpCount + this.bannerfishJumpCount === 1; //the second jump is always the fish that hasn't jumped yet
     const lessJumpedFishChance = isSecondJump ? 1 : lessJumpedFishChanceByDiff[Math.min(Math.abs(diff), lessJumpedFishChanceByDiff.length - 1)];
